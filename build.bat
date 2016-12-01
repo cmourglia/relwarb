@@ -3,10 +3,12 @@
 if NOT EXIST build mkdir build
 pushd build
 
+del relwrab.pdb
+
 set DEBUG="True"
 
-set C_BASE_FLAGS=/WX /W4 /wd4100 /wd4189 /wd4065 /FC /GR- /EHa- /nologo /MT
-set C_DEB_FLAGS=/Z7 /O1
+set C_BASE_FLAGS=/WX /W4 /wd4100 /wd4189 /wd4065 /wd4101 /FC /GR- /EHa- /nologo
+set C_DEB_FLAGS=/Z7 /Od
 set C_REL_FLAGS=/Ox
 
 set LD_BASE_FLAGS=user32.lib gdi32.lib opengl32.lib /nologo /opt:ref
