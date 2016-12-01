@@ -1,12 +1,11 @@
 #include <windows.h>
 #include <stdint.h>
+#include <xinput.h>
 
 #include "relwrab_opengl.h"
 
 #define global_variable static
 #define internal static
-
-typedef bool bool32;
 
 typedef signed char int8;
 typedef int16_t int16;
@@ -15,6 +14,8 @@ typedef int32_t int32;
 typedef unsigned char uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
+
+typedef int32_t bool32;
 
 typedef float real32;
 typedef double real64;
@@ -31,9 +32,13 @@ struct GameState
 {
     real32 triX;
     real32 triY;
+    real32 triSize;
+
+    bool32 onEdge;
 };
 
 global_variable bool g_running;
+global_variable WORD g_vibrationLevel;
 
 #define WGL_DRAW_TO_WINDOW_ARB                      0x2001
 #define WGL_ACCELERATION_ARB                        0x2003
@@ -54,35 +59,33 @@ global_variable bool g_running;
 #define WGL_SAMPLE_BUFFERS_ARB                      0x2041
 #define WGL_SAMPLES_ARB                             0x2042
 
-typedef BOOL WINAPI def_wglGetPixelFormatAttribivARB(HDC hdc,
-                                                     int iPixelFormat,
-                                                     int iLayerPlane,
-                                                     UINT nAttributes,
-                                                     const int *piAttributes,
-                                                     int *piValues);
-
-typedef BOOL WINAPI def_wglGetPixelFormatAttribfvARB(HDC hdc,
-                                                     int iPixelFormat,
-                                                     int iLayerPlane,
-                                                     UINT nAttributes,
-                                                     const int *piAttributes,
-                                                     FLOAT *pfValues);
-
-typedef BOOL WINAPI def_wglChoosePixelFormatARB(HDC hdc,
-                                                const int *piAttribIList,
-                                                const FLOAT *pfAttribFList,
-                                                UINT nMaxFormats,
-                                                int *piFormats,
-                                                UINT *nNumFormats);
-
-typedef HGLRC def_wglCreateContextAttribsARB(HDC hDC,
-                                             HGLRC hshareContext,
-                                             const int *attribList);
+typedef BOOL WINAPI def_wglGetPixelFormatAttribivARB(HDC, int, int, UINT, const int*, int*);
+typedef BOOL WINAPI def_wglGetPixelFormatAttribfvARB(HDC, int, int, UINT, const int*, FLOAT*);
+typedef BOOL WINAPI def_wglChoosePixelFormatARB(HDC, const int*, const FLOAT*, UINT, int*, UINT*);
+typedef HGLRC def_wglCreateContextAttribsARB(HDC, HGLRC, const int*);
 
 global_variable def_wglGetPixelFormatAttribivARB* wglGetPixelFormatAttribivARB;
 global_variable def_wglGetPixelFormatAttribfvARB* wglGetPixelFormatAttribfvARB;
 global_variable def_wglChoosePixelFormatARB* wglChoosePixelFormatARB;
 global_variable def_wglCreateContextAttribsARB* wglCreateContextAttribsARB;
+
+#define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD, XINPUT_STATE*)
+typedef X_INPUT_GET_STATE(def_XInputGetState);
+X_INPUT_GET_STATE(XInputGetStateStub)
+{
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+global_variable def_XInputGetState* XInputGetState_ = XInputGetStateStub;
+#define XInputGetState XInputGetState_
+
+#define X_INPUT_SET_STATE(name) DWORD WINAPI name(DWORD, XINPUT_VIBRATION*)
+typedef X_INPUT_SET_STATE(def_XInputSetState);
+X_INPUT_SET_STATE(XInputSetStateStub)
+{
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+global_variable def_XInputSetState* XInputSetState_ = XInputSetStateStub;
+#define XInputSetState XInputSetState_
 
 LRESULT CALLBACK win32_MainWindowCallback(HWND, UINT, WPARAM, LPARAM);
 
@@ -93,10 +96,9 @@ internal void Render(GameState* gameState)
 
     glBegin(GL_TRIANGLES);
 
-    const real32 size = 0.1f;
     glColor3f(1, 0, 0); glVertex2f(gameState->triX, gameState->triY);
-    glColor3f(0, 1, 0); glVertex2f(gameState->triX + size, gameState->triY);
-    glColor3f(0, 0, 1); glVertex2f(gameState->triX + size / 2, gameState->triY + size);
+    glColor3f(0, 1, 0); glVertex2f(gameState->triX + gameState->triSize, gameState->triY);
+    glColor3f(0, 0, 1); glVertex2f(gameState->triX + gameState->triSize / 2, gameState->triY + gameState->triSize);
 
     glEnd();
     glFlush();
@@ -306,9 +308,97 @@ internal void win32_ProcessInputMessages(InputState* inputState)
     }
 }
 
-internal void win32_ProcessXBoxControllers(InputState* inputState)
+internal void win32_InitXInput()
 {
+    HMODULE XInputLibrary = LoadLibraryA("xinput1_4.dll");
+    if (!XInputLibrary)
+    {
+        XInputLibrary = LoadLibraryA("xinput1_3.dll");
+    }
 
+    if (XInputLibrary)
+    {
+        XInputGetState = (def_XInputGetState*)GetProcAddress(XInputLibrary, "XInputGetState");
+        XInputSetState = (def_XInputSetState*)GetProcAddress(XInputLibrary, "XInputSetState");
+    }
+}
+
+internal void win32_ProcessXBoxControllers(InputState* inputState, GameState* gameState)
+{
+    for (DWORD controllerIndex = 0; controllerIndex < XUSER_MAX_COUNT; ++controllerIndex)
+    {
+        XINPUT_STATE state = {};
+        if (XInputGetState(controllerIndex, &state) == ERROR_SUCCESS)
+        {
+            XINPUT_GAMEPAD* pad = &state.Gamepad;
+            bool32 bUp = (pad->wButtons & XINPUT_GAMEPAD_DPAD_UP);
+            bool32 bDown = (pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+            bool32 bLeft = (pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+            bool32 bRight = (pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+            bool32 start = (pad->wButtons & XINPUT_GAMEPAD_START);
+            bool32 back = (pad->wButtons & XINPUT_GAMEPAD_BACK);
+            bool32 lshoulder = (pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+            bool32 rshoulder = (pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
+            bool32 abutton = (pad->wButtons & XINPUT_GAMEPAD_A);
+            bool32 bbutton = (pad->wButtons & XINPUT_GAMEPAD_B);
+            bool32 xbutton = (pad->wButtons & XINPUT_GAMEPAD_X);
+            bool32 ybutton = (pad->wButtons & XINPUT_GAMEPAD_Y);
+
+            real32 lx = state.Gamepad.sThumbLX;
+            real32 ly = state.Gamepad.sThumbLY;
+
+#define INPUT_DEADZONE ((real32)(1 << 13))
+
+            if (lx > INPUT_DEADZONE || bRight)
+            {
+                inputState->moveLeft = false;
+                inputState->moveRight = true;
+            }
+            else if (lx < -INPUT_DEADZONE || bLeft)
+            {
+                inputState->moveLeft = true;
+                inputState->moveRight = false;
+            }
+            else
+            {
+                inputState->moveLeft = false;
+                inputState->moveRight = false;
+            }
+
+            if (ly > INPUT_DEADZONE || bUp)
+            {
+                inputState->moveUp = true;
+                inputState->moveDown = false;
+            }
+            else if (ly < -INPUT_DEADZONE || bDown)
+            {
+                inputState->moveDown = true;
+                inputState->moveUp = false;
+            }
+            else
+            {
+                inputState->moveDown = inputState->moveUp = false;
+            }
+
+            // Vibrate on edges
+            if (gameState->onEdge)
+            {
+                XINPUT_VIBRATION vibrations;
+                real32 left = 1.f - (gameState->triX * 0.5f + 0.5f);
+                real32 right = (gameState->triX + gameState->triSize) * 0.5f + 0.5f;
+
+                vibrations.wLeftMotorSpeed = (WORD)(left * (real32)(1 << 15)) * g_vibrationLevel;
+                vibrations.wRightMotorSpeed = (WORD)(right * (real32)(1 << 15)) * g_vibrationLevel;
+
+                XInputSetState(controllerIndex, &vibrations);
+            }
+            else
+            {
+                XINPUT_VIBRATION vibrations = {};
+                XInputSetState(controllerIndex, &vibrations);
+            }
+        }
+    }
 }
 
 int CALLBACK WinMain(HINSTANCE instance,
@@ -323,12 +413,15 @@ int CALLBACK WinMain(HINSTANCE instance,
     wc.hIcon = nullptr;
     wc.lpszClassName = "Win32RelwrabClassName";
 
+    win32_InitXInput();
+
     if (RegisterClass(&wc))
     {
         HWND window = CreateWindowExA(0,
                                       wc.lpszClassName,
                                       "Relwrab",
-                                      WS_VISIBLE | WS_POPUP,
+                                      // WS_VISIBLE | WS_POPUP,
+                                      WS_VISIBLE,
                                       CW_USEDEFAULT,
                                       CW_USEDEFAULT,
                                       1280,
@@ -348,20 +441,40 @@ int CALLBACK WinMain(HINSTANCE instance,
         GameState gameState = {};
         InputState inputState = {};
 
+        gameState.triSize = 0.1f;
+
         while (g_running)
         {
             win32_ProcessInputMessages(&inputState);
-            win32_ProcessXBoxControllers(&inputState);
+            win32_ProcessXBoxControllers(&inputState, &gameState);
 
-            if (inputState.moveLeft)   gameState.triX -= 0.01f;
-            if (inputState.moveRight)  gameState.triX += 0.01f;
-            if (inputState.moveDown)   gameState.triY -= 0.01f;
-            if (inputState.moveUp)     gameState.triY += 0.01f;
+            gameState.onEdge = false;
+            if (inputState.moveLeft)   gameState.triX -= 0.02f;
+            if (inputState.moveRight)  gameState.triX += 0.02f;
+            if (inputState.moveDown)   gameState.triY -= 0.02f;
+            if (inputState.moveUp)     gameState.triY += 0.02f;
 
-            if (gameState.triX < -1.f) gameState.triX =  1.f;
-            if (gameState.triX >  1.f) gameState.triX = -1.f;
-            if (gameState.triY < -1.f) gameState.triY =  1.f;
-            if (gameState.triY >  1.f) gameState.triY = -1.f;
+            if (gameState.triX < -1.f)
+            {
+                gameState.triX = -1.f;
+                gameState.onEdge = true;
+            }
+
+            if (gameState.triX > 1.f - gameState.triSize)
+            {
+                gameState.triX = 1.f - gameState.triSize;
+                gameState.onEdge = true;
+            }
+            if (gameState.triY < -1.f)
+            {
+                gameState.triY = -1.f;
+                gameState.onEdge = true;
+            }
+            if (gameState.triY > 1.f - gameState.triSize)
+            {
+                gameState.triY = 1.f - gameState.triSize;
+                gameState.onEdge = true;
+            }
 
             Render(&gameState);
             SwapBuffers(openglDC);
@@ -374,7 +487,6 @@ int CALLBACK WinMain(HINSTANCE instance,
     {
         OutputDebugString("Could not register class\n");
     }
-
 
     return 0;
 }
