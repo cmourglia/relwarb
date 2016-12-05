@@ -23,8 +23,10 @@ if %DEBUG% == "" (
     set LDFLAGS=%LD_BASE_FLAGS% /debug
 )
 
-
+cl %CFLAGS% /c ..\src\relwarb.cpp
+cl %CFLAGS% /c ..\src\relwarb_opengl.cpp
 cl %CFLAGS% /c ..\src\win32_relwarb.cpp
-link win32_relwarb.obj %LDFLAGS% /out:relwarb.exe
+
+link win32_relwarb.obj relwarb_opengl.obj relwarb.obj %LDFLAGS% /out:relwarb.exe
 
 popd
