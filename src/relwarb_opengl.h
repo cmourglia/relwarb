@@ -1,5 +1,5 @@
-#ifndef RELWRAB_OPENGL_H
-#define RELWRAB_OPENGL_H
+#ifndef RELWARB_OPENGL_H
+#define RELWARB_OPENGL_H
 
 #include <GL/gl.h>
 
@@ -41,10 +41,12 @@
 
 // Core 3.3 stuff
 typedef const char* def_glGetStringi(GLenum, GLuint);
-def_glGetStringi* glGetStringi;
+internal def_glGetStringi* glGetStringi_;
+#define glGetStringi glGetStringi_;
 
 typedef void def_glUseProgram(GLuint);
-def_glUseProgram* glUseProgram;
+internal def_glUseProgram* glUseProgram_;
+#define glUseProgram glUseProgram_;
 
 // GL_ARB_debug_output
 #define GL_DEBUG_TYPE_ERROR_ARB                              0x824C
@@ -61,6 +63,7 @@ def_glUseProgram* glUseProgram;
 typedef void def_DebugProc(GLenum, GLenum, GLuint, GLenum, GLsizei, const char*, const void*);
 
 typedef void def_glDebugMessageCallbackARB(def_DebugProc, void*);
-def_glDebugMessageCallbackARB* glDebugMessageCallbackARB;
+internal def_glDebugMessageCallbackARB* glDebugMessageCallbackARB_;
+#define glDebugMessageCallbackARB glDebugMessageCallbackARB_;
 
-#endif // RELWRAB_OPENGL_H
+#endif // RELWARB_OPENGL_H
