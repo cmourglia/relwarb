@@ -308,8 +308,8 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             // TODO(Charly): Toggle this flag depending on the build type
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-            // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+            //WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         };
 
@@ -379,7 +379,7 @@ internal void win32_ProcessInputMessages(InputState* inputState)
                         } break;
 
                         case VK_LEFT:
-                        case 'A':
+                        case 'Q':
                         {
                             inputState->moveLeft = isDown;
                         } break;
@@ -391,7 +391,7 @@ internal void win32_ProcessInputMessages(InputState* inputState)
                         } break;
 
                         case VK_UP:
-                        case 'W':
+                        case 'Z':
                         {
                             inputState->moveUp = isDown;
                         } break;
@@ -554,7 +554,7 @@ int CALLBACK WinMain(HINSTANCE instance,
             // TODO(Charly): Handle keyboard and xbox controller separatly
             //               For now xbox controller is commented out to avoid overriding keyboard state.
             win32_ProcessInputMessages(&inputState);
-            // win32_ProcessXBoxControllers(&inputState, &gameState);
+            win32_ProcessXBoxControllers(&inputState, &gameState);
 
             gameState.onEdge = false;
             if (inputState.moveLeft)   gameState.triX -= 0.02f;

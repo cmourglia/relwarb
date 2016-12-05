@@ -1,5 +1,12 @@
 build/*
+x64/*
+Debug/*
 *.exe
 *.dll
 *.obj
 *.pdb
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.db
+*.opendb
