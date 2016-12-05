@@ -22,7 +22,7 @@ typedef double real64;
 #if defined(_DEBUG)
 #define Assert(x) if (!(x)) { *(int*)0 = 0; }
 #else
-define Assert(x)
+#define Assert(x)
 #endif
 
 #if defined(STRINGIFY)
