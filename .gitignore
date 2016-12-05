@@ -10,3 +10,4 @@ Debug/*
 *.vcxproj.filters
 *.db
 *.opendb
+.vs/*
