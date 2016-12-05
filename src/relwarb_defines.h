@@ -1,5 +1,5 @@
-#ifndef RELWRAB_DEFINES_H
-#define RELWRAB_DEFINES_H
+#ifndef RELWARB_DEFINES_H
+#define RELWARB_DEFINES_H
 
 #include <stdint.h>
 
@@ -31,4 +31,4 @@ typedef double real64;
 
 #define STRINGIFY(x) #x
 
-#endif // RELWRAB_DEFINES_H
+#endif // RELWARB_DEFINES_H

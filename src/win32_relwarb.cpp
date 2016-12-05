@@ -4,6 +4,8 @@
 // TODO(Charly): Remove this
 #include <string.h>
 
+#include "relwarb.h"
+
 #include "relwarb_defines.h"
 #include "relwarb_opengl.h"
 
@@ -13,15 +15,6 @@ struct InputState
     bool32 moveRight;
     bool32 moveUp;
     bool32 moveDown;
-};
-
-struct GameState
-{
-    real32 triX;
-    real32 triY;
-    real32 triSize;
-
-    bool32 onEdge;
 };
 
 global_variable bool g_running;
@@ -83,22 +76,6 @@ global_variable def_XInputSetState* XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
 LRESULT CALLBACK win32_MainWindowCallback(HWND, UINT, WPARAM, LPARAM);
-
-internal void Render(GameState* gameState)
-{
-    glClearColor(0.3f, 0.8f, 0.7f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBegin(GL_TRIANGLES);
-
-    glColor3f(1, 0, 0); glVertex2f(gameState->triX, gameState->triY);
-    glColor3f(0, 1, 0); glVertex2f(gameState->triX + gameState->triSize, gameState->triY);
-    glColor3f(0, 0, 1); glVertex2f(gameState->triX + gameState->triSize / 2, gameState->triY + gameState->triSize);
-
-    glEnd();
-
-    glFlush();
-}
 
 internal void win32_SetPixelFormat(HDC hdc)
 {
@@ -309,7 +286,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-            //WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         };
 
@@ -337,7 +314,6 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                     glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
                 }
             }
-
         }
     }
     else
@@ -348,7 +324,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
     return openglRC;
 }
 
-internal void win32_ProcessInputMessages(InputState* inputState)
+internal void win32_ProcessInputMessages(InputState* inputState, GameState* gameState)
 {
     MSG message;
     while (PeekMessage(&message, 0, 0, 0, PM_REMOVE))
@@ -366,6 +342,8 @@ internal void win32_ProcessInputMessages(InputState* inputState)
             case WM_SYSKEYDOWN:
             {
                 uint32 vkCode = (uint32)message.wParam;
+                // NOTE(Charly): RTFM !
+                // https://msdn.microsoft.com/en-us/library/windows/desktop/ms646280(v=vs.85).aspx
                 bool32 wasDown = ((message.lParam & (1 << 30)) != 0);
                 bool32 isDown = ((message.lParam & (1 << 31)) == 0);
 
@@ -379,27 +357,27 @@ internal void win32_ProcessInputMessages(InputState* inputState)
                         } break;
 
                         case VK_LEFT:
-                        case 'Q':
+                        case 'A':
                         {
-                            inputState->moveLeft = isDown;
+                            gameState->controller.moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
                         case 'D':
                         {
-                            inputState->moveRight = isDown;
+                            gameState->controller.moveRight = isDown;
                         } break;
 
                         case VK_UP:
-                        case 'Z':
+                        case 'W':
                         {
-                            inputState->moveUp = isDown;
+                            gameState->controller.moveUp = isDown;
                         } break;
 
                         case VK_DOWN:
                         case 'S':
                         {
-                            inputState->moveDown = isDown;
+                            gameState->controller.moveDown = isDown;
                         } break;
                     }
                 }
@@ -547,44 +525,18 @@ int CALLBACK WinMain(HINSTANCE instance,
         GameState gameState = {};
         InputState inputState = {};
 
-        gameState.triSize = 0.1f;
+        InitGame(&gameState);
 
         while (g_running)
         {
             // TODO(Charly): Handle keyboard and xbox controller separatly
             //               For now xbox controller is commented out to avoid overriding keyboard state.
-            win32_ProcessInputMessages(&inputState);
-            win32_ProcessXBoxControllers(&inputState, &gameState);
+            win32_ProcessInputMessages(&inputState, &gameState);
+            // win32_ProcessXBoxControllers(&inputState, &gameState);
 
-            gameState.onEdge = false;
-            if (inputState.moveLeft)   gameState.triX -= 0.02f;
-            if (inputState.moveRight)  gameState.triX += 0.02f;
-            if (inputState.moveDown)   gameState.triY -= 0.02f;
-            if (inputState.moveUp)     gameState.triY += 0.02f;
+            UpdateGame(&gameState);
+            RenderGame(&gameState);
 
-            if (gameState.triX < -1.f)
-            {
-                gameState.triX = -1.f;
-                gameState.onEdge = true;
-            }
-
-            if (gameState.triX > 1.f - gameState.triSize)
-            {
-                gameState.triX = 1.f - gameState.triSize;
-                gameState.onEdge = true;
-            }
-            if (gameState.triY < -1.f)
-            {
-                gameState.triY = -1.f;
-                gameState.onEdge = true;
-            }
-            if (gameState.triY > 1.f - gameState.triSize)
-            {
-                gameState.triY = 1.f - gameState.triSize;
-                gameState.onEdge = true;
-            }
-
-            Render(&gameState);
             SwapBuffers(openglDC);
         }
 
