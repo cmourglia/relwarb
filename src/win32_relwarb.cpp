@@ -308,8 +308,8 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             // TODO(Charly): Toggle this flag depending on the build type
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-            // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+            // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         };
 
@@ -337,7 +337,6 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                     glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
                 }
             }
-
         }
     }
     else
@@ -366,6 +365,8 @@ internal void win32_ProcessInputMessages(InputState* inputState)
             case WM_SYSKEYDOWN:
             {
                 uint32 vkCode = (uint32)message.wParam;
+                // NOTE(Charly): RTFM !
+                // https://msdn.microsoft.com/en-us/library/windows/desktop/ms646280(v=vs.85).aspx
                 bool32 wasDown = ((message.lParam & (1 << 30)) != 0);
                 bool32 isDown = ((message.lParam & (1 << 31)) == 0);
 
