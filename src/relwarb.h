@@ -3,6 +3,8 @@
 
 #include "relwarb_defines.h"
 
+#define WORLD_SIZE	1024
+
 // NOTE(Charly): This is garbage code
 struct Controller
 {
@@ -17,6 +19,22 @@ struct Bitmap
 {
     uint32 texture = 0;
     uint8* data;
+
+	Bitmap() // TMP
+		:texture(0), data(NULL) {}
+};
+
+struct RectangularShape
+{
+	// NOTE(Thomas): Center of the shape
+	real32 posX;
+	real32 posY;
+
+	real32 sizeX;
+	real32 sizeY;
+
+	RectangularShape(real32 pX, real32 pY, real32 width, real32 height)
+		:posX(pX), posY(pY), sizeX(width), sizeY(height) {}
 };
 
 // TODO(Charly): More "generic" stuff ? Notion of entity, etc
@@ -36,11 +54,27 @@ struct Character
     Bitmap bitmap;
 };
 
+struct WorldElement
+{
+	RectangularShape shape;
+
+	// TODO(Thomas): velocity
+	// TODO(Thomas): acceleration
+
+	Bitmap bitmap;
+
+	WorldElement(RectangularShape shape_, Bitmap bitmap_)
+		:shape(shape_), bitmap(bitmap_) {}
+};
+
 // NOTE(Charly): Store the current state of the game
 struct GameState
 {
     Controller controller;
     Character character;
+
+	uint32 nbElements;
+	WorldElement elements[WORLD_SIZE];
 
     uint32 renderWidth;
     uint32 renderHeight;
@@ -60,4 +94,5 @@ void UpdateGame(GameState* gameState);
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
 void RenderGame(GameState* gameState);
+
 #endif // RELWARB_H

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "relwarb_defines.h"
+#include "relwarb_utils.h"
 #include "relwarb_opengl.h"
 #include "relwarb.h"
 
@@ -167,35 +168,6 @@ internal void win32_LoadWGLFunctions()
         ReleaseDC(window, hdc);
         DestroyWindow(window);
     }
-}
-
-// NOTE(Charly): Checks for equality between str1 and str2
-//               Behaviour is undefined is one of the strings' length is less that length.
-bool32 StrEqual(const char* str1, const char* str2, int length)
-{
-    bool32 matched = true;
-
-    for (int idx = 0; idx < length; ++idx)
-    {
-        if (*str1 != *str2)
-        {
-            matched = false;
-            break;
-        }
-
-        ++str1;
-        ++str2;
-    }
-
-    return matched;
-}
-
-uint32 StrLength(const char* str)
-{
-    uint32 result = 0;
-    for (; *str; ++str, ++result);
-
-    return result;
 }
 
 internal void win32_GLDebugOutput(GLenum source,
