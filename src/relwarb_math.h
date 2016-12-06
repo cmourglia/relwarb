@@ -28,6 +28,7 @@ inline real32 Pow(real32 x, real32 y)
     return powf(x, y);
 }
 
+
 // NOTE(Charly): O(logn) pow computation for natural exponents
 //               http://stackoverflow.com/a/13771544/4717805
 inline real32 Pow(real32 x, uint32 n)
@@ -51,6 +52,11 @@ inline real32 PowL(real32 x, uint32 n)
         result *= x;
     }
     return result;
+}
+
+inline real32 Abs(real32 x)
+{
+	return (x > 0.f ? x : -x);
 }
 
 inline real32 Sqrt(real32 x)

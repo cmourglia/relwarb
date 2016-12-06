@@ -1,10 +1,6 @@
 
 #include "relwarb_utils.h"
-
-real32 Abs(real32 x)
-{
-	return ( x > 0.f ? x : -x );
-}
+#include "relwarb_math.h"
 
 // cf. http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=3
 bool32 Intersect(const RectangularShape & shape1, const RectangularShape & shape2)

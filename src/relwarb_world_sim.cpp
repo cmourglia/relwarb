@@ -1,7 +1,11 @@
 
-#include "relwarb_defines.h"
+#include <utility>
+#include <vector>
 
-void UpdateWorld(real32 dt)
+#include "relwarb_defines.h"
+#include "relwarb.h"
+
+void UpdateWorld(GameState * gameState, real32 dt)
 {
     // Here is where the magic happens
     // Multiple stuff has to be done here, for each dynamic entities
@@ -26,6 +30,18 @@ void UpdateWorld(real32 dt)
     // a pruning phase (only test collisions for stuff that can collide).
     // Then, for each potentially colliding pair of entities, perform the test
     // (Depending on the shapes, GJK might be the best tool)
+
+	std::vector<std::pair <Entity *, Entity *>> collisions;
+
+	for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
+	{
+		Entity* entity = &gameState->entities[elementIdx];
+		if (entity->flags & ComponentFlag_Collisional)
+		{
+			// QUESTION(THOMAS): Double loop ? with test to handle each pair only once ?
+		}
+	}
+
     //
     // 3. Collision solving
     // for each collision
@@ -40,7 +56,7 @@ void UpdateWorld(real32 dt)
     //        some not visible colliding objects (you ran through a checkpoint,
     //        or on an invisible trap).
     //        Depending on the case, you might not want to enable the collision solving
-    //        (an AABB used for a checkpoint), this is the wholo point of returning
+    //        (an AABB used for a checkpoint), this is the whole point of returning
     //        a boolean as a result of that function. You want, or not, the collision
     //        to be solved.
     //
