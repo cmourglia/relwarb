@@ -1,5 +1,6 @@
 #include "relwarb.h"
 #include "relwarb_opengl.h"
+#include "relwarb_math.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -7,9 +8,6 @@
 
 void InitGame(GameState* gameState)
 {
-    gameState->character.sizeX = 0.1f;
-    gameState->character.sizeY = 0.1f;
-
 	int halfWidth = gameState->renderWidth * 0.5;
 	int halfHeight = gameState->renderHeight * 0.5;
 
@@ -28,33 +26,32 @@ void InitGame(GameState* gameState)
 
 void UpdateGame(GameState* gameState)
 {
+    // TODO(Charly): How do we retrieve actual characters ?
     gameState->onEdge = false;
-    if (gameState->controller.moveLeft)   gameState->character.posX -= 0.02f;
-    if (gameState->controller.moveRight)  gameState->character.posX += 0.02f;
-    if (gameState->controller.moveDown)   gameState->character.posY -= 0.02f;
-    if (gameState->controller.moveUp)     gameState->character.posY += 0.02f;
-
-    if (gameState->elements[0].shape.posX < -1.f)
-    {
-        gameState->elements[0].shape.posX = -1.f;
-        gameState->onEdge = true;
-    }
-
-    if (gameState->elements[0].shape.posX > 1.f - gameState->elements[0].shape.sizeX)
-    {
-        gameState->elements[0].shape.posX = 1.f - gameState->elements[0].shape.sizeX;
-        gameState->onEdge = true;
-    }
-    if (gameState->elements[0].shape.posY < -1.f)
-    {
-        gameState->elements[0].shape.posY = -1.f;
-        gameState->onEdge = true;
-    }
-    if (gameState->elements[0].shape.posY > 1.f - gameState->elements[0].shape.sizeY)
-    {
-        gameState->elements[0].shape.posY = 1.f - gameState->elements[0].shape.sizeY;
-        gameState->onEdge = true;
-    }
+    // if (gameState->controller.moveLeft)   gameState->character.posX -= 0.02f;
+    // if (gameState->controller.moveRight)  gameState->character.posX += 0.02f;
+    // if (gameState->controller.moveDown)   gameState->character.posY -= 0.02f;
+    // if (gameState->controller.moveUp)     gameState->character.posY += 0.02f;
+    // if (gameState->elements[0].shape.posX < -1.f)
+    // {
+    //    gameState->elements[0].shape.posX = -1.f;
+    //    gameState->onEdge = true;
+    // }
+    // if (gameState->elements[0].shape.posX > 1.f - gameState->elements[0].shape.sizeX)
+    // {
+        // gameState->elements[0].shape.posX = 1.f - gameState->elements[0].shape.sizeX;
+        // gameState->onEdge = true;
+    // }
+    // if (gameState->elements[0].shape.posY < -1.f)
+    // {
+        // gameState->elements[0].shape.posY = -1.f;
+        // gameState->onEdge = true;
+    // }
+    // if (gameState->elements[0].shape.posY > 1.f - gameState->elements[0].shape.sizeY)
+    // {
+        // gameState->elements[0].shape.posY = 1.f - gameState->elements[0].shape.sizeY;
+        // gameState->onEdge = true;
+    // }
 }
 
 void RenderGame(GameState* gameState)
@@ -67,6 +64,7 @@ void RenderGame(GameState* gameState)
     for (uint32 elementIdx = 0; elementIdx < 1; ++elementIdx)
     {
         WorldElement* element = &gameState->elements[elementIdx];
+        Bitmap* bitmap = &element->bitmap;
         RenderBitmap(&element->bitmap, 0, 0);
     }
 }

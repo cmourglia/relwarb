@@ -2,6 +2,7 @@
 #define RELWARB_H
 
 #include "relwarb_defines.h"
+#include "relwarb_math.h"
 
 #define WORLD_SIZE	1024
 
@@ -31,41 +32,28 @@ struct Bitmap
 struct RectangularShape
 {
 	// NOTE(Thomas): Center of the shape
-	real32 posX;
-	real32 posY;
+    // NOTE(Charly): The position of the shape should be handled by the WorldElement
+    //               since it knows about the physics stuff.
+    //               The shape can contain an offset though
+	Vec2 offset;
 
 	real32 sizeX;
 	real32 sizeY;
 
     RectangularShape() = default;
 	RectangularShape(real32 pX, real32 pY, real32 width, real32 height)
-		:posX(pX), posY(pY), sizeX(width), sizeY(height) {}
-};
-
-// TODO(Charly): More "generic" stuff ? Notion of entity, etc
-struct Character
-{
-    // TODO(Charly): vec2
-    // TODO(Charly): Decide where is the (0, 0) of the character
-    real32 posX;
-    real32 posY;
-
-    real32 sizeX;
-    real32 sizeY;
-
-    // TODO(Charly): velocity
-    // TODO(Charly): acceleration
-
-    Bitmap bitmap;
+		:offset(pX, pY), sizeX(width), sizeY(height) {}
 };
 
 struct WorldElement
 {
+    Vec2 p;     // NOTE(Charly): Linear position
+    Vec2 dp;    // NOTE(Charly): Linear velocity
+    Vec2 ddp;   // NOTE(Charly): Linear acceleration
+
+    // TODO(Charly): Angular stuff ?
+
 	RectangularShape shape;
-
-	// TODO(Thomas): velocity
-	// TODO(Thomas): acceleration
-
 	Bitmap bitmap;
 
     WorldElement() = default;
@@ -76,8 +64,9 @@ struct WorldElement
 // NOTE(Charly): Store the current state of the game
 struct GameState
 {
+    // TODO(Charly): View / Proj matrices
+    // TODO(Charly): Do we want orthographic or perspective projection ?
     Controller controller;
-    Character character;
 
 	uint32 nbElements;
 	WorldElement elements[WORLD_SIZE];
