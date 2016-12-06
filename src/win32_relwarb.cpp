@@ -6,22 +6,21 @@
 
 #include "relwarb_defines.h"
 #include "relwarb_opengl.h"
-
-struct InputState
-{
-    bool32 moveLeft;
-    bool32 moveRight;
-    bool32 moveUp;
-    bool32 moveDown;
-};
+#include "relwarb.h"
 
 global_variable bool g_running;
 global_variable WORD g_vibrationLevel;
 
-#define WGL_GET_AND_CHECK(name)                                 \
-do {                                                            \
-    name = (def_##name*)wglGetProcAddress(STRINGIFY(name));     \
-    Assert(name);                                               \
+#define WGL_GET_AND_CHECK(name)                                         \
+do {                                                                    \
+    name = (def_##name*)wglGetProcAddress(STRINGIFY(name));             \
+    if (name == 0 ||                                                    \
+        (name == (void*)0x1) || (name == (void*)0x2) ||                 \
+        (name == (void*)0x3) || (name == (void*)-1)) {                  \
+        HMODULE module = LoadLibraryA("opengl32.dll");                  \
+        name = (def_##name*)GetProcAddress(module, STRINGIFY(name));    \
+    }                                                                   \
+    Assert(name);                                                       \
 } while (false)
 
 #define WGL_DRAW_TO_WINDOW_ARB                      0x2001
@@ -299,6 +298,16 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
         if (wglMakeCurrent(hdc, openglRC))
         {
             WGL_GET_AND_CHECK(glGetStringi);
+            WGL_GET_AND_CHECK(glUseProgram);
+            WGL_GET_AND_CHECK(glGetIntegerv);
+            WGL_GET_AND_CHECK(glViewport);
+            WGL_GET_AND_CHECK(glClearColor);
+            WGL_GET_AND_CHECK(glClear);
+            WGL_GET_AND_CHECK(glFlush);
+            WGL_GET_AND_CHECK(glBegin);
+            WGL_GET_AND_CHECK(glColor3f);
+            WGL_GET_AND_CHECK(glVertex2f);
+            WGL_GET_AND_CHECK(glEnd);
 
             int extensionsCount = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &extensionsCount);
@@ -322,7 +331,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
     return openglRC;
 }
 
-internal void win32_ProcessInputMessages(InputState* inputState)
+internal void win32_ProcessInputMessages(GameState* gameState)
 {
     MSG message;
     while (PeekMessage(&message, 0, 0, 0, PM_REMOVE))
@@ -333,6 +342,12 @@ internal void win32_ProcessInputMessages(InputState* inputState)
             {
                 g_running = false;
             } break;
+
+			case WM_SIZE:
+			{
+				gameState->renderWidth = LOWORD(message.lParam);
+				gameState->renderHeight = HIWORD(message.lParam);
+			} break;
 
             case WM_KEYUP:
             case WM_KEYDOWN:
@@ -405,7 +420,7 @@ internal void win32_InitXInput()
     }
 }
 
-internal void win32_ProcessXBoxControllers(InputState* inputState, GameState* gameState)
+internal void win32_ProcessXBoxControllers(GameState* gameState)
 {
     for (DWORD controllerIndex = 0; controllerIndex < XUSER_MAX_COUNT; ++controllerIndex)
     {
@@ -433,33 +448,33 @@ internal void win32_ProcessXBoxControllers(InputState* inputState, GameState* ga
 
             if (lx > INPUT_DEADZONE || bRight)
             {
-                inputState->moveLeft = false;
-                inputState->moveRight = true;
+                gameState->controller.moveLeft = false;
+                gameState->controller.moveRight = true;
             }
             else if (lx < -INPUT_DEADZONE || bLeft)
             {
-                inputState->moveLeft = true;
-                inputState->moveRight = false;
+                gameState->controller.moveLeft = true;
+                gameState->controller.moveRight = false;
             }
             else
             {
-                inputState->moveLeft = false;
-                inputState->moveRight = false;
+                gameState->controller.moveLeft = false;
+                gameState->controller.moveRight = false;
             }
 
             if (ly > INPUT_DEADZONE || bUp)
             {
-                inputState->moveUp = true;
-                inputState->moveDown = false;
+                gameState->controller.moveUp = true;
+                gameState->controller.moveDown = false;
             }
             else if (ly < -INPUT_DEADZONE || bDown)
             {
-                inputState->moveDown = true;
-                inputState->moveUp = false;
+                gameState->controller.moveDown = true;
+                gameState->controller.moveUp = false;
             }
             else
             {
-                inputState->moveDown = inputState->moveUp = false;
+                gameState->controller.moveDown = gameState->controller.moveUp = false;
             }
 
             // Vibrate on edges
@@ -521,7 +536,8 @@ int CALLBACK WinMain(HINSTANCE instance,
         g_running = true;
 
         GameState gameState = {};
-        InputState inputState = {};
+		gameState.renderWidth = 1280;
+		gameState.renderHeight = 720;
 
         InitGame(&gameState);
 
@@ -559,12 +575,6 @@ LRESULT CALLBACK win32_MainWindowCallback(HWND hwnd,
 
     switch (message)
     {
-        case WM_SIZE:
-        {
-            glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
-            PostMessage(hwnd, WM_PAINT, 0, 0);
-        } break;
-
         case WM_PAINT:
         {
             PAINTSTRUCT paint;
