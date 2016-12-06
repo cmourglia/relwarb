@@ -69,8 +69,6 @@ void RenderGame(GameState* gameState)
         WorldElement* element = &gameState->elements[elementIdx];
         RenderBitmap(&element->bitmap, 0, 0);
     }
-
-    glFlush();
 }
 
 void LoadImage(const char* filename, Bitmap* bitmap)

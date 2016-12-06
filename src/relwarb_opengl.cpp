@@ -3,6 +3,8 @@
 
 #define FUNC_DEF(name) def_##name* name
 
+#if defined(WIN32)
+
 FUNC_DEF(glGetStringi);
 FUNC_DEF(glUseProgram);
 FUNC_DEF(glGetIntegerv);
@@ -26,6 +28,9 @@ FUNC_DEF(glColor3f);
 FUNC_DEF(glVertex2f);
 FUNC_DEF(glTexCoord2f);
 FUNC_DEF(glEnd);
+#else
+FUNC_DEF(glGenerateMipmap);
+#endif
 
 void RenderBitmap(Bitmap* bitmap, real32 x, real32 y)
 {
@@ -53,6 +58,8 @@ void RenderBitmap(Bitmap* bitmap, real32 x, real32 y)
     glTexCoord2f(1, 1); glVertex2f(x + 0.1f, y + 0.1f);
     glTexCoord2f(0, 1); glVertex2f(x, y + 0.1f);
     glEnd();
+
+    glFlush();
 }
 
 void ReleaseBitmap(Bitmap* bitmap)

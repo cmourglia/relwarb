@@ -1,3 +1,4 @@
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <GL/glx.h>
@@ -131,12 +132,17 @@ void linux_ProcessInputMessages(Display* display, Window* window, GameState* gam
 int main()
 {
     // https://www.opengl.org/wiki/Programming_OpenGL_in_Linux:_GLX_and_Xlib
+    // TODO(Charly): https://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_(GLX)
     Display* display;
     Window rootWindow;
     GLint attribs[] = {
         GLX_RGBA,
         GLX_DEPTH_SIZE, 24,
+        GLX_STENCIL_SIZE, 8,
         GLX_DOUBLEBUFFER, True,
+        GLX_SAMPLE_BUFFERS, 1,
+        GLX_SAMPLES, 4,
+        None
     };
     XVisualInfo* infos;
     Colormap colormap;
@@ -150,65 +156,79 @@ int main()
 
     if (display)
     {
-        rootWindow = DefaultRootWindow(display);
-
-        // Get context creation informations
-        infos = glXChooseVisual(display, 0, attribs);
-
-        if (infos)
+        int major, minor;
+        if (glXQueryVersion(display, &major, &minor))
         {
-            printf("Visual %p selected\n", (void*)infos->visualid);
-            // Create colormap and set attributes for window creation
-            colormap = XCreateColormap(display, rootWindow, infos->visual, AllocNone);
-            setAttribs.colormap = colormap;
-            setAttribs.event_mask = ExposureMask | KeyPressMask;
-
-            // Create the window
-            window = XCreateWindow(display,
-                                   rootWindow,
-                                   0, 0,
-                                   800, 600,
-                                   0,
-                                   infos->depth,
-                                   InputOutput,
-                                   infos->visual,
-                                   CWColormap | CWEventMask,
-                                   &setAttribs);
-
-            // Show the window
-            XMapWindow(display, window);
-
-            // Set the window title
-            XStoreName(display, window, "Relwarb");
-
-            // Create context and make it current
-            glxContext = glXCreateContext(display, infos, nullptr, GL_TRUE);
-            glXMakeCurrent(display, window, glxContext);
-
-            GameState gameState = {};
-            g_running = true;
-
-            InitGame(&gameState);
-
-            // Game loop
-            while (g_running)
+            fprintf(stderr, "Best context found : %d.%d\n", major, minor);
+            rootWindow = DefaultRootWindow(display);
+        
+            // Get context creation informations
+            infos = glXChooseVisual(display, 0, attribs);
+        
+            if (infos)
             {
-                linux_ProcessInputMessages(display, &window, &gameState);
-                UpdateGame(&gameState);
-                RenderGame(&gameState);
-                glXSwapBuffers(display, window);
-            }
+                printf("Visual %p selected\n", (void*)infos->visualid);
+                // Create colormap and set attributes for window creation
+                colormap = XCreateColormap(display, rootWindow, infos->visual, AllocNone);
+                setAttribs.colormap = colormap;
+                setAttribs.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | FocusChangeMask;
+            
+                // Create the window
+                window = XCreateWindow(display,
+                                        rootWindow,
+                                        0, 0,
+                                        800, 600,
+                                        0,
+                                        infos->depth,
+                                        InputOutput,
+                                        infos->visual,
+                                        CWColormap | CWEventMask,
+                                        &setAttribs);
+                                    
+                // Show the window
+                XMapWindow(display, window);
+            
+                // Set the window title
+                XStoreName(display, window, "Relwarb");
+            
+                // Create context and make it current
+                glxContext = glXCreateContext(display, infos, nullptr, GL_TRUE);
+                glXMakeCurrent(display, window, glxContext);
 
-            glXMakeCurrent(display, None, nullptr);
-            glXDestroyContext(display, glxContext);
-            XDestroyWindow(display, window);
-            XCloseDisplay(display);
+                fprintf(stderr, "%s\n", glGetString(GL_VERSION));
+
+                glGenerateMipmap = (def_glGenerateMipmap*)glXGetProcAddress((const GLubyte*)"glGenerateMipmap");
+                Assert(glGenerateMipmap);
+
+                GameState gameState = {};
+                g_running = true;
+
+                InitGame(&gameState);
+
+                // Game loop
+                while (g_running)
+                {
+                    linux_ProcessInputMessages(display, &window, &gameState);
+                    UpdateGame(&gameState);
+                    RenderGame(&gameState);
+                    glXSwapBuffers(display, window);
+                }
+
+                glXMakeCurrent(display, None, nullptr);
+                glXDestroyContext(display, glxContext);
+                XDestroyWindow(display, window);
+                XCloseDisplay(display);
+            }
+            else
+            {
+                fprintf(stderr, "Could not find an appropriate visual\n");
+            }
         }
         else
         {
-            fprintf(stderr, "Could not find an appropriate visual\n");
+            fprintf(stderr, "Could not find an appropriate context\n");
         }
-    }
+    }   
     else
     {
         // TODO(Charly): Logging system

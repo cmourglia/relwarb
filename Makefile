@@ -7,7 +7,9 @@ OBJDIR=build
 SRCDIR=src
 
 SRC=src/linux_relwarb.cpp \
-	src/relwarb.cpp
+	src/relwarb.cpp \
+	src/relwarb_opengl.cpp \
+	src/relwarb_utils.cpp 
 OBJ=$(patsubst $(SRCDIR)%.cpp,$(OBJDIR)%.o, $(SRC))
 EXE=relwarb
 

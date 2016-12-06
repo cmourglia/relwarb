@@ -3,6 +3,7 @@
 
 #include "relwarb_defines.h"
 
+#if defined(WIN32)
 #define FUNC_VAR(name) extern def_##name* name
 
 typedef unsigned int GLenum;
@@ -59,35 +60,6 @@ typedef void GLvoid;
 // TODO(Charly): Add needed opengl functions
 
 // Core 3.3 stuff
-#if 0
-
-typedef const char* def_glGetStringi(GLenum, GLuint);
-global_variable def_glGetStringi* glGetStringi_;
-#define glGetStringi glGetStringi
-
-typedef void def_glUseProgram(GLuint);
-global_variable def_glUseProgram* glUseProgram_;
-#define glUseProgram glUseProgram_
-
-// GL_ARB_debug_output
-#define GL_DEBUG_TYPE_ERROR_ARB                              0x824C
-#define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB                0x824D
-#define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB                 0x824E
-#define GL_DEBUG_TYPE_PORTABILITY_ARB                        0x824F
-#define GL_DEBUG_TYPE_PERFORMANCE_ARB                        0x8250
-#define GL_DEBUG_TYPE_OTHER_ARB                              0x8251
-
-#define GL_DEBUG_SEVERITY_HIGH_ARB                           0x9146
-#define GL_DEBUG_SEVERITY_MEDIUM_ARB                         0x9147
-#define GL_DEBUG_SEVERITY_LOW_ARB                            0x9148
-
-typedef void def_DebugProc(GLenum, GLenum, GLuint, GLenum, GLsizei, const char*, const void*);
-
-typedef void def_glDebugMessageCallbackARB(def_DebugProc, void*);
-global_variable def_glDebugMessageCallbackARB* glDebugMessageCallbackARB_;
-#define glDebugMessageCallbackARB glDebugMessageCallbackARB_
-
-#else
 // TODO(Charly): Check if this is ok on linux
 typedef const char* def_glGetStringi(GLenum, GLuint);
 FUNC_VAR(glGetStringi);
@@ -151,8 +123,6 @@ typedef void def_DebugProc(GLenum, GLenum, GLuint, GLenum, GLsizei, const char*,
 typedef void def_glDebugMessageCallbackARB(def_DebugProc, void*);
 FUNC_VAR(glDebugMessageCallbackARB);
 
-#endif
-
 // NOTE(Charly): ---------- OpenGL1 begin ----------
 // TODO(Charly): This is opengl1 stuff only, remove this
 #define GL_TRIANGLES    0x0004
@@ -173,6 +143,15 @@ FUNC_VAR(glTexCoord2f);
 typedef void def_glEnd();
 FUNC_VAR(glEnd);
 // NOTE(Charly): ----------  OpenGL1 end  ----------
+#else
+
+#include <GL/gl.h>
+
+typedef void def_glGenerateMipmap(GLenum);
+extern def_glGenerateMipmap* glGenerateMipmap_;
+#define glGenerateMipmap glGenerateMipmap_
+
+#endif
 
 struct Bitmap;
 // TODO(Charly): x and y are given in opengl coordinates for now,
