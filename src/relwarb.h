@@ -32,7 +32,7 @@ struct Bitmap
 struct RectangularShape
 {
 	// NOTE(Thomas): Center of the shape
-    // NOTE(Charly): The position of the shape should be handled by the WorldElement
+    // NOTE(Charly): The position of the shape should be handled by the Entity
     //               since it knows about the physics stuff.
     //               The shape can contain an offset though
 	Vec2 offset;
@@ -45,7 +45,7 @@ struct RectangularShape
 		:offset(pX, pY), sizeX(width), sizeY(height) {}
 };
 
-struct WorldElement
+struct Entity
 {
     Vec2 p;     // NOTE(Charly): Linear position
     Vec2 dp;    // NOTE(Charly): Linear velocity
@@ -56,8 +56,8 @@ struct WorldElement
 	RectangularShape shape;
 	Bitmap bitmap;
 
-    WorldElement() = default;
-	WorldElement(RectangularShape shape_, Bitmap bitmap_)
+    Entity() = default;
+	Entity(RectangularShape shape_, Bitmap bitmap_)
 		:shape(shape_), bitmap(bitmap_) {}
 };
 
@@ -68,8 +68,8 @@ struct GameState
     // TODO(Charly): Do we want orthographic or perspective projection ?
     Controller controller;
 
-	uint32 nbElements;
-	WorldElement elements[WORLD_SIZE];
+	uint32 nbEntities;
+	Entity entities[WORLD_SIZE];
 
     uint32 renderWidth;
     uint32 renderHeight;

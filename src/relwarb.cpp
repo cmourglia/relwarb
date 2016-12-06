@@ -11,17 +11,17 @@ void InitGame(GameState* gameState)
 	int halfWidth = gameState->renderWidth * 0.5;
 	int halfHeight = gameState->renderHeight * 0.5;
 
-	gameState->nbElements = 7;
-	gameState->elements[0] = WorldElement(RectangularShape(- halfWidth - 1, halfHeight, 2, gameState->renderHeight + 2), Bitmap());
-	gameState->elements[1] = WorldElement(RectangularShape(  halfWidth + 1, halfHeight, 2, gameState->renderHeight + 2), Bitmap());
-	gameState->elements[2] = WorldElement(RectangularShape(0, - 1, gameState->renderWidth, 2), Bitmap());
-	gameState->elements[3] = WorldElement(RectangularShape(0, gameState->renderHeight + 1, gameState->renderWidth, 2), Bitmap());
+	gameState->nbEntities = 7;
+	gameState->entities[0] = Entity(RectangularShape(- halfWidth - 1, halfHeight, 2, gameState->renderHeight + 2), Bitmap());
+	gameState->entities[1] = Entity(RectangularShape(  halfWidth + 1, halfHeight, 2, gameState->renderHeight + 2), Bitmap());
+	gameState->entities[2] = Entity(RectangularShape(0, - 1, gameState->renderWidth, 2), Bitmap());
+	gameState->entities[3] = Entity(RectangularShape(0, gameState->renderHeight + 1, gameState->renderWidth, 2), Bitmap());
 
-	gameState->elements[4] = WorldElement(RectangularShape(- halfWidth * 0.5, halfHeight * 0.5, halfWidth * 0.25, 32), Bitmap());
-	gameState->elements[5] = WorldElement(RectangularShape(  halfWidth * 0.5, halfHeight * 0.5, halfWidth * 0.25, 32), Bitmap());
-	gameState->elements[6] = WorldElement(RectangularShape(0, halfHeight, halfWidth * 0.25, 32), Bitmap());
+	gameState->entities[4] = Entity(RectangularShape(- halfWidth * 0.5, halfHeight * 0.5, halfWidth * 0.25, 32), Bitmap());
+	gameState->entities[5] = Entity(RectangularShape(  halfWidth * 0.5, halfHeight * 0.5, halfWidth * 0.25, 32), Bitmap());
+	gameState->entities[6] = Entity(RectangularShape(0, halfHeight, halfWidth * 0.25, 32), Bitmap());
 
-    LoadImage("assets/smiley.png", &gameState->elements[0].bitmap);
+    LoadImage("assets/smiley.png", &gameState->entities[0].bitmap);
 }
 
 void UpdateGame(GameState* gameState)
@@ -32,24 +32,24 @@ void UpdateGame(GameState* gameState)
     // if (gameState->controller.moveRight)  gameState->character.posX += 0.02f;
     // if (gameState->controller.moveDown)   gameState->character.posY -= 0.02f;
     // if (gameState->controller.moveUp)     gameState->character.posY += 0.02f;
-    // if (gameState->elements[0].shape.posX < -1.f)
+    // if (gameState->entities[0].shape.posX < -1.f)
     // {
-    //    gameState->elements[0].shape.posX = -1.f;
+    //    gameState->entities[0].shape.posX = -1.f;
     //    gameState->onEdge = true;
     // }
-    // if (gameState->elements[0].shape.posX > 1.f - gameState->elements[0].shape.sizeX)
+    // if (gameState->entities[0].shape.posX > 1.f - gameState->entities[0].shape.sizeX)
     // {
-        // gameState->elements[0].shape.posX = 1.f - gameState->elements[0].shape.sizeX;
+        // gameState->entities[0].shape.posX = 1.f - gameState->entities[0].shape.sizeX;
         // gameState->onEdge = true;
     // }
-    // if (gameState->elements[0].shape.posY < -1.f)
+    // if (gameState->entities[0].shape.posY < -1.f)
     // {
-        // gameState->elements[0].shape.posY = -1.f;
+        // gameState->entities[0].shape.posY = -1.f;
         // gameState->onEdge = true;
     // }
-    // if (gameState->elements[0].shape.posY > 1.f - gameState->elements[0].shape.sizeY)
+    // if (gameState->entities[0].shape.posY > 1.f - gameState->entities[0].shape.sizeY)
     // {
-        // gameState->elements[0].shape.posY = 1.f - gameState->elements[0].shape.sizeY;
+        // gameState->entities[0].shape.posY = 1.f - gameState->entities[0].shape.sizeY;
         // gameState->onEdge = true;
     // }
 }
@@ -63,7 +63,7 @@ void RenderGame(GameState* gameState)
 
     for (uint32 elementIdx = 0; elementIdx < 1; ++elementIdx)
     {
-        WorldElement* element = &gameState->elements[elementIdx];
+        Entity* element = &gameState->entities[elementIdx];
         Bitmap* bitmap = &element->bitmap;
         RenderBitmap(&element->bitmap, 0, 0);
     }
