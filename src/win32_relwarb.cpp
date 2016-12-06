@@ -276,9 +276,19 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             WGL_GET_AND_CHECK(glClearColor);
             WGL_GET_AND_CHECK(glClear);
             WGL_GET_AND_CHECK(glFlush);
+            WGL_GET_AND_CHECK(glIsTexture);
+            WGL_GET_AND_CHECK(glEnable);
+            WGL_GET_AND_CHECK(glGenTextures);
+            WGL_GET_AND_CHECK(glDeleteTextures);
+            WGL_GET_AND_CHECK(glBindTexture);
+            WGL_GET_AND_CHECK(glTexImage2D);
+            WGL_GET_AND_CHECK(glTexParameteri);
+            WGL_GET_AND_CHECK(glGenerateMipmap);
+
             WGL_GET_AND_CHECK(glBegin);
             WGL_GET_AND_CHECK(glColor3f);
             WGL_GET_AND_CHECK(glVertex2f);
+            WGL_GET_AND_CHECK(glTexCoord2f);
             WGL_GET_AND_CHECK(glEnd);
 
             int extensionsCount = 0;
@@ -507,7 +517,7 @@ int CALLBACK WinMain(HINSTANCE instance,
 
         g_running = true;
 
-        GameState gameState = {};
+        GameState gameState;
 		gameState.renderWidth = 1280;
 		gameState.renderHeight = 720;
 

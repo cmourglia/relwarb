@@ -12,6 +12,8 @@ struct Controller
     bool32 moveDown;
     bool32 moveLeft;
     bool32 moveRight;
+
+    Controller() = default;
 };
 
 // TODO(Charly): This should go somewhere else
@@ -20,8 +22,10 @@ struct Bitmap
     uint32 texture = 0;
     uint8* data;
 
-	Bitmap() // TMP
-		:texture(0), data(NULL) {}
+    int width;
+    int height;
+
+	Bitmap() = default;
 };
 
 struct RectangularShape
@@ -33,6 +37,7 @@ struct RectangularShape
 	real32 sizeX;
 	real32 sizeY;
 
+    RectangularShape() = default;
 	RectangularShape(real32 pX, real32 pY, real32 width, real32 height)
 		:posX(pX), posY(pY), sizeX(width), sizeY(height) {}
 };
@@ -63,6 +68,7 @@ struct WorldElement
 
 	Bitmap bitmap;
 
+    WorldElement() = default;
 	WorldElement(RectangularShape shape_, Bitmap bitmap_)
 		:shape(shape_), bitmap(bitmap_) {}
 };
@@ -80,6 +86,8 @@ struct GameState
     uint32 renderHeight;
 
     bool32 onEdge;
+
+    GameState() = default;
 };
 
 // NOTE(Charly): Initialize all the game logic related stuff here
@@ -94,5 +102,10 @@ void UpdateGame(GameState* gameState);
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
 void RenderGame(GameState* gameState);
+
+// TODO(Charly): This should go somewhere else
+// NOTE(Charly): bitmap must not be null, otherwise UB
+void LoadImage(const char* filename, Bitmap* bitmap);
+void ReleaseImage(Bitmap* bitmap);
 
 #endif // RELWARB_H

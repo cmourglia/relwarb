@@ -1,6 +1,8 @@
 #ifndef RELWARB_OPENGL_H
 #define RELWARB_OPENGL_H
 
+#include "relwarb_defines.h"
+
 #define FUNC_VAR(name) extern def_##name* name
 
 typedef unsigned int GLenum;
@@ -33,6 +35,26 @@ typedef void GLvoid;
 #define GL_DEPTH_BUFFER_BIT               0x00000100
 #define GL_STENCIL_BUFFER_BIT             0x00000400
 #define GL_COLOR_BUFFER_BIT               0x00004000
+
+#define GL_TEXTURE_2D                     0x0DE1
+#define GL_RGBA8UI                        0x8D7C
+#define GL_RGBA8                          0x8058
+#define GL_RGBA                           0x1908
+
+#define GL_UNSIGNED_BYTE                  0x1401
+
+#define GL_TEXTURE_MAG_FILTER             0x2800
+#define GL_TEXTURE_MIN_FILTER             0x2801
+#define GL_TEXTURE_WRAP_S                 0x2802
+#define GL_TEXTURE_WRAP_T                 0x2803
+
+#define GL_NEAREST                        0x2600
+#define GL_LINEAR                         0x2601
+#define GL_NEAREST_MIPMAP_NEAREST         0x2700
+#define GL_LINEAR_MIPMAP_NEAREST          0x2701
+#define GL_NEAREST_MIPMAP_LINEAR          0x2702
+#define GL_LINEAR_MIPMAP_LINEAR           0x2703
+#define GL_CLAMP_TO_EDGE                  0x812F
 
 // TODO(Charly): Add needed opengl functions
 
@@ -88,6 +110,30 @@ FUNC_VAR(glClear);
 typedef void def_glFlush();
 FUNC_VAR(glFlush);
 
+typedef GLboolean def_glIsTexture(GLuint);
+FUNC_VAR(glIsTexture);
+
+typedef void def_glEnable(GLenum);
+FUNC_VAR(glEnable);
+
+typedef void def_glGenTextures(GLsizei, GLuint*);
+FUNC_VAR(glGenTextures);
+
+typedef void def_glDeleteTextures(GLsizei, const GLuint*);
+FUNC_VAR(glDeleteTextures);
+
+typedef void def_glBindTexture(GLenum, GLuint);
+FUNC_VAR(glBindTexture);
+
+typedef void def_glTexImage2D(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*);
+FUNC_VAR(glTexImage2D);
+
+typedef void def_glTexParameteri(GLenum, GLenum, GLint);
+FUNC_VAR(glTexParameteri);
+
+typedef void def_glGenerateMipmap(GLenum);
+FUNC_VAR(glGenerateMipmap);
+
 // GL_ARB_debug_output
 #define GL_DEBUG_TYPE_ERROR_ARB                              0x824C
 #define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB                0x824D
@@ -109,7 +155,8 @@ FUNC_VAR(glDebugMessageCallbackARB);
 
 // NOTE(Charly): ---------- OpenGL1 begin ----------
 // TODO(Charly): This is opengl1 stuff only, remove this
-#define GL_TRIANGLES                      0x0004
+#define GL_TRIANGLES    0x0004
+#define GL_QUADS        0x0007
 
 typedef void def_glBegin(GLenum);
 FUNC_VAR(glBegin);
@@ -120,8 +167,19 @@ FUNC_VAR(glColor3f);
 typedef void def_glVertex2f(GLfloat, GLfloat);
 FUNC_VAR(glVertex2f);
 
+typedef void def_glTexCoord2f(GLfloat, GLfloat);
+FUNC_VAR(glTexCoord2f);
+
 typedef void def_glEnd();
 FUNC_VAR(glEnd);
 // NOTE(Charly): ----------  OpenGL1 end  ----------
+
+struct Bitmap;
+// TODO(Charly): x and y are given in opengl coordinates for now,
+//               maybe this should change
+void RenderBitmap(Bitmap* bitmap, real32 x, real32 y);
+
+// NOTE(Charly): Cleanup GPU memory
+void ReleaseBitmap(Bitmap* bitmap);
 
 #endif // RELWARB_OPENGL_H
