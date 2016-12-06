@@ -463,11 +463,11 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
             if (gameState->onEdge)
             {
                 XINPUT_VIBRATION vibrations;
-                real32 left = 1.f - (gameState->character.posX * 0.5f + 0.5f);
-                real32 right = (gameState->character.posX + gameState->character.sizeX) * 0.5f + 0.5f;
+                // real32 left = 1.f - (gameState->character.posX * 0.5f + 0.5f);
+                // real32 right = (gameState->character.posX + gameState->character.sizeX) * 0.5f + 0.5f;
 
-                vibrations.wLeftMotorSpeed = (WORD)(left * (real32)(1 << 15)) * g_vibrationLevel;
-                vibrations.wRightMotorSpeed = (WORD)(right * (real32)(1 << 15)) * g_vibrationLevel;
+                // vibrations.wLeftMotorSpeed = (WORD)(left * (real32)(1 << 15)) * g_vibrationLevel;
+                // vibrations.wRightMotorSpeed = (WORD)(right * (real32)(1 << 15)) * g_vibrationLevel;
 
                 XInputSetState(controllerIndex, &vibrations);
             }

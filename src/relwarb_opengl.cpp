@@ -3,7 +3,7 @@
 
 #define FUNC_DEF(name) def_##name* name
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 FUNC_DEF(glGetStringi);
 FUNC_DEF(glUseProgram);

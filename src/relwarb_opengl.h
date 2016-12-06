@@ -3,7 +3,7 @@
 
 #include "relwarb_defines.h"
 
-#if defined(WIN32)
+#if _WIN32
 #define FUNC_VAR(name) extern def_##name* name
 
 typedef unsigned int GLenum;
@@ -144,7 +144,6 @@ typedef void def_glEnd();
 FUNC_VAR(glEnd);
 // NOTE(Charly): ----------  OpenGL1 end  ----------
 #else
-
 #include <GL/gl.h>
 
 typedef void def_glGenerateMipmap(GLenum);
