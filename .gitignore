@@ -11,3 +11,5 @@ Debug/*
 *.db
 *.opendb
 .vs/*
+*.tss
+Relwarb.vcxproj.user
