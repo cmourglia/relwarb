@@ -75,19 +75,19 @@ internal bool32 linux_ProcessEvent(Display* display, XEvent* event, GameState* g
             KeySym key = XLookupKeysym(&event->xkey, 0);
             if (key == XK_z)
             {
-                gameState->controller.moveUp = true;
+                gameState->controller[0].moveUp = true;
             }
             else if (key == XK_s)
             {
-                gameState->controller.moveDown = true;
+                gameState->controller[0].moveDown = true;
             }
             else if (key == XK_q)
             {
-                gameState->controller.moveLeft = true;
+                gameState->controller[0].moveLeft = true;
             }
             else if (key == XK_d)
             {
-                gameState->controller.moveRight = true;
+                gameState->controller[0].moveRight = true;
             }
         } break;
 
@@ -96,19 +96,19 @@ internal bool32 linux_ProcessEvent(Display* display, XEvent* event, GameState* g
             KeySym key = XLookupKeysym(&event->xkey, 0);
             if (key == XK_z)
             {
-                gameState->controller.moveUp = false;
+                gameState->controller[0].moveUp = false;
             }
             else if (key == XK_s)
             {
-                gameState->controller.moveDown = false;
+                gameState->controller[0].moveDown = false;
             }
             else if (key == XK_q)
             {
-                gameState->controller.moveLeft = false;
+                gameState->controller[0].moveLeft = false;
             }
             else if (key == XK_d)
             {
-                gameState->controller.moveRight = false;
+                gameState->controller[0].moveRight = false;
             }
             else if (key == XK_Escape)
             {

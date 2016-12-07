@@ -1,11 +1,11 @@
-
+#include <stdio.h>
 #include <utility>
 #include <vector>
 
 #include "relwarb_defines.h"
 #include "relwarb.h"
 
-void UpdateWorld(GameState * gameState, real32 dt)
+void UpdateWorld(GameState* gameState, real32 dt)
 {
     // Here is where the magic happens
     // Multiple stuff has to be done here, for each dynamic entities
@@ -23,7 +23,19 @@ void UpdateWorld(GameState * gameState, real32 dt)
     //      - NOTE(Charly): Forward Euler would have been
     //          p(t) = p(t-1) + v(t-1) * dt
     //          v(t) = v(t-1) + a(t) * dt
-    //
+    for (uint32 rigidBodyIdx = 0; rigidBodyIdx < gameState->nbRigidBodies; ++rigidBodyIdx)
+    {
+        RigidBody* body = &gameState->rigidBodies[rigidBodyIdx];
+
+        body->forces += gameState->gravity;
+
+        body->ddp = body->forces * body->invMass;
+        body->dp += dt * body->ddp;
+        body->p += dt * body->dp; 
+
+        body->forces = Vec2(0.f);
+    }
+
     // 2. Collision detection
     // Depending on the types of shapes we want collision for (I think I won't
     // be wrong if I say that we want other stuff than AABBs), we might need
@@ -33,12 +45,15 @@ void UpdateWorld(GameState * gameState, real32 dt)
 
 	std::vector<std::pair <Entity *, Entity *>> collisions;
 
+    // QUESTION(THOMAS): Double loop ? with test to handle each pair only once ?
+    // ANSWER(Charly):   Yup, but you do not want to iterate over the entities, 
+    //                   you want to iterate over the shapes and retrieve their 
+    //                   position from their entityID.
 	for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
 	{
 		Entity* entity = &gameState->entities[elementIdx];
-		if (entity->flags & ComponentFlag_Collisional)
+        if (EntityHasFlag(entity, ComponentFlag_Collidable))
 		{
-			// QUESTION(THOMAS): Double loop ? with test to handle each pair only once ?
 		}
 	}
 
@@ -70,4 +85,19 @@ void UpdateWorld(GameState * gameState, real32 dt)
     //          for each object (The heavier, the harder to move. Immovable objects
     //          have an infinite mass / null inverse mass)
     //      }
+}
+
+
+RigidBody* CreateRigidBody(GameState* gameState, real32 mass, Vec2 p, Vec2 dp)
+{
+    ComponentID id = gameState->nbRigidBodies++;
+    Assert(id < WORLD_SIZE);
+    RigidBody* result = &gameState->rigidBodies[id];
+    result->id = id;
+
+    result->invMass = (mass == 0.f ? 0.f : 1.f / mass);
+    result->p = p;
+    result->dp = dp;     
+
+    return result;
 }

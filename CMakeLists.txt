@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(relwarb)
 
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
+
 set(sources 
     src/linux_relwarb.cpp
     src/relwarb.cpp

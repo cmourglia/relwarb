@@ -6,34 +6,33 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Entity::Entity(GameState * gameState, PhysicsData physics, RectangularShape shape, Bitmap bitmap)
-	:id(gameState->nbEntities++), flags(ComponentFlag_Physical | ComponentFlag_Collisional | ComponentFlag_Graphical)
-{
-	indices[ComponentType_PhysicsData] = gameState->nbComponentData[ComponentType_PhysicsData]++;
-	gameState->physics[indices[ComponentType_PhysicsData]] = physics;
-
-	indices[ComponentType_CollisionShape] = gameState->nbComponentData[ComponentType_CollisionShape]++;
-	gameState->shapes[indices[ComponentType_CollisionShape]] = shape;
-
-	indices[ComponentType_GraphicsData] = gameState->nbComponentData[ComponentType_GraphicsData]++;
-	gameState->bitmaps[indices[ComponentType_GraphicsData]] = bitmap;
-}
-
 void InitGame(GameState* gameState)
 {
+    gameState->gravity = Vec2(0.f, -9.8f);
 	real32 halfWidth = gameState->renderWidth * 0.5f;
 	real32 halfHeight = gameState->renderHeight * 0.5f;
 
-	gameState->entities[0] = Entity(gameState, PhysicsData(Vec2(-halfWidth - 1, halfHeight)), RectangularShape(Vec2(2, gameState->renderHeight + 2)), Bitmap());
-	gameState->entities[1] = Entity(gameState, PhysicsData(Vec2(halfWidth + 1, halfHeight)), RectangularShape(Vec2(2, gameState->renderHeight + 2)), Bitmap());
-	gameState->entities[2] = Entity(gameState, PhysicsData(Vec2(0, -1)), RectangularShape(Vec2(gameState->renderWidth, 2)), Bitmap());
-	gameState->entities[3] = Entity(gameState, PhysicsData(Vec2(0, gameState->renderHeight + 1)), RectangularShape(Vec2(gameState->renderWidth, 2)), Bitmap());
+    Entity* entity0 = CreateEntity(gameState);
+    
+    Bitmap* bitmap = CreateBitmap(gameState);
+    bitmap->entityID = entity0->id;
+    LoadImage("assets/smiley.png", bitmap);
 
-	gameState->entities[4] = Entity(gameState, PhysicsData(Vec2(-halfWidth * 0.5f, halfHeight * 0.5f)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
-	gameState->entities[5] = Entity(gameState, PhysicsData(Vec2(halfWidth * 0.5f, halfHeight * 0.5f)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
-	gameState->entities[6] = Entity(gameState, PhysicsData(Vec2(0, halfHeight)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
+    RigidBody* body = CreateRigidBody(gameState, 0.1f);
+    body->entityID = entity0->id;
+    body->invMass = .1f;
 
-    LoadImage("assets/smiley.png", &gameState->bitmaps[0]);
+    AddComponentToEntity(entity0, bitmap->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    AddComponentToEntity(entity0, body->id, ComponentType_RigidBody, ComponentFlag_Movable);
+
+	// gameState->entities[0] = Entity(gameState, PhysicsData(Vec2(-halfWidth - 1, halfHeight)), RectangularShape(Vec2(2, gameState->renderHeight + 2)), Bitmap());
+	// gameState->entities[1] = Entity(gameState, PhysicsData(Vec2(halfWidth + 1, halfHeight)), RectangularShape(Vec2(2, gameState->renderHeight + 2)), Bitmap());
+	// gameState->entities[2] = Entity(gameState, PhysicsData(Vec2(0, -1)), RectangularShape(Vec2(gameState->renderWidth, 2)), Bitmap());
+	// gameState->entities[3] = Entity(gameState, PhysicsData(Vec2(0, gameState->renderHeight + 1)), RectangularShape(Vec2(gameState->renderWidth, 2)), Bitmap());
+
+	// gameState->entities[4] = Entity(gameState, PhysicsData(Vec2(-halfWidth * 0.5f, halfHeight * 0.5f)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
+	// gameState->entities[5] = Entity(gameState, PhysicsData(Vec2(halfWidth * 0.5f, halfHeight * 0.5f)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
+	// gameState->entities[6] = Entity(gameState, PhysicsData(Vec2(0, halfHeight)), RectangularShape(Vec2(halfWidth * 0.25f, 32)), Bitmap());
 }
 
 void UpdateGame(GameState* gameState)
@@ -65,6 +64,7 @@ void UpdateGame(GameState* gameState)
         // gameState->entities[0].shape.posY = 1.f - gameState->entities[0].shape.sizeY;
         // gameState->onEdge = true;
     // }
+    UpdateWorld(gameState, 1.f / 60.f);
 }
 
 void RenderGame(GameState* gameState)
@@ -77,10 +77,17 @@ void RenderGame(GameState* gameState)
     for (uint32 elementIdx = 0; elementIdx < 1 /*gameState->nbEntities*/; ++elementIdx)
     {
 		Entity* entity = &gameState->entities[elementIdx];
-		if (entity->flags & ComponentFlag_Graphical)
+		if (EntityHasFlag(entity, ComponentFlag_Renderable))
 		{
-			Bitmap* bitmap = &gameState->bitmaps[entity->indices[ComponentType_GraphicsData]];
-			RenderBitmap(bitmap, 0, 0);
+			Bitmap* bitmap = &gameState->bitmaps[entity->components[ComponentType_Bitmap]];
+            Vec2 pos(0.f);
+
+            if (EntityHasFlag(entity, ComponentFlag_Movable))
+            {
+                pos = gameState->rigidBodies[entity->components[ComponentType_RigidBody]].p;
+            }
+
+			RenderBitmap(bitmap, pos.x, pos.y);
 		}
     }
 }
@@ -98,4 +105,33 @@ void ReleaseImage(Bitmap* bitmap)
 {
     ReleaseBitmap(bitmap);
     stbi_image_free(bitmap->data);
+}
+
+Entity* CreateEntity(GameState* gameState)
+{
+    EntityID id = gameState->nbEntities++;
+    Assert(id < WORLD_SIZE);
+    Entity* result = &gameState->entities[id];
+    result->id = id;
+
+    return result;
+}
+
+void AddComponentToEntity(Entity* entity, 
+                          ComponentID componentID, 
+                          ComponentType componentType, 
+                          ComponentFlag componentFlag)
+{
+    entity->components[componentType] = componentID;
+    SetEntityFlag(entity, componentFlag);
+}
+
+Bitmap* CreateBitmap(GameState* gameState)
+{
+    ComponentID id = gameState->nbBitmaps++;
+    Assert(id < WORLD_SIZE);
+    Bitmap* result = &gameState->bitmaps[id];
+    result->id = id;
+
+    return result;
 }

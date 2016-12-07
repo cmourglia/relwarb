@@ -89,13 +89,19 @@ struct Vec2
 {
     union 
     {
-        real32 x, y;
+        struct 
+        {
+            real32 x;
+            real32 y;
+        };
         real32 data[2];
     };
 
-    Vec2() {}
-    Vec2(real32 a) { x = a; y = a; }
-    Vec2(real32 px, real32 py) { x = px; y = py;}
+    inline Vec2() {}
+    inline Vec2(real32 a) { x = a; y = a; }
+    inline Vec2(real32 px, real32 py) { x = px; y = py;}
+    inline Vec2(const Vec2& v) = default;
+    inline Vec2& operator=(const Vec2& v) = default; 
 
     inline Vec2& operator+=(Vec2 v)
     {
