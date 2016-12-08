@@ -85,8 +85,8 @@ void RenderGame(GameState* gameState);
 
 // TODO(Charly): This should go somewhere else
 // NOTE(Charly): bitmap must not be null, otherwise UB
-void LoadImage(const char* filename, Bitmap* bitmap);
-void ReleaseImage(Bitmap* bitmap);
+void LoadBitmapData(const char* filename, Bitmap* bitmap);
+void ReleaseBitmapData(Bitmap* bitmap);
 
 Entity* CreateEntity(GameState* gameState);
 void AddComponentToEntity(Entity* entity, ComponentID component, ComponentType type, ComponentFlag flag);

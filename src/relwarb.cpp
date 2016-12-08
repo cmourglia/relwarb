@@ -19,7 +19,7 @@ void InitGame(GameState* gameState)
     
     Bitmap* bitmap = CreateBitmap(gameState);
     bitmap->entityID = entity0->id;
-    LoadImage("assets/smiley.png", bitmap);
+    LoadBitmapData("assets/smiley.png", bitmap);
 
     RigidBody* body = CreateRigidBody(gameState, 0.1f);
     body->entityID = entity0->id;
@@ -99,7 +99,7 @@ void RenderGame(GameState* gameState)
     }
 }
 
-void LoadImage(const char* filename, Bitmap* bitmap)
+void LoadBitmapData(const char* filename, Bitmap* bitmap)
 {
     // NOTE(Charly): Get images bottom-up
     stbi_set_flip_vertically_on_load(true);
@@ -108,7 +108,7 @@ void LoadImage(const char* filename, Bitmap* bitmap)
     Assert(bitmap->data);
 }
 
-void ReleaseImage(Bitmap* bitmap)
+void ReleaseBitmapData(Bitmap* bitmap)
 {
     ReleaseBitmap(bitmap);
     stbi_image_free(bitmap->data);

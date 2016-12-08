@@ -1,39 +1,42 @@
 #include "relwarb_opengl.h"
 #include "relwarb.h"
 
-#define FUNC_DEF(name) def_##name* name
 
 #if defined(_WIN32)
 
-FUNC_DEF(glGetStringi);
-FUNC_DEF(glUseProgram);
-FUNC_DEF(glGetIntegerv);
-FUNC_DEF(glViewport);
-FUNC_DEF(glClearColor);
-FUNC_DEF(glClear);
-FUNC_DEF(glFlush);
-FUNC_DEF(glIsTexture);
-FUNC_DEF(glEnable);
-FUNC_DEF(glGenTextures);
-FUNC_DEF(glDeleteTextures);
-FUNC_DEF(glBindTexture);
-FUNC_DEF(glTexImage2D);
-FUNC_DEF(glTexParameteri);
+PFNGLVIEWPORTPROC                    glViewport;
+PFNGLCLEARCOLORPROC                  glClearColor;
+PFNGLCLEARPROC                       glClear;
+PFNGLGENVERTEXARRAYSPROC             glGenVertexArrays;
+PFNGLGENBUFFERSPROC                  glGenBuffers;
+PFNGLBINDBUFFERPROC                  glBindBuffer;
+PFNGLBUFFERDATAPROC                  glBufferData;
+PFNGLISTEXTUREPROC                   glIsTexture;
+PFNGLGENTEXTURESPROC                 glGenTextures;
+PFNGLBINDTEXTUREPROC                 glBindTexture;
+PFNGLTEXIMAGE2DPROC                  glTexImage2D;
+PFNGLTEXPARAMETERIPROC               glTexParameteri;
+PFNGLGENERATEMIPMAPPROC              glGenerateMipmap;
+PFNGLFLUSHPROC                       glFlush;
+PFNGLDELETETEXTURESPROC              glDeleteTextures;
+PFNGLGETSTRINGIPROC                  glGetStringi;
+PFNGLGETINTEGERVPROC                 glGetIntegerv;
+PFNGLUSEPROGRAMPROC                  glUseProgram;
+PFNGLENABLEPROC                      glEnable;
+PFNGLBINDVERTEXARRAYPROC             glBindVertexArray;
+PFNGLVERTEXATTRIBPOINTERPROC         glVertexAttribPointer;
+PFNGLENABLEVERTEXATTRIBARRAYPROC     glEnableVertexAttribArray; 
 
-FUNC_DEF(glDebugMessageCallbackARB);
+def_glDebugMessageCallbackARB* glDebugMessageCallbackARB; 
 
-FUNC_DEF(glBegin);
-FUNC_DEF(glColor3f);
-FUNC_DEF(glVertex2f);
-FUNC_DEF(glTexCoord2f);
-FUNC_DEF(glEnd);
-#endif
+#else
 
 FUNC_DEF(glGenerateMipmap);
 FUNC_DEF(glGenVertexArrays);
 FUNC_DEF(glGenBuffers);
 FUNC_DEF(glBindBuffer);
 FUNC_DEF(glBufferData);
+#endif 
 
 global_variable GLuint g_bitmapProg;
 
@@ -86,6 +89,12 @@ global_variable GLuint indices[] =
 
 global_variable GLuint vao, vbo, ibo;
 
+internal GLuint CompileShader(const char* src, GLenum type)
+{
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, nullptr);
+}
+
 void InitializeRenderer()
 {
     glGenVertexArrays(1, &vao);
@@ -102,6 +111,16 @@ void InitializeRenderer()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(vao);
+    
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
 }
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)

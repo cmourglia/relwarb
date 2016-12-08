@@ -89,7 +89,7 @@ struct Vec2
 {
     union 
     {
-        struct 
+        struct
         {
             real32 x;
             real32 y;

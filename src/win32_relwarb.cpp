@@ -12,14 +12,14 @@
 global_variable bool g_running;
 global_variable WORD g_vibrationLevel;
 
-#define WGL_GET_AND_CHECK(name)                                         \
+#define WGL_GET_AND_CHECK(name, type)                                   \
 do {                                                                    \
-    name = (def_##name*)wglGetProcAddress(STRINGIFY(name));             \
+    name = (type)wglGetProcAddress(STRINGIFY(name));                    \
     if (name == 0 ||                                                    \
         (name == (void*)0x1) || (name == (void*)0x2) ||                 \
         (name == (void*)0x3) || (name == (void*)-1)) {                  \
         HMODULE module = LoadLibraryA("opengl32.dll");                  \
-        name = (def_##name*)GetProcAddress(module, STRINGIFY(name));    \
+        name = (type)GetProcAddress(module, STRINGIFY(name));           \
     }                                                                   \
     Assert(name);                                                       \
 } while (false)
@@ -155,11 +155,11 @@ internal void win32_LoadWGLFunctions()
         if (wglMakeCurrent(hdc, glrc))
         {
             // Retrieve wgl function pointers
-            WGL_GET_AND_CHECK(wglGetPixelFormatAttribivARB);
-            WGL_GET_AND_CHECK(wglGetPixelFormatAttribfvARB);
-            WGL_GET_AND_CHECK(wglChoosePixelFormatARB);
-            WGL_GET_AND_CHECK(wglCreateContextAttribsARB);
-            WGL_GET_AND_CHECK(wglGetExtensionsStringARB);
+            WGL_GET_AND_CHECK(wglGetPixelFormatAttribivARB, def_wglGetPixelFormatAttribivARB*);
+            WGL_GET_AND_CHECK(wglGetPixelFormatAttribfvARB, def_wglGetPixelFormatAttribfvARB*);
+            WGL_GET_AND_CHECK(wglChoosePixelFormatARB, def_wglChoosePixelFormatARB*);
+            WGL_GET_AND_CHECK(wglCreateContextAttribsARB, def_wglCreateContextAttribsARB*);
+            WGL_GET_AND_CHECK(wglGetExtensionsStringARB, def_wglGetExtensionsStringARB*);
 
             wglMakeCurrent(nullptr, nullptr);
         }
@@ -269,37 +269,34 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
 
         if (wglMakeCurrent(hdc, openglRC))
         {
-            WGL_GET_AND_CHECK(glGetStringi);
-            WGL_GET_AND_CHECK(glUseProgram);
-            WGL_GET_AND_CHECK(glGetIntegerv);
-            WGL_GET_AND_CHECK(glViewport);
-            WGL_GET_AND_CHECK(glClearColor);
-            WGL_GET_AND_CHECK(glClear);
-            WGL_GET_AND_CHECK(glFlush);
-            WGL_GET_AND_CHECK(glIsTexture);
-            WGL_GET_AND_CHECK(glEnable);
-            WGL_GET_AND_CHECK(glGenTextures);
-            WGL_GET_AND_CHECK(glDeleteTextures);
-            WGL_GET_AND_CHECK(glBindTexture);
-            WGL_GET_AND_CHECK(glTexImage2D);
-            WGL_GET_AND_CHECK(glTexParameteri);
-            WGL_GET_AND_CHECK(glGenerateMipmap);
-
-            WGL_GET_AND_CHECK(glBegin);
-            WGL_GET_AND_CHECK(glColor3f);
-            WGL_GET_AND_CHECK(glVertex2f);
-            WGL_GET_AND_CHECK(glTexCoord2f);
-            WGL_GET_AND_CHECK(glEnd);
+            WGL_GET_AND_CHECK(glGetStringi, PFNGLGETSTRINGIPROC);
+            WGL_GET_AND_CHECK(glUseProgram, PFNGLUSEPROGRAMPROC);
+            WGL_GET_AND_CHECK(glGetIntegerv, PFNGLGETINTEGERVPROC);
+            WGL_GET_AND_CHECK(glViewport, PFNGLVIEWPORTPROC);
+            WGL_GET_AND_CHECK(glClearColor, PFNGLCLEARCOLORPROC);
+            WGL_GET_AND_CHECK(glClear, PFNGLCLEARPROC);
+            WGL_GET_AND_CHECK(glFlush, PFNGLFLUSHPROC);
+            WGL_GET_AND_CHECK(glIsTexture, PFNGLISTEXTUREPROC);
+            WGL_GET_AND_CHECK(glEnable, PFNGLENABLEPROC);
+            WGL_GET_AND_CHECK(glGenTextures, PFNGLGENTEXTURESPROC);
+            WGL_GET_AND_CHECK(glDeleteTextures, PFNGLDELETETEXTURESPROC);
+            WGL_GET_AND_CHECK(glBindTexture, PFNGLBINDTEXTUREPROC);
+            WGL_GET_AND_CHECK(glTexImage2D, PFNGLTEXIMAGE2DPROC);
+            WGL_GET_AND_CHECK(glTexParameteri, PFNGLTEXPARAMETERIPROC);
+            WGL_GET_AND_CHECK(glGenerateMipmap, PFNGLGENERATEMIPMAPPROC);
+            WGL_GET_AND_CHECK(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC);
+            WGL_GET_AND_CHECK(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
+            WGL_GET_AND_CHECK(glEnableVertexAttribArray, PFNGLENABLEVERTEXATTRIBARRAYPROC);
 
             int extensionsCount = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &extensionsCount);
 
             for (int extensionIndex = 0; extensionIndex < extensionsCount; ++extensionIndex)
             {
-                const char* extensionName = glGetStringi(GL_EXTENSIONS, extensionIndex);
+                const char* extensionName = (const char*)glGetStringi(GL_EXTENSIONS, extensionIndex);
                 if (StrEqual(extensionName, "GL_ARB_debug_output", StrLength("GL_ARB_debug_output")))
                 {
-                    WGL_GET_AND_CHECK(glDebugMessageCallbackARB);
+                    WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
                     glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
                 }
             }
@@ -327,8 +324,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
 
 			case WM_SIZE:
 			{
-				gameState->renderWidth = LOWORD(message.lParam);
-				gameState->renderHeight = HIWORD(message.lParam);
+				gameState->viewportSize = Vec2(LOWORD(message.lParam), HIWORD(message.lParam));
 			} break;
 
             case WM_KEYUP:
@@ -354,25 +350,25 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         case VK_LEFT:
                         case 'A':
                         {
-                            gameState->controller.moveLeft = isDown;
+                            gameState->controller[0].moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
                         case 'D':
                         {
-                            gameState->controller.moveRight = isDown;
+                            gameState->controller[0].moveRight = isDown;
                         } break;
 
                         case VK_UP:
                         case 'W':
                         {
-                            gameState->controller.moveUp = isDown;
+                            gameState->controller[0].moveUp = isDown;
                         } break;
 
                         case VK_DOWN:
                         case 'S':
                         {
-                            gameState->controller.moveDown = isDown;
+                            gameState->controller[0].moveDown = isDown;
                         } break;
                     }
                 }
@@ -430,33 +426,33 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 
             if (lx > INPUT_DEADZONE || bRight)
             {
-                gameState->controller.moveLeft = false;
-                gameState->controller.moveRight = true;
+                gameState->controller[controllerIndex + 1].moveLeft = false;
+                gameState->controller[controllerIndex + 1].moveRight = true;
             }
             else if (lx < -INPUT_DEADZONE || bLeft)
             {
-                gameState->controller.moveLeft = true;
-                gameState->controller.moveRight = false;
+                gameState->controller[controllerIndex + 1].moveLeft = true;
+                gameState->controller[controllerIndex + 1].moveRight = false;
             }
             else
             {
-                gameState->controller.moveLeft = false;
-                gameState->controller.moveRight = false;
+                gameState->controller[controllerIndex + 1].moveLeft = false;
+                gameState->controller[controllerIndex + 1].moveRight = false;
             }
 
             if (ly > INPUT_DEADZONE || bUp)
             {
-                gameState->controller.moveUp = true;
-                gameState->controller.moveDown = false;
+                gameState->controller[controllerIndex + 1].moveUp = true;
+                gameState->controller[controllerIndex + 1].moveDown = false;
             }
             else if (ly < -INPUT_DEADZONE || bDown)
             {
-                gameState->controller.moveDown = true;
-                gameState->controller.moveUp = false;
+                gameState->controller[controllerIndex + 1].moveDown = true;
+                gameState->controller[controllerIndex + 1].moveUp = false;
             }
             else
             {
-                gameState->controller.moveDown = gameState->controller.moveUp = false;
+                gameState->controller[controllerIndex + 1].moveDown = gameState->controller[controllerIndex + 1].moveUp = false;
             }
 
             // Vibrate on edges
@@ -518,8 +514,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         g_running = true;
 
         GameState gameState;
-		gameState.renderWidth = 1280;
-		gameState.renderHeight = 720;
+		gameState.viewportSize = Vec2(1280, 720);
 
         InitGame(&gameState);
 
