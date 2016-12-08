@@ -8,9 +8,12 @@
 
 void InitGame(GameState* gameState)
 {
+    real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
+
+    gameState->worldSize = Vec2(20.f, 20.f / ratio);
     gameState->gravity = Vec2(0.f, -9.8f);
-	real32 halfWidth = gameState->renderWidth * 0.5f;
-	real32 halfHeight = gameState->renderHeight * 0.5f;
+	real32 halfWidth = gameState->viewportSize.x * 0.5f;
+	real32 halfHeight = gameState->viewportSize.y * 0.5f;
 
     Entity* entity0 = CreateEntity(gameState);
     
@@ -69,7 +72,7 @@ void UpdateGame(GameState* gameState)
 
 void RenderGame(GameState* gameState)
 {
-    glViewport(0, 0, gameState->renderWidth, gameState->renderHeight);
+    glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
 
     glClearColor(0.3f, 0.8f, 0.7f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -87,7 +90,11 @@ void RenderGame(GameState* gameState)
                 pos = gameState->rigidBodies[entity->components[ComponentType_RigidBody]].p;
             }
 
-			RenderBitmap(bitmap, pos.x, pos.y);
+            Transform transform;
+            transform.offset = Vec2(0, 0);
+            transform.position = pos;
+            transform.scale = Vec2(1);
+			RenderBitmap(bitmap, &transform);
 		}
     }
 }

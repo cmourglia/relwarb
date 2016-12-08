@@ -2,6 +2,7 @@
 #define RELWARB_OPENGL_H
 
 #include "relwarb_defines.h"
+#include "relwarb_math.h"
 
 #if _WIN32
 #define FUNC_VAR(name) extern def_##name* name
@@ -150,12 +151,42 @@ typedef void def_glGenerateMipmap(GLenum);
 extern def_glGenerateMipmap* glGenerateMipmap_;
 #define glGenerateMipmap glGenerateMipmap_
 
+typedef void def_glGenVertexArrays(GLsizei, GLuint*);
+extern def_glGenVertexArrays* glGenVertexArrays_;
+#define glGenVertexArrays glGenVertexArrays_
+
+typedef void def_glGenBuffers(GLsizei, GLuint*);
+extern def_glGenBuffers* glGenBuffers_;
+#define glGenBuffers glGenBuffers_
+
+typedef void def_glBindBuffer(GLenum, GLuint);
+extern def_glBindBuffer* glBindBuffer_;
+#define glBindBuffer glBindBuffer_
+
+typedef void def_glBufferData(GLenum, GLsizeiptr, const void*, GLenum);
+extern def_glBufferData* glBufferData_;
+#define glBufferData glBufferData_
+
 #endif
 
 struct Bitmap;
+struct GameState;
+
+struct Transform
+{
+    Vec2 position;
+    Vec2 offset;
+    Vec2 scale;
+
+    // TODO(Charly). Orientation ?
+};
+
+void InitializeRenderer(GameState* gameState);
+void ResizeRenderer(GameState* gameState);
+
 // TODO(Charly): x and y are given in opengl coordinates for now,
 //               maybe this should change
-void RenderBitmap(Bitmap* bitmap, real32 x, real32 y);
+void RenderBitmap(Bitmap* bitmap, Transform* transform);
 
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseBitmap(Bitmap* bitmap);

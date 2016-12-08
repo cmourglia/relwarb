@@ -47,8 +47,8 @@ struct GameState
     // TODO(Charly): View / Proj matrices
     // TODO(Charly): Do we want orthographic or perspective projection ?
 
-    uint32 renderWidth;
-    uint32 renderHeight;
+    Vec2 viewportSize;
+    Vec2 worldSize;
 
     bool32 onEdge;
 

@@ -66,8 +66,7 @@ internal bool32 linux_ProcessEvent(Display* display, XEvent* event, GameState* g
         {
             XWindowAttributes xwa;
             XGetWindowAttributes(display, event->xkey.window, &xwa);
-            gameState->renderWidth = xwa.width;
-            gameState->renderHeight = xwa.height;
+            gameState->viewportSize = Vec2(xwa.width, xwa.height);
         } break;
 
         case KeyPress:
@@ -200,7 +199,17 @@ int main()
                 glGenerateMipmap = (def_glGenerateMipmap*)glXGetProcAddress((const GLubyte*)"glGenerateMipmap");
                 Assert(glGenerateMipmap);
 
+                glGenVertexArrays = (def_glGenVertexArrays*)glXGetProcAddress((const GLubyte*)"glGenVertexArrays");
+                Assert(glGenVertexArrays);
+                glGenBuffers = (def_glGenBuffers*)glXGetProcAddress((const GLubyte*)"glGenBuffers");
+                Assert(glGenBuffers);
+                glBindBuffer = (def_glBindBuffer*)glXGetProcAddress((const GLubyte*)"glBindBuffer");
+                Assert(glBindBuffer);
+                glBufferData = (def_glBufferData*)glXGetProcAddress((const GLubyte*)"glBufferData");
+                Assert(glBufferData);
+
                 GameState gameState = {};
+                gameState.viewportSize = Vec2(800, 600);
                 g_running = true;
 
                 InitGame(&gameState);

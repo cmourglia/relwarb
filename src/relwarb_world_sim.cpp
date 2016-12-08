@@ -87,7 +87,6 @@ void UpdateWorld(GameState* gameState, real32 dt)
     //      }
 }
 
-
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass, Vec2 p, Vec2 dp)
 {
     ComponentID id = gameState->nbRigidBodies++;
