@@ -8,6 +8,7 @@
 
 void InitGame(GameState* gameState)
 {
+    InitializeRenderer();
     real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
     gameState->worldSize = Vec2(20.f, 20.f / ratio);

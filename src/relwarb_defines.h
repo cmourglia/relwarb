@@ -20,9 +20,13 @@ typedef float real32;
 typedef double real64;
 
 #if defined(_DEBUG)
-#define Assert(x) if (!(x)) { *(int*)0 = 0; }
+# if defined(LINUX)
+#  define Assert(x) if (!(x)) { __builtin_trap(); }
+# else
+#  define Assert(x) if (!(x)) { *(int*)0 = 0; }
+# endif
 #else
-#define Assert(x)
+# define Assert(x)
 #endif
 
 #if defined(STRINGIFY)

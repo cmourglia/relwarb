@@ -1,42 +1,9 @@
 #include "relwarb_opengl.h"
 #include "relwarb.h"
 
+#include <stdio.h>
 
-#if defined(_WIN32)
-
-PFNGLVIEWPORTPROC                    glViewport;
-PFNGLCLEARCOLORPROC                  glClearColor;
-PFNGLCLEARPROC                       glClear;
-PFNGLGENVERTEXARRAYSPROC             glGenVertexArrays;
-PFNGLGENBUFFERSPROC                  glGenBuffers;
-PFNGLBINDBUFFERPROC                  glBindBuffer;
-PFNGLBUFFERDATAPROC                  glBufferData;
-PFNGLISTEXTUREPROC                   glIsTexture;
-PFNGLGENTEXTURESPROC                 glGenTextures;
-PFNGLBINDTEXTUREPROC                 glBindTexture;
-PFNGLTEXIMAGE2DPROC                  glTexImage2D;
-PFNGLTEXPARAMETERIPROC               glTexParameteri;
-PFNGLGENERATEMIPMAPPROC              glGenerateMipmap;
-PFNGLFLUSHPROC                       glFlush;
-PFNGLDELETETEXTURESPROC              glDeleteTextures;
-PFNGLGETSTRINGIPROC                  glGetStringi;
-PFNGLGETINTEGERVPROC                 glGetIntegerv;
-PFNGLUSEPROGRAMPROC                  glUseProgram;
-PFNGLENABLEPROC                      glEnable;
-PFNGLBINDVERTEXARRAYPROC             glBindVertexArray;
-PFNGLVERTEXATTRIBPOINTERPROC         glVertexAttribPointer;
-PFNGLENABLEVERTEXATTRIBARRAYPROC     glEnableVertexAttribArray; 
-
-def_glDebugMessageCallbackARB* glDebugMessageCallbackARB; 
-
-#else
-
-FUNC_DEF(glGenerateMipmap);
-FUNC_DEF(glGenVertexArrays);
-FUNC_DEF(glGenBuffers);
-FUNC_DEF(glBindBuffer);
-FUNC_DEF(glBufferData);
-#endif 
+def_glDebugMessageCallbackARB* glDebugMessageCallbackARB_;
 
 global_variable GLuint g_bitmapProg;
 
@@ -60,7 +27,7 @@ void main()
 )";
 
 global_variable const char* bitmapFrag = R"(
-#version 330
+#version 130
 
 in vec2 uv;
 out vec4 color;
@@ -93,6 +60,24 @@ internal GLuint CompileShader(const char* src, GLenum type)
 {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &src, nullptr);
+    glCompileShader(shader);
+
+    GLint compiled = GL_TRUE;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    if (compiled != GL_TRUE)
+    {
+        GLsizei logLength;
+        GLchar message[1024];
+        glGetShaderInfoLog(shader, 1024, &logLength, message);
+
+        // TODO(Charly): Proper logging
+        fprintf(stderr, "Shader not compiled (%d): %s\n", logLength, message);
+
+        glDeleteShader(shader);
+        shader = 0;
+    }
+
+    return shader;
 }
 
 void InitializeRenderer()
@@ -121,6 +106,12 @@ void InitializeRenderer()
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+
+    GLuint vshader = CompileShader(bitmapVert, GL_VERTEX_SHADER);
+    GLuint fshader = CompileShader(bitmapFrag, GL_VERTEX_SHADER);
+
+    Assert(vshader);
+    Assert(fshader);
 }
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)
