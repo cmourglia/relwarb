@@ -141,6 +141,7 @@ inline Vec2 operator/(Vec2 v, real32 x) { return Vec2(v.x / x, v.y / x); }
 
 inline real32 Dot(Vec2 v, Vec2 w) { return v.x * w.x + v.y * w.y; }
 inline real32 Cross(Vec2 v, Vec2 w) { return v.x * w.y - v.y * w.x; }
+inline Vec2 Times(Vec2 v, Vec2 w) { return Vec2(v.x * w.x, v.y * w.y); }
 inline real32 Length(Vec2 v) { return Sqrt(Dot(v, v)); }
 inline real32 LengthSquared(Vec2 v) { return Dot(v, v); }
 inline Vec2 Normalize(Vec2 v) { return v / Length(v); }

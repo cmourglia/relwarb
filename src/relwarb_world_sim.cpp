@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "relwarb_defines.h"
+#include "relwarb_utils.h"
 #include "relwarb.h"
 
 void UpdateWorld(GameState* gameState, real32 dt)
@@ -49,12 +50,28 @@ void UpdateWorld(GameState* gameState, real32 dt)
     // ANSWER(Charly):   Yup, but you do not want to iterate over the entities, 
     //                   you want to iterate over the shapes and retrieve their 
     //                   position from their entityID.
-	for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
+	for (uint32 firstIdx = 0; firstIdx < gameState->nbRigidBodies; ++firstIdx)
 	{
-		Entity* entity = &gameState->entities[elementIdx];
-        if (EntityHasFlag(entity, ComponentFlag_Collidable))
+		/* Changement vers Rigid bodies
+
+		RectangularShape* firstShape = &gameState->shapes[firstIdx];
+		Entity* firstEntity = &gameState->entities[firstShape->entityID];
+        if (EntityHasFlag(firstEntity, ComponentFlag_Collidable))
 		{
-		}
+			for (uint32 secondIdx = firstIdx + 1; secondIdx < gameState->nbShapes; ++secondIdx)
+			{
+				RectangularShape* secondShape = &gameState->shapes[secondIdx];
+				Entity* secondEntity = &gameState->entities[secondShape->entityID];
+				if (EntityHasFlag(secondEntity, ComponentFlag_Collidable))
+				{
+					if (Intersect(	gameState->rigidBodies[firstEntity->components[ComponentType_RigidBody]].p, firstShape,
+									gameState->rigidBodies[secondEntity->components[ComponentType_RigidBody]].p, secondShape))
+					{
+						collisions.push_back(std::pair<Entity *, Entity *>(&gameState->entities[firstShape->entityID] , &gameState->entities[secondShape->entityID]));
+					}
+				}
+			}
+		}*/
 	}
 
     //
@@ -85,8 +102,38 @@ void UpdateWorld(GameState* gameState, real32 dt)
     //          for each object (The heavier, the harder to move. Immovable objects
     //          have an infinite mass / null inverse mass)
     //      }
+
+	for (auto it : collisions)
+	{
+		if (CollisionCallback(it.first, it.second, nullptr))
+		{
+			Assert(EntityHasFlag(it.first, ComponentFlag_Movable) || EntityHasFlag(it.second, ComponentFlag_Movable));
+
+			if (EntityHasFlag(it.first, ComponentFlag_Movable) && EntityHasFlag(it.second, ComponentFlag_Movable))
+			{
+
+			}
+			else
+			{
+				Vec2 overlap = Overlap( gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p, &gameState->shapes[it.first->components[ComponentType_CollisionShape]],
+										gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p, &gameState->shapes[it.second->components[ComponentType_CollisionShape]]);
+				if (EntityHasFlag(it.first, ComponentFlag_Movable))
+				{
+					gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p -= overlap;
+				}
+				else // (EntityHasFlag(it.second, ComponentFlag_Movable))
+				{
+					gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p += overlap;
+				}
+			}
+		}
+	}
 }
 
+bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
+{
+	return true;
+}
 
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass, Vec2 p, Vec2 dp)
 {

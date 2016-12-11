@@ -42,4 +42,6 @@ inline void ApplyImpulse(RigidBody* body, Vec2 impulse)
 
 // TODO(Charly): ApplyImpulseToPoint ?
 
+bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam);
+
 #endif // RELWARB_WORLD_SIM_H

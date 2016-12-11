@@ -52,8 +52,8 @@ struct GameState
 
     bool32 onEdge;
 
-	uint32 nbEntities;
-	Entity entities[WORLD_SIZE];
+	Entity				entities[WORLD_SIZE];
+	uint32				nbEntities;
 
 	RigidBody			rigidBodies[WORLD_SIZE];
     uint32              nbRigidBodies;
@@ -91,7 +91,7 @@ void ReleaseImage(Bitmap* bitmap);
 Entity* CreateEntity(GameState* gameState);
 void AddComponentToEntity(Entity* entity, ComponentID component, ComponentType type, ComponentFlag flag);
 
-RectangularShape* CreateShape(GameState* gameState);
+RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_ = Vec2(0));
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);
 

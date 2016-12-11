@@ -354,25 +354,26 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         case VK_LEFT:
                         case 'A':
                         {
-                            gameState->controller.moveLeft = isDown;
+							// NOTE(Thomas): Fix to compile. Check if correct
+							gameState->controller[0].moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
                         case 'D':
                         {
-                            gameState->controller.moveRight = isDown;
+                            gameState->controller[0].moveRight = isDown;
                         } break;
 
                         case VK_UP:
                         case 'W':
                         {
-                            gameState->controller.moveUp = isDown;
+                            gameState->controller[0].moveUp = isDown;
                         } break;
 
                         case VK_DOWN:
                         case 'S':
                         {
-                            gameState->controller.moveDown = isDown;
+                            gameState->controller[0].moveDown = isDown;
                         } break;
                     }
                 }
@@ -430,33 +431,33 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 
             if (lx > INPUT_DEADZONE || bRight)
             {
-                gameState->controller.moveLeft = false;
-                gameState->controller.moveRight = true;
+                gameState->controller[0].moveLeft = false;
+                gameState->controller[0].moveRight = true;
             }
             else if (lx < -INPUT_DEADZONE || bLeft)
             {
-                gameState->controller.moveLeft = true;
-                gameState->controller.moveRight = false;
+                gameState->controller[0].moveLeft = true;
+                gameState->controller[0].moveRight = false;
             }
             else
             {
-                gameState->controller.moveLeft = false;
-                gameState->controller.moveRight = false;
+                gameState->controller[0].moveLeft = false;
+                gameState->controller[0].moveRight = false;
             }
 
             if (ly > INPUT_DEADZONE || bUp)
             {
-                gameState->controller.moveUp = true;
-                gameState->controller.moveDown = false;
+                gameState->controller[0].moveUp = true;
+                gameState->controller[0].moveDown = false;
             }
             else if (ly < -INPUT_DEADZONE || bDown)
             {
-                gameState->controller.moveDown = true;
-                gameState->controller.moveUp = false;
+                gameState->controller[0].moveDown = true;
+                gameState->controller[0].moveUp = false;
             }
             else
             {
-                gameState->controller.moveDown = gameState->controller.moveUp = false;
+                gameState->controller[0].moveDown = gameState->controller[0].moveUp = false;
             }
 
             // Vibrate on edges
@@ -520,6 +521,11 @@ int CALLBACK WinMain(HINSTANCE instance,
         GameState gameState;
 		gameState.renderWidth = 1280;
 		gameState.renderHeight = 720;
+		gameState.nbBitmaps = 0;
+		gameState.nbEntities = 0;
+		gameState.nbRigidBodies = 0;
+		gameState.nbShapes = 0;
+		gameState.nbControllers = 0;
 
         InitGame(&gameState);
 

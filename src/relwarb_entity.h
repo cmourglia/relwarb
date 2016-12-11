@@ -4,7 +4,6 @@
 typedef uint32 EntityID;
 typedef uint32 ComponentID;
 
-// NOTE(THOMAS): I'll go for adjective forms here, as it shows properties of entities
 enum ComponentFlag
 {
 	ComponentFlag_Movable       = 1 << 0,
@@ -12,7 +11,6 @@ enum ComponentFlag
 	ComponentFlag_Renderable    = 1 << 2,
 };
 
-// NOTE(THOMAS): Adjective forms also as it shows type of data stored, or a name (as now) relative to data stored ?
 enum ComponentType
 {
 	ComponentType_RigidBody	= 0,
