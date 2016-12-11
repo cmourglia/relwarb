@@ -20,7 +20,8 @@ out vec2 uv;
 
 void main()
 {
-    gl_Position = u_proj * u_view * u_model * vec4(in_pos, 0, 1);
+    // gl_Position = u_proj * u_view * u_model * vec4(in_pos, 0, 1);
+    gl_Position = vec4(in_pos, 0, 1);
     uv = in_uv;
 }
 )";
@@ -36,6 +37,7 @@ uniform sampler2D u_tex;
 void main()
 {
     color = texture(u_tex, uv);
+    // color = vec4(1, 1, 0, 1);
 }
 )";
 
@@ -86,18 +88,17 @@ void InitializeRenderer()
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ibo);
 
+    Assert(vao);
     Assert(vbo);
     Assert(ibo);
 
+    glBindVertexArray(vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(vao);
     
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -131,6 +132,8 @@ void InitializeRenderer()
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)
 {
+	glDisable(GL_DEPTH_TEST);
+
     // TODO(Charly): Should this be done in an Init step ?
     if (!glIsTexture(bitmap->texture))
     {
@@ -150,10 +153,10 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform)
 
     glUseProgram(g_bitmapProg);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    glFlush();
+	glEnable(GL_DEPTH_TEST);
 }
 
 void ReleaseBitmap(Bitmap* bitmap)
