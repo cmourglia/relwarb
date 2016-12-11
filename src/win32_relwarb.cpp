@@ -254,8 +254,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             // TODO(Charly): Toggle this flag depending on the build type
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-            // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         };
 
@@ -269,24 +268,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
 
         if (wglMakeCurrent(hdc, openglRC))
         {
-            WGL_GET_AND_CHECK(glGetStringi, PFNGLGETSTRINGIPROC);
-            WGL_GET_AND_CHECK(glUseProgram, PFNGLUSEPROGRAMPROC);
-            WGL_GET_AND_CHECK(glGetIntegerv, PFNGLGETINTEGERVPROC);
-            WGL_GET_AND_CHECK(glViewport, PFNGLVIEWPORTPROC);
-            WGL_GET_AND_CHECK(glClearColor, PFNGLCLEARCOLORPROC);
-            WGL_GET_AND_CHECK(glClear, PFNGLCLEARPROC);
-            WGL_GET_AND_CHECK(glFlush, PFNGLFLUSHPROC);
-            WGL_GET_AND_CHECK(glIsTexture, PFNGLISTEXTUREPROC);
-            WGL_GET_AND_CHECK(glEnable, PFNGLENABLEPROC);
-            WGL_GET_AND_CHECK(glGenTextures, PFNGLGENTEXTURESPROC);
-            WGL_GET_AND_CHECK(glDeleteTextures, PFNGLDELETETEXTURESPROC);
-            WGL_GET_AND_CHECK(glBindTexture, PFNGLBINDTEXTUREPROC);
-            WGL_GET_AND_CHECK(glTexImage2D, PFNGLTEXIMAGE2DPROC);
-            WGL_GET_AND_CHECK(glTexParameteri, PFNGLTEXPARAMETERIPROC);
-            WGL_GET_AND_CHECK(glGenerateMipmap, PFNGLGENERATEMIPMAPPROC);
-            WGL_GET_AND_CHECK(glBindVertexArray, PFNGLBINDVERTEXARRAYPROC);
-            WGL_GET_AND_CHECK(glVertexAttribPointer, PFNGLVERTEXATTRIBPOINTERPROC);
-            WGL_GET_AND_CHECK(glEnableVertexAttribArray, PFNGLENABLEVERTEXATTRIBARRAYPROC);
+            gl3wInit();
 
             int extensionsCount = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &extensionsCount);
@@ -296,8 +278,8 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                 const char* extensionName = (const char*)glGetStringi(GL_EXTENSIONS, extensionIndex);
                 if (StrEqual(extensionName, "GL_ARB_debug_output", StrLength("GL_ARB_debug_output")))
                 {
-                    WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
-                    glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
+                    // WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
+                    // glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
                 }
             }
         }

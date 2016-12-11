@@ -1,6 +1,7 @@
 #ifndef RELWARB_MATH_H
 #define RELWARB_MATH_H
 
+#include "relwarb_defines.h"
 #include <math.h>
 
 // TODO(Charly): Homemade impl ?

@@ -1,6 +1,7 @@
 #include "relwarb.h"
-#include "relwarb_opengl.h"
 #include "relwarb_math.h"
+#include "relwarb_renderer.h"
+#include "relwarb_opengl.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -71,6 +72,7 @@ void UpdateGame(GameState* gameState)
     UpdateWorld(gameState, 1.f / 60.f);
 }
 
+// TODO(Charly): Move this in renderer ? 
 void RenderGame(GameState* gameState)
 {
     glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);

@@ -19,7 +19,7 @@ typedef int32_t bool32;
 typedef float real32;
 typedef double real64;
 
-#if defined(_DEBUG)
+#if defined(RELWARB_DEBUG)
 # if defined(LINUX)
 #  define Assert(x) if (!(x)) { __builtin_trap(); }
 # else
