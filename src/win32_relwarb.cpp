@@ -354,8 +354,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         case VK_LEFT:
                         case 'A':
                         {
-							// NOTE(Thomas): Fix to compile. Check if correct
-							gameState->controller[0].moveLeft = isDown;
+			    gameState->controller[0].moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
