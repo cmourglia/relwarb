@@ -10,9 +10,20 @@
 void InitGame(GameState* gameState)
 {
     InitializeRenderer();
+    gameState->projMatrix = Ortho(-gameState->viewportSize.x / 2, gameState->viewportSize.x / 2, 
+                                  -gameState->viewportSize.y / 2, gameState->viewportSize.y / 2);
     real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
     gameState->worldSize = Vec2(20.f, 20.f / ratio);
+
+    Mat4 worldMat = {0};
+    worldMat[0][0] = (gameState->viewportSize.x / 2.f) / (gameState->worldSize.x / 2.f);
+    worldMat[1][1] = (gameState->viewportSize.y / 2.f) / (gameState->worldSize.y / 2.f);
+    worldMat[2][2] = 1.f;
+    worldMat[3][3] = 1.f;
+    worldMat[3][1] = -gameState->viewportSize.y / 2.f;
+    gameState->worldMatrix = worldMat;
+
     gameState->gravity = Vec2(0.f, -9.8f);
 	real32 halfWidth = gameState->viewportSize.x * 0.5f;
 	real32 halfHeight = gameState->viewportSize.y * 0.5f;
@@ -23,7 +34,7 @@ void InitGame(GameState* gameState)
     bitmap->entityID = entity0->id;
     LoadBitmapData("assets/smiley.png", bitmap);
 
-    RigidBody* body = CreateRigidBody(gameState, 0.1f);
+    RigidBody* body = CreateRigidBody(gameState, 0.1f, Vec2(0, gameState->worldSize.y / 2.f));
     body->entityID = entity0->id;
     body->invMass = .1f;
 
@@ -97,6 +108,9 @@ void RenderGame(GameState* gameState)
             transform.offset = Vec2(0, 0);
             transform.position = pos;
             transform.scale = Vec2(1);
+            transform.proj = gameState->projMatrix;
+            transform.world = gameState->worldMatrix;
+
 			RenderBitmap(bitmap, &transform);
 		}
     }

@@ -50,6 +50,9 @@ struct GameState
     Vec2 viewportSize;
     Vec2 worldSize;
 
+    Mat4 projMatrix;
+    Mat4 worldMatrix;
+
     bool32 onEdge;
 
 	uint32 nbEntities;

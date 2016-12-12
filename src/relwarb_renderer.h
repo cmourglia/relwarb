@@ -12,6 +12,9 @@ struct Transform
     Vec2 offset;
     Vec2 scale;
 
+    Mat4 proj;
+    Mat4 world;
+
     // TODO(Charly). Orientation ?
 };
 

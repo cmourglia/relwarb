@@ -13,15 +13,14 @@ layout (location = 0) in vec2 in_pos;
 layout (location = 1) in vec2 in_uv;
 
 uniform mat4 u_proj;
-uniform mat4 u_view;
+uniform mat4 u_world;
 uniform mat4 u_model;
 
 out vec2 uv;
 
 void main()
 {
-    // gl_Position = u_proj * u_view * u_model * vec4(in_pos, 0, 1);
-    gl_Position = vec4(in_pos, 0, 1);
+    gl_Position = u_proj * u_world * u_model * vec4(in_pos, 0, 1);
     uv = in_uv;
 }
 )";
@@ -37,7 +36,10 @@ uniform sampler2D u_tex;
 void main()
 {
     color = texture(u_tex, uv);
-    // color = vec4(1, 1, 0, 1);
+    if (color.a < 0.1)
+    {
+        discard;
+    }
 }
 )";
 
@@ -144,17 +146,29 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform)
                      0, GL_RGBA, GL_UNSIGNED_BYTE,
                      bitmap->data);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    Mat4 pos = Translation(transform->position.x, transform->position.y, 0);
+
     glUseProgram(g_bitmapProg);
+    glBindTexture(GL_TEXTURE_2D, bitmap->texture);
+    glActiveTexture(GL_TEXTURE0);
+
+    glUniform1i(glGetUniformLocation(g_bitmapProg, "u_tex"), 0);
+    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_proj"), 1, GL_FALSE, transform->proj.data);
+    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_world"), 1, GL_FALSE, transform->world.data);
+    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_model"), 1, GL_FALSE, pos.data);
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
 	glEnable(GL_DEPTH_TEST);
 }

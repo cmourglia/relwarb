@@ -90,7 +90,7 @@ internal void win32_SetPixelFormat(HDC hdc)
             WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
             WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
             WGL_SAMPLE_BUFFERS_ARB, 1,
-            WGL_SAMPLES_ARB, 8,
+            WGL_SAMPLES_ARB, 16,
             // WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
             0,
         };
