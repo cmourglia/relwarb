@@ -4,6 +4,7 @@
 #include "relwarb_defines.h"
 #include "relwarb_math.h"
 #include "relwarb_world_sim.h"
+#include "relwarb_renderer.h"
 
 #define WORLD_SIZE	1024
 
@@ -31,15 +32,7 @@ struct Bitmap : public Component
     int height;
 };
 
-struct RectangularShape : public Component
-{
-	Vec2 size;
-	Vec2 offset;
 
-    inline RectangularShape() {}
-	inline RectangularShape(Vec2 size_, Vec2 offset_ = Vec2(0))
-		:size(size_), offset(offset_) {}
-};
 
 // NOTE(Charly): Store the current state of the game
 struct GameState
@@ -61,7 +54,7 @@ struct GameState
 	RigidBody			rigidBodies[WORLD_SIZE];
     uint32              nbRigidBodies;
 
-	RectangularShape	shapes[WORLD_SIZE];
+	Shape	            shapes[WORLD_SIZE];
     uint32              nbShapes;
 
 	Bitmap				bitmaps[WORLD_SIZE];
@@ -95,9 +88,6 @@ void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
 Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp = Vec2(0), Vec2 ddp = Vec2(0));
-
-RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_ = Vec2(0));
-void AddRectangularShapeToEntity(Entity* entity, RectangularShape* shape, ComponentFlag flag = ComponentFlag_Collidable);
 
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);

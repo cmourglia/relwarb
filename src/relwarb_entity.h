@@ -7,11 +7,12 @@ typedef uint32 EntityID;
 typedef uint32 ComponentID;
 
 struct RigidBody;
-struct RectangularShape;
+struct Shape;
 struct RenderingPattern;
 
 enum ComponentFlag
 {
+	// TODO(charly): Maybe find a better name for this one
 	ComponentFlag_Movable       = 1 << 0,
 	ComponentFlag_Collidable    = 1 << 1,
 	ComponentFlag_Renderable    = 1 << 2,
@@ -24,7 +25,7 @@ struct Entity
 	Vec2 ddp;   // NOTE(Charly): Linear acceleration
 
 	RigidBody* body;
-	RectangularShape* shape;
+	Shape* shape;
 	RenderingPattern* pattern;
 
 	EntityID id;

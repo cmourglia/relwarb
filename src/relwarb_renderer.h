@@ -38,7 +38,7 @@ void InitializeRenderer();
 void ResizeRenderer(GameState* gameState);
 
 RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap** bitmaps, uint8 nbBitmaps);
-void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern, ComponentFlag flag = ComponentFlag_Renderable);
+void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
 
 // Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size);
@@ -49,5 +49,7 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform);
 
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseBitmap(Bitmap* bitmap);
+
+void AddBitmapToEntity(Entity* entity, Bitmap* bitmap);
 
 #endif // RELWARB_RENDERER_H

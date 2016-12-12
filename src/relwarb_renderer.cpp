@@ -100,10 +100,10 @@ RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8*
 	return result;
 }
 
-void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern, ComponentFlag flag = ComponentFlag_Renderable)
+void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
 {
 	entity->pattern = pattern;
-	SetEntityFlag(entity, flag);
+	SetEntityFlag(entity, ComponentFlag_Renderable);
 }
 
 void InitializeRenderer()
@@ -156,32 +156,32 @@ void InitializeRenderer()
 
 void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
 {
-	uint32 deltaX = size.x - pattern->size.x;
-	uint32 deltaY = size.y - pattern->size.y;
-	uint32 halfSizeX = size.x * 0.5;
-	uint32 halfSizeY = size.y * 0.5;
-	Assert(deltaX >= 0 && deltaY >= 0);
-	for (uint32 i = -halfSizeX; i < halfSizeX; ++i)
-	{
-		uint32 indexX = i ;
-		if (deltaX > 0 && i > 0)
-		{
-			indexX--;
-			deltaX--;
-		}
-		for (uint32 j = 0; j < size.y; ++j)
-		{
-			uint32 indexY = j;
-			if (deltaY > 0 && j > 0)
-			{
-				indexY--;
-				deltaY--;
-			}
-			Transform currentTransform = *transform;
-			currentTransform.position += Vec2();
-			RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
-		}
-	}
+	// uint32 deltaX = size.x - pattern->size.x;
+	// uint32 deltaY = size.y - pattern->size.y;
+	// uint32 halfSizeX = size.x * 0.5;
+	// uint32 halfSizeY = size.y * 0.5;
+	// Assert(deltaX >= 0 && deltaY >= 0);
+	// for (uint32 i = -halfSizeX; i < halfSizeX; ++i)
+	// {
+	// 	uint32 indexX = i ;
+	// 	if (deltaX > 0 && i > 0)
+	// 	{
+	// 		indexX--;
+	// 		deltaX--;
+	// 	}
+	// 	for (uint32 j = 0; j < size.y; ++j)
+	// 	{
+	// 		uint32 indexY = j;
+	// 		if (deltaY > 0 && j > 0)
+	// 		{
+	// 			indexY--;
+	// 			deltaY--;
+	// 		}
+	// 		Transform currentTransform = *transform;
+	// 		currentTransform.position += Vec2();
+	// 		RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
+	// 	}
+	// }
 }
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)

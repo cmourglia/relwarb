@@ -4,6 +4,7 @@
 
 #include "relwarb_defines.h"
 #include "relwarb_utils.h"
+#include "relwarb_entity.h"
 #include "relwarb.h"
 
 void UpdateWorld(GameState* gameState, real32 dt)
@@ -24,17 +25,21 @@ void UpdateWorld(GameState* gameState, real32 dt)
     //      - NOTE(Charly): Forward Euler would have been
     //          p(t) = p(t-1) + v(t-1) * dt
     //          v(t) = v(t-1) + a(t) * dt
-    for (uint32 rigidBodyIdx = 0; rigidBodyIdx < gameState->nbRigidBodies; ++rigidBodyIdx)
+    for (uint32 entityIdx = 0; entityIdx < gameState->nbRigidBodies; ++entityIdx)
     {
-        RigidBody* body = &gameState->rigidBodies[rigidBodyIdx];
+        Entity* entity = &gameState->entities[entityIdx];
 
-        body->forces += gameState->gravity;
+        if (EntityHasFlag(entity, ComponentFlag_Movable))
+        {
+            RigidBody* body = entity->body;
+            body->forces += gameState->gravity;
+            entity->ddp = body->forces * body->invMass;
+            body->forces = Vec2(0.f); 
+        }
 
-        body->ddp = body->forces * body->invMass;
-        body->dp += dt * body->ddp;
-        body->p += dt * body->dp; 
 
-        body->forces = Vec2(0.f);
+        entity->dp += dt * entity->ddp;
+        entity->p += dt * entity->dp; 
     }
 	
     // 2. Collision detection
@@ -103,31 +108,31 @@ void UpdateWorld(GameState* gameState, real32 dt)
     //          have an infinite mass / null inverse mass)
     //      }
 
-	for (auto it : collisions)
-	{
-		if (CollisionCallback(it.first, it.second, nullptr))
-		{
-			Assert(EntityHasFlag(it.first, ComponentFlag_Movable) || EntityHasFlag(it.second, ComponentFlag_Movable));
+	// for (auto it : collisions)
+	// {
+	// 	if (CollisionCallback(it.first, it.second, nullptr))
+	// 	{
+	// 		Assert(EntityHasFlag(it.first, ComponentFlag_Movable) || EntityHasFlag(it.second, ComponentFlag_Movable));
 
-			if (EntityHasFlag(it.first, ComponentFlag_Movable) && EntityHasFlag(it.second, ComponentFlag_Movable))
-			{
+	// 		if (EntityHasFlag(it.first, ComponentFlag_Movable) && EntityHasFlag(it.second, ComponentFlag_Movable))
+	// 		{
 
-			}
-			else
-			{
-				Vec2 overlap = Overlap( gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p, &gameState->shapes[it.first->components[ComponentType_CollisionShape]],
-										gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p, &gameState->shapes[it.second->components[ComponentType_CollisionShape]]);
-				if (EntityHasFlag(it.first, ComponentFlag_Movable))
-				{
-					gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p -= overlap;
-				}
-				else // (EntityHasFlag(it.second, ComponentFlag_Movable))
-				{
-					gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p += overlap;
-				}
-			}
-		}
-	}
+	// 		}
+	// 		else
+	// 		{
+	// 			Vec2 overlap = Overlap( gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p, &gameState->shapes[it.first->components[ComponentType_CollisionShape]],
+	// 									gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p, &gameState->shapes[it.second->components[ComponentType_CollisionShape]]);
+	// 			if (EntityHasFlag(it.first, ComponentFlag_Movable))
+	// 			{
+	// 				gameState->rigidBodies[it.first->components[ComponentType_RigidBody]].p -= overlap;
+	// 			}
+	// 			else // (EntityHasFlag(it.second, ComponentFlag_Movable))
+	// 			{
+	// 				gameState->rigidBodies[it.second->components[ComponentType_RigidBody]].p += overlap;
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
@@ -140,15 +145,32 @@ RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
     ComponentID id = gameState->nbRigidBodies++;
     Assert(id < WORLD_SIZE);
     RigidBody* result = &gameState->rigidBodies[id];
-    result->id = id;
 
     result->invMass = (mass == 0.f ? 0.f : 1.f / mass);  
 
     return result;
 }
 
-void AddRigidBodyToEntity(Entity* entity, RigidBody* body, ComponentFlag flag)
+Shape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
+{
+	ComponentID id = gameState->nbShapes++;
+	Assert(id < WORLD_SIZE);
+	Shape* result = &gameState->shapes[id];
+
+	result->size = size_;
+	result->offset = offset_;
+
+	return result;
+}
+
+void AddRigidBodyToEntity(Entity* entity, RigidBody* body)
 {
 	entity->body = body;
-	SetEntityFlag(entity, flag);
+	SetEntityFlag(entity, ComponentFlag_Renderable);
+}
+
+void AddShapeToEntity(Entity* entity, Shape* shape)
+{
+    entity->shape = shape;
+    SetEntityFlag(entity, ComponentFlag_Collidable);
 }

@@ -39,7 +39,6 @@ void InitGame(GameState* gameState)
 	RenderingPattern* pattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
 
     RigidBody* body = CreateRigidBody(gameState, 0.1f);
-    body->entityID = entity0->id;
     body->invMass = .1f;
 
     AddRenderingPatternToEntity(entity0, pattern);
@@ -77,38 +76,41 @@ void InitGame(GameState* gameState)
 	RenderingPattern* horizPattern = CreateRenderingPattern(gameState, Vec2(3, 2), horiz_indices, horiz_bitmaps, 6);
 	RenderingPattern* vertPattern = CreateRenderingPattern(gameState, Vec2(2, 3), vert_indices, vert_bitmaps, 6);
 
-    RectangularShape* horizontalBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x, 2.f));
-    RectangularShape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->worldSize.y));
+    Shape* horizontalBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x, 2.f));
+    Shape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->worldSize.y));
 
     Entity* floor = CreateEntity(gameState, Vec2(0.f, 1.f));
-    AddRectangularShapeToEntity(floor, horizontalBoundary);
+    AddShapeToEntity(floor, horizontalBoundary);
     AddRenderingPatternToEntity(floor, horizPattern);
 
     Entity* ceiling = CreateEntity(gameState, Vec2(0.f, gameState->worldSize.y - 1.f));
-	AddRectangularShapeToEntity(ceiling, horizontalBoundary);
+	AddShapeToEntity(ceiling, horizontalBoundary);
 	AddRenderingPatternToEntity(ceiling, horizPattern);
 
     Entity* leftWall = CreateEntity(gameState, Vec2(-halfSize.x + 1.f, halfSize.y));
-	AddRectangularShapeToEntity(leftWall, verticalBoundary);
+	AddShapeToEntity(leftWall, verticalBoundary);
 	AddRenderingPatternToEntity(leftWall, vertPattern);
 
     Entity* rightWall = CreateEntity(gameState, Vec2(halfSize.x - 1.f, halfSize.y));
-	AddRectangularShapeToEntity(rightWall, verticalBoundary);
+	AddShapeToEntity(rightWall, verticalBoundary);
 	AddRenderingPatternToEntity(rightWall, vertPattern);
 
-    RectangularShape* platformBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x * 0.125f, 2.f));
+    Shape* platformBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x * 0.125f, 2.f));
 
     Entity* leftPlatform = CreateEntity(gameState, Vec2(-halfSize.x * 0.5f, halfSize.y * 0.5f));
-	AddRectangularShapeToEntity(leftPlatform, horizontalBoundary);
+	AddShapeToEntity(leftPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(leftPlatform, horizPattern);
 
     Entity* rightPlatform = CreateEntity(gameState, Vec2(halfSize.x * 0.5f, halfSize.y * 0.5f));
-	AddRectangularShapeToEntity(rightPlatform, horizontalBoundary);
+	AddShapeToEntity(rightPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(rightPlatform, horizPattern);
 
     Entity* centerPlatform = CreateEntity(gameState, Vec2(0.f, halfSize.y));
-	AddRectangularShapeToEntity(centerPlatform, horizontalBoundary);
+	AddShapeToEntity(centerPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(centerPlatform, horizPattern);
+    
+    Bitmap* wallTexture = CreateBitmap(gameState);
+    LoadBitmapData("assets/horizontal_up.png", wallTexture);
 }
 
 void UpdateGame(GameState* gameState)
@@ -171,7 +173,7 @@ void RenderGame(GameState* gameState)
 			transform.proj = gameState->projMatrix;
 			transform.world = gameState->worldMatrix;
 
-			RenderPattern(pattern, &transform);
+			// RenderPattern(pattern, &transform);
 		}
 	}
 }
@@ -201,19 +203,6 @@ Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp, Vec2 ddp)
 	result->p = p;
 	result->dp = dp;
 	result->ddp = ddp;
-
-	return result;
-}
-
-RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
-{
-	ComponentID id = gameState->nbShapes++;
-	Assert(id < WORLD_SIZE);
-	RectangularShape* result = &gameState->shapes[id];
-	result->id = id;
-
-	result->size = size_;
-	result->offset = offset_;
 
 	return result;
 }
