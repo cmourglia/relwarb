@@ -36,7 +36,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
         body->forces = Vec2(0.f);
     }
-
+	
     // 2. Collision detection
     // Depending on the types of shapes we want collision for (I think I won't
     // be wrong if I say that we want other stuff than AABBs), we might need

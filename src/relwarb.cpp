@@ -18,7 +18,7 @@ void InitGame(GameState* gameState)
     bitmap->entityID = entity0->id;
     LoadImage("assets/smiley.png", bitmap);
 
-    RigidBody* body = CreateRigidBody(gameState, 0.1f);
+    RigidBody* body = CreateRigidBody(gameState, 0.1f, Vec2(0.f, halfHeight));
     body->entityID = entity0->id;
     body->invMass = .1f;
 
@@ -33,25 +33,25 @@ void InitGame(GameState* gameState)
 	RectangularShape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->renderHeight));
 
 	Entity* floor = CreateEntity(gameState);
-	RigidBody* floor_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, -1.f));
+	RigidBody* floor_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, 1.f));
 	AddComponentToEntity(floor, floor_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
 	AddComponentToEntity(floor, horizontalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
 	AddComponentToEntity(floor, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
 
 	Entity* ceiling = CreateEntity(gameState);
-	RigidBody* ceiling_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, gameState->renderHeight + 1.f));
+	RigidBody* ceiling_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, gameState->renderHeight - 1.f));
 	AddComponentToEntity(ceiling, ceiling_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
 	AddComponentToEntity(ceiling, horizontalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
 	AddComponentToEntity(ceiling, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
 
 	Entity* leftWall = CreateEntity(gameState);
-	RigidBody* leftWall_body = CreateRigidBody(gameState, 0.f, Vec2(- halfWidth - 1.f, halfHeight));
+	RigidBody* leftWall_body = CreateRigidBody(gameState, 0.f, Vec2(- halfWidth + 1.f, halfHeight));
 	AddComponentToEntity(leftWall, leftWall_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
 	AddComponentToEntity(leftWall, verticalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
 	AddComponentToEntity(leftWall, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
 
 	Entity* rightWall = CreateEntity(gameState);
-	RigidBody* rightWall_body = CreateRigidBody(gameState, 0.f, Vec2(halfWidth + 1.f, halfHeight));
+	RigidBody* rightWall_body = CreateRigidBody(gameState, 0.f, Vec2(halfWidth - 1.f, halfHeight));
 	AddComponentToEntity(rightWall, rightWall_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
 	AddComponentToEntity(rightWall, verticalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
 	AddComponentToEntity(rightWall, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
@@ -117,17 +117,17 @@ void RenderGame(GameState* gameState)
     glClearColor(0.3f, 0.8f, 0.7f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (uint32 elementIdx = 0; elementIdx < 1 /*gameState->nbEntities*/; ++elementIdx)
+    for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
     {
 		Entity* entity = &gameState->entities[elementIdx];
 		if (EntityHasFlag(entity, ComponentFlag_Renderable))
 		{
 			Bitmap* bitmap = &gameState->bitmaps[entity->components[ComponentType_Bitmap]];
-            Vec2 pos(0.f);
+            Vec2 pos(gameState->rigidBodies[entity->components[ComponentType_RigidBody]].p);
 
             if (EntityHasFlag(entity, ComponentFlag_Movable))
             {
-                pos = gameState->rigidBodies[entity->components[ComponentType_RigidBody]].p;
+                // NOTE(Thomas): Do something maybe.
             }
 
 			RenderBitmap(bitmap, pos.x, pos.y);
