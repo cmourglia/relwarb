@@ -8,7 +8,7 @@ struct Bitmap;
 struct GameState;
 struct Entity;
 
-struct RenderingPattern
+struct RenderingPattern: public Component
 {
 	Vec2 size;
 	// NOTE(Thomas): Pattern to be rendered.
@@ -19,7 +19,7 @@ struct RenderingPattern
 	//			1 2 3		1 2 2 2 3
 	uint8* pattern;
 	// NOTE(Thomas): Arrays of tiles needed for the pattern
-	Bitmap* bitmaps;
+	Bitmap** bitmaps;
 };
 
 struct Transform
@@ -37,11 +37,11 @@ struct Transform
 void InitializeRenderer();
 void ResizeRenderer(GameState* gameState);
 
-RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap* bitmaps);
+RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap** bitmaps, uint8 nbBitmaps);
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern, ComponentFlag flag = ComponentFlag_Renderable);
 
 // Render the pattern at the position given in transform, and repeated to fit the given size
-void RenderPattern(Transform* transform, Vec2 size);
+void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size);
 
 // TODO(Charly): x and y are given in opengl coordinates for now,
 //               maybe this should change

@@ -135,16 +135,14 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 	return true;
 }
 
-RigidBody* CreateRigidBody(GameState* gameState, real32 mass, Vec2 p, Vec2 dp)
+RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
 {
     ComponentID id = gameState->nbRigidBodies++;
     Assert(id < WORLD_SIZE);
     RigidBody* result = &gameState->rigidBodies[id];
     result->id = id;
 
-    result->invMass = (mass == 0.f ? 0.f : 1.f / mass);
-    result->p = p;
-    result->dp = dp;     
+    result->invMass = (mass == 0.f ? 0.f : 1.f / mass);  
 
     return result;
 }

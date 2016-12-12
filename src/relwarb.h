@@ -67,6 +67,9 @@ struct GameState
 	Bitmap				bitmaps[WORLD_SIZE];
     uint32              nbBitmaps;
 
+	RenderingPattern	patterns[WORLD_SIZE];
+	uint32				nbPatterns;
+
     Controller          controller[MAX_CONTROLLERS];
     uint32              nbControllers;
 
@@ -91,7 +94,7 @@ void RenderGame(GameState* gameState);
 void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
-Entity* CreateEntity(GameState* gameState);
+Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp = Vec2(0), Vec2 ddp = Vec2(0));
 
 RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_ = Vec2(0));
 void AddRectangularShapeToEntity(Entity* entity, RectangularShape* shape, ComponentFlag flag = ComponentFlag_Collidable);

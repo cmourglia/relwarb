@@ -27,74 +27,88 @@ void InitGame(GameState* gameState)
 
     gameState->gravity = Vec2(0.f, -9.8f);
 
-    Entity* entity0 = CreateEntity(gameState);
+	Vec2 halfSize = gameState->worldSize * 0.5f;
+
+    Entity* entity0 = CreateEntity(gameState, Vec2(0, gameState->worldSize.y / 2.f));
     
     Bitmap* bitmap = CreateBitmap(gameState);
     bitmap->entityID = entity0->id;
     LoadBitmapData("assets/smiley.png", bitmap);
 
-    RigidBody* body = CreateRigidBody(gameState, 0.1f, Vec2(0, gameState->worldSize.y / 2.f));
+	uint8 tiles_indices[] = { 1 };
+	RenderingPattern* pattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
+
+    RigidBody* body = CreateRigidBody(gameState, 0.1f);
     body->entityID = entity0->id;
     body->invMass = .1f;
 
-    AddComponentToEntity(entity0, bitmap->id, ComponentType_Bitmap, ComponentFlag_Renderable);
-    AddComponentToEntity(entity0, body->id, ComponentType_RigidBody, ComponentFlag_Movable);
+    AddRenderingPatternToEntity(entity0, pattern);
+    AddRigidBodyToEntity(entity0, body);
 
-    Bitmap* wallTexture = CreateBitmap(gameState);
-    LoadBitmapData("assets/horizontal_up.png", wallTexture);
+	Bitmap* textures[10];
+    textures[7] = CreateBitmap(gameState);
+    LoadBitmapData("assets/corner_topleft.png", textures[7]);
+	textures[8] = CreateBitmap(gameState);
+	LoadBitmapData("assets/horizontal_up.png", textures[8]);
+	textures[9] = CreateBitmap(gameState);
+	LoadBitmapData("assets/corner_topright.png", textures[9]);
+	textures[4] = CreateBitmap(gameState);
+	LoadBitmapData("assets/vertical_left.png", textures[4]);
+	textures[6] = CreateBitmap(gameState);
+	LoadBitmapData("assets/vertical_right.png", textures[6]);
+	textures[1] = CreateBitmap(gameState);
+	LoadBitmapData("assets/corner_bottomleft.png", textures[1]);
+	textures[2] = CreateBitmap(gameState);
+	LoadBitmapData("assets/horizontal_down.png", textures[2]);
+	textures[3] = CreateBitmap(gameState);
+	LoadBitmapData("assets/corner_bottomright.png", textures[3]);
 
-    real32 width = gameState->worldSize.x;
-    real32 height = gameState->worldSize.y;
+	uint8 horiz_indices[] = {	7, 8, 9,
+								1, 2, 3 };
+	Bitmap* horiz_bitmaps[] = { textures[horiz_indices[0]], textures[horiz_indices[1]], textures[horiz_indices[2]],
+								textures[horiz_indices[3]], textures[horiz_indices[4]], textures[horiz_indices[5]] };
+	uint8 vert_indices[] = {	7, 9,
+								4, 6,
+								1, 3 };
+	Bitmap* vert_bitmaps[] = {  textures[vert_indices[0]], textures[vert_indices[1]],
+								textures[vert_indices[2]], textures[vert_indices[3]],
+								textures[vert_indices[4]], textures[vert_indices[5]] };
 
-    real32 halfWidth = width * 0.5f;
-    real32 halfHeight = height * 0.5f;
+	RenderingPattern* horizPattern = CreateRenderingPattern(gameState, Vec2(3, 2), horiz_indices, horiz_bitmaps, 6);
+	RenderingPattern* vertPattern = CreateRenderingPattern(gameState, Vec2(2, 3), vert_indices, vert_bitmaps, 6);
 
-    RectangularShape* horizontalBoundary = CreateShape(gameState, Vec2(width, 2.f));
-    RectangularShape* verticalBoundary = CreateShape(gameState, Vec2(2.f, height));
+    RectangularShape* horizontalBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x, 2.f));
+    RectangularShape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->worldSize.y));
 
-    Entity* floor = CreateEntity(gameState);
-    RigidBody* floor_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, 1.f));
-    AddComponentToEntity(floor, floor_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(floor, horizontalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(floor, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* floor = CreateEntity(gameState, Vec2(0.f, 1.f));
+    AddRectangularShapeToEntity(floor, horizontalBoundary);
+    AddRenderingPatternToEntity(floor, horizPattern);
 
-    Entity* ceiling = CreateEntity(gameState);
-    RigidBody* ceiling_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, height - 1.f));
-    AddComponentToEntity(ceiling, ceiling_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(ceiling, horizontalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(ceiling, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* ceiling = CreateEntity(gameState, Vec2(0.f, gameState->worldSize.y - 1.f));
+	AddRectangularShapeToEntity(ceiling, horizontalBoundary);
+	AddRenderingPatternToEntity(ceiling, horizPattern);
 
-    Entity* leftWall = CreateEntity(gameState);
-    RigidBody* leftWall_body = CreateRigidBody(gameState, 0.f, Vec2(- halfWidth + 1.f, halfHeight));
-    AddComponentToEntity(leftWall, leftWall_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(leftWall, verticalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(leftWall, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* leftWall = CreateEntity(gameState, Vec2(-halfSize.x + 1.f, halfSize.y));
+	AddRectangularShapeToEntity(leftWall, verticalBoundary);
+	AddRenderingPatternToEntity(leftWall, vertPattern);
 
-    Entity* rightWall = CreateEntity(gameState);
-    RigidBody* rightWall_body = CreateRigidBody(gameState, 0.f, Vec2(halfWidth - 1.f, halfHeight));
-    AddComponentToEntity(rightWall, rightWall_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(rightWall, verticalBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(rightWall, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* rightWall = CreateEntity(gameState, Vec2(halfSize.x - 1.f, halfSize.y));
+	AddRectangularShapeToEntity(rightWall, verticalBoundary);
+	AddRenderingPatternToEntity(rightWall, vertPattern);
 
-    RectangularShape* platformBoundary = CreateShape(gameState, Vec2(width * 0.125f, 32.f));
+    RectangularShape* platformBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x * 0.125f, 2.f));
 
-    Entity* leftPlatform = CreateEntity(gameState);
-    RigidBody* leftPlatform_body = CreateRigidBody(gameState, 0.f, Vec2(-halfWidth * 0.5f, halfHeight * 0.5f));
-    AddComponentToEntity(leftPlatform, leftPlatform_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(leftPlatform, platformBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(leftPlatform, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* leftPlatform = CreateEntity(gameState, Vec2(-halfSize.x * 0.5f, halfSize.y * 0.5f));
+	AddRectangularShapeToEntity(leftPlatform, horizontalBoundary);
+	AddRenderingPatternToEntity(leftPlatform, horizPattern);
 
-    Entity* rightPlatform = CreateEntity(gameState);
-    RigidBody* rightPlatform_body = CreateRigidBody(gameState, 0.f, Vec2(halfWidth * 0.5f, halfHeight * 0.5f));
-    AddComponentToEntity(rightPlatform, rightPlatform_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(rightPlatform, platformBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(rightPlatform, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* rightPlatform = CreateEntity(gameState, Vec2(halfSize.x * 0.5f, halfSize.y * 0.5f));
+	AddRectangularShapeToEntity(rightPlatform, horizontalBoundary);
+	AddRenderingPatternToEntity(rightPlatform, horizPattern);
 
-    Entity* centerPlatform = CreateEntity(gameState);
-    RigidBody* centerPlatform_body = CreateRigidBody(gameState, 0.f, Vec2(0.f, halfHeight));
-    AddComponentToEntity(centerPlatform, centerPlatform_body->id, ComponentType_RigidBody, ComponentFlag_Collidable);
-    AddComponentToEntity(centerPlatform, platformBoundary->id, ComponentType_CollisionShape, ComponentFlag_Collidable);
-    AddComponentToEntity(centerPlatform, wallTexture->id, ComponentType_Bitmap, ComponentFlag_Renderable);
+    Entity* centerPlatform = CreateEntity(gameState, Vec2(0.f, halfSize.y));
+	AddRectangularShapeToEntity(centerPlatform, horizontalBoundary);
+	AddRenderingPatternToEntity(centerPlatform, horizPattern);
 }
 
 void UpdateGame(GameState* gameState)
@@ -142,8 +156,8 @@ void RenderGame(GameState* gameState)
 		Entity* entity = &gameState->entities[elementIdx];
 		if (EntityHasFlag(entity, ComponentFlag_Renderable))
 		{
-			Bitmap* bitmap = &gameState->bitmaps[entity->components[ComponentType_Bitmap]];
-			Vec2 pos(gameState->rigidBodies[entity->components[ComponentType_RigidBody]].p);
+			RenderingPattern* pattern = entity->pattern;
+			Vec2 pos(entity->p);
 
 			if (EntityHasFlag(entity, ComponentFlag_Movable))
 			{
@@ -157,7 +171,7 @@ void RenderGame(GameState* gameState)
 			transform.proj = gameState->projMatrix;
 			transform.world = gameState->worldMatrix;
 
-			RenderBitmap(bitmap, &transform);
+			RenderPattern(pattern, &transform);
 		}
 	}
 }
@@ -177,12 +191,16 @@ void ReleaseBitmapData(Bitmap* bitmap)
 	stbi_image_free(bitmap->data);
 }
 
-Entity* CreateEntity(GameState* gameState)
+Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp, Vec2 ddp)
 {
 	EntityID id = gameState->nbEntities++;
 	Assert(id < WORLD_SIZE);
 	Entity* result = &gameState->entities[id];
+	*result = {0};
 	result->id = id;
+	result->p = p;
+	result->dp = dp;
+	result->ddp = ddp;
 
 	return result;
 }

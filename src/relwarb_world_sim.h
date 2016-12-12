@@ -18,10 +18,7 @@ struct RigidBody : public Component
 
 // NOTE(Charly): Create a rigid body
 //               A null mass will lead to a static object
-RigidBody* CreateRigidBody(GameState* gameState, 
-                           real32 mass = 0.f, 
-                           Vec2 initialPos = Vec2(0.f),
-                           Vec2 initialVel = Vec2(0.f));
+RigidBody* CreateRigidBody(GameState* gameState, real32 mass = 0.f);
 
 void AddRigidBodyToEntity(Entity* entity, RigidBody* body, ComponentFlag flag = ComponentFlag_Movable);
 

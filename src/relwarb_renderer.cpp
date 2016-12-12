@@ -83,6 +83,28 @@ internal GLuint CompileShader(const char* src, GLenum type)
     return shader;
 }
 
+RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap** bitmaps, uint8 nbBitmaps)
+{
+	ComponentID id = gameState->nbPatterns++;
+	Assert(id < WORLD_SIZE);
+	RenderingPattern* result = &gameState->patterns[id];
+	result->id = id;
+	result->size = size;
+
+	result->pattern = new uint8[size.x * size.y];
+	memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
+
+	result->bitmaps = new Bitmap*[nbBitmaps];
+	memcpy(result->bitmaps, bitmaps, nbBitmaps * sizeof(Bitmap *));
+
+	return result;
+}
+
+void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern, ComponentFlag flag = ComponentFlag_Renderable)
+{
+	entity->pattern = pattern;
+	SetEntityFlag(entity, flag);
+}
 
 void InitializeRenderer()
 {
@@ -130,6 +152,36 @@ void InitializeRenderer()
         glGetProgramInfoLog(g_bitmapProg, 1024, &length, message);
         Log(Log_Error, "Program not linked : %s", message);
     }
+}
+
+void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
+{
+	uint32 deltaX = size.x - pattern->size.x;
+	uint32 deltaY = size.y - pattern->size.y;
+	uint32 halfSizeX = size.x * 0.5;
+	uint32 halfSizeY = size.y * 0.5;
+	Assert(deltaX >= 0 && deltaY >= 0);
+	for (uint32 i = -halfSizeX; i < halfSizeX; ++i)
+	{
+		uint32 indexX = i ;
+		if (deltaX > 0 && i > 0)
+		{
+			indexX--;
+			deltaX--;
+		}
+		for (uint32 j = 0; j < size.y; ++j)
+		{
+			uint32 indexY = j;
+			if (deltaY > 0 && j > 0)
+			{
+				indexY--;
+				deltaY--;
+			}
+			Transform currentTransform = *transform;
+			currentTransform.position += Vec2();
+			RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
+		}
+	}
 }
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)
