@@ -1,6 +1,7 @@
 #ifndef RELWARB_MATH_H
 #define RELWARB_MATH_H
 
+#include "relwarb_defines.h"
 #include <math.h>
 
 // TODO(Charly): Homemade impl ?
@@ -89,7 +90,7 @@ struct Vec2
 {
     union 
     {
-        struct 
+        struct
         {
             real32 x;
             real32 y;
@@ -154,6 +155,64 @@ inline Vec2 SafeNormalize(Vec2 v)
     }
 
     return Vec2(0.f);
+}
+
+struct Vec4
+{
+    union 
+    {
+        struct { real32 x, y, z, w; };
+        real32 data[4];
+    };
+
+    inline real32& operator[](int i) 
+    { 
+        Assert(i >= 0 && i < 4);
+        return data[i];
+    }
+};
+
+struct Mat4
+{
+    union 
+    {
+        Vec4 m[4];
+        real32 data[16];
+    };
+
+    inline Vec4& operator[](int i)
+    {
+        Assert(i >= 0 && i < 4);
+        return m[i];
+    }
+};
+
+inline Mat4 Ortho(real32 left, real32 right, real32 top, real32 bottom)
+{
+    Mat4 result = {0};
+    result[0][0] = 2.f / (right - left);
+    result[1][1] = 2.f / (bottom - top);
+    result[2][2] = 1.f;
+    result[3][0] = -(right + left) / (right - left);
+    result[3][1] = -(top + bottom) / (top - bottom);
+    result[3][3] = 1.0f;
+
+    return result;
+}
+
+inline Mat4 Translation(real32 x, real32 y, real32 z)
+{
+    Mat4 result = {0};
+    result[0][0] = 1.f;
+    result[1][1] = 1.f;
+    result[2][2] = 1.f;
+    result[3][3] = 1.f;
+
+    result[3][0] = x;
+    result[3][1] = y;
+    result[3][2] = z;
+
+    return result;
 }
 
 #endif // RELWARB_MATH_H

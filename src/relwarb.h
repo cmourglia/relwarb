@@ -47,8 +47,11 @@ struct GameState
     // TODO(Charly): View / Proj matrices
     // TODO(Charly): Do we want orthographic or perspective projection ?
 
-    uint32 renderWidth;
-    uint32 renderHeight;
+    Vec2 viewportSize;
+    Vec2 worldSize;
+
+    Mat4 projMatrix;
+    Mat4 worldMatrix;
 
     bool32 onEdge;
 
@@ -85,8 +88,8 @@ void RenderGame(GameState* gameState);
 
 // TODO(Charly): This should go somewhere else
 // NOTE(Charly): bitmap must not be null, otherwise UB
-void LoadImage(const char* filename, Bitmap* bitmap);
-void ReleaseImage(Bitmap* bitmap);
+void LoadBitmapData(const char* filename, Bitmap* bitmap);
+void ReleaseBitmapData(Bitmap* bitmap);
 
 Entity* CreateEntity(GameState* gameState);
 void AddComponentToEntity(Entity* entity, ComponentID component, ComponentType type, ComponentFlag flag);
