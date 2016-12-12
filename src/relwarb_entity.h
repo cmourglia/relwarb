@@ -1,8 +1,14 @@
 #ifndef RELWARB_ENTITY_H
 #define RELWARB_ENTITY_H
 
+#include "relwarb_world_sim.h"
+
 typedef uint32 EntityID;
 typedef uint32 ComponentID;
+
+struct RigidBody;
+struct RectangularShape;
+struct RenderingPattern;
 
 enum ComponentFlag
 {
@@ -11,21 +17,18 @@ enum ComponentFlag
 	ComponentFlag_Renderable    = 1 << 2,
 };
 
-enum ComponentType
-{
-	ComponentType_RigidBody	= 0,
-	ComponentType_CollisionShape,		
-	ComponentType_Bitmap,			
-
-	ComponentType_NbTypes
-};
-
 struct Entity
 {
+	Vec2 p;     // NOTE(Charly): Linear position
+	Vec2 dp;    // NOTE(Charly): Linear velocity
+	Vec2 ddp;   // NOTE(Charly): Linear acceleration
+
+	RigidBody* body;
+	RectangularShape* shape;
+	RenderingPattern* pattern;
+
 	EntityID id;
 	uint32 flags;
-
-	ComponentID components[ComponentType_NbTypes];
 
 	// TODO(Thomas): Handle flags a nicer way. That way :
 	//					1) we have to do a constructor for each combination

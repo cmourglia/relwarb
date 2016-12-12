@@ -148,3 +148,9 @@ RigidBody* CreateRigidBody(GameState* gameState, real32 mass, Vec2 p, Vec2 dp)
 
     return result;
 }
+
+void AddRigidBodyToEntity(Entity* entity, RigidBody* body, ComponentFlag flag)
+{
+	entity->body = body;
+	SetEntityFlag(entity, flag);
+}

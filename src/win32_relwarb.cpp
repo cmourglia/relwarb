@@ -497,8 +497,8 @@ int CALLBACK WinMain(HINSTANCE instance,
         g_running = true;
 
         GameState gameState;
-	gameState = {0};
-	gameState.viewportSize = Vec2(1280, 720);
+		gameState = {0};
+		gameState.viewportSize = Vec2(1280, 720);
 
         InitGame(&gameState);
 

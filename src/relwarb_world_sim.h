@@ -8,18 +8,12 @@ struct GameState;
 
 struct RigidBody : public Component
 {
-	Vec2 p;     // NOTE(Charly): Linear position
-	Vec2 dp;    // NOTE(Charly): Linear velocity
-	Vec2 ddp;   // NOTE(Charly): Linear acceleration
-
     Vec2 forces;
     // TODO(Charly): Angular stuff ?
 
     real32 invMass;
 
 	inline RigidBody() {}
-	inline RigidBody(Vec2 p_, Vec2 dp_ = Vec2(0), Vec2 ddp_ = Vec2(0))
-		: p(p_), dp(dp_), ddp(ddp_) {}
 };
 
 // NOTE(Charly): Create a rigid body
@@ -28,6 +22,9 @@ RigidBody* CreateRigidBody(GameState* gameState,
                            real32 mass = 0.f, 
                            Vec2 initialPos = Vec2(0.f),
                            Vec2 initialVel = Vec2(0.f));
+
+void AddRigidBodyToEntity(Entity* entity, RigidBody* body, ComponentFlag flag = ComponentFlag_Movable);
+
 void UpdateWorld(GameState* gameState, real32 dt);
 
 inline void ApplyForce(RigidBody* body, Vec2 force)

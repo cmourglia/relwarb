@@ -92,9 +92,10 @@ void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
 Entity* CreateEntity(GameState* gameState);
-void AddComponentToEntity(Entity* entity, ComponentID component, ComponentType type, ComponentFlag flag);
 
 RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_ = Vec2(0));
+void AddRectangularShapeToEntity(Entity* entity, RectangularShape* shape, ComponentFlag flag = ComponentFlag_Collidable);
+
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);
 

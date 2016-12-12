@@ -14,6 +14,7 @@ void InitGame(GameState* gameState)
                                   -gameState->viewportSize.y / 2, gameState->viewportSize.y / 2);
     real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
+	// NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport size are computed accordingly.
     gameState->worldSize = Vec2(20.f, 20.f / ratio);
 
     Mat4 worldMat = {0};
@@ -40,7 +41,7 @@ void InitGame(GameState* gameState)
     AddComponentToEntity(entity0, body->id, ComponentType_RigidBody, ComponentFlag_Movable);
 
     Bitmap* wallTexture = CreateBitmap(gameState);
-    LoadBitmapData("assets/wall.png", wallTexture);
+    LoadBitmapData("assets/horizontal_up.png", wallTexture);
 
     real32 width = gameState->worldSize.x;
     real32 height = gameState->worldSize.y;
@@ -184,15 +185,6 @@ Entity* CreateEntity(GameState* gameState)
 	result->id = id;
 
 	return result;
-}
-
-void AddComponentToEntity(Entity* entity, 
-		ComponentID componentID, 
-		ComponentType componentType, 
-		ComponentFlag componentFlag)
-{
-	entity->components[componentType] = componentID;
-	SetEntityFlag(entity, componentFlag);
 }
 
 RectangularShape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
