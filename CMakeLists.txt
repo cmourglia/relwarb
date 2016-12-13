@@ -20,7 +20,7 @@ elseif (WIN32)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /Z7 /Od")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
 
-    set(libs "user32.lib gdi32.lib opengl32.lib")
+    set(libs user32.lib gdi32.lib opengl32.lib)
     set(platform_flag WIN32)
 endif()
 

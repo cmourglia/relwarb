@@ -166,7 +166,7 @@ Shape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
 void AddRigidBodyToEntity(Entity* entity, RigidBody* body)
 {
 	entity->body = body;
-	SetEntityFlag(entity, ComponentFlag_Renderable);
+	SetEntityFlag(entity, ComponentFlag_Movable);
 }
 
 void AddShapeToEntity(Entity* entity, Shape* shape)

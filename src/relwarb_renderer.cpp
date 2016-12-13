@@ -48,7 +48,7 @@ global_variable GLfloat vertices[] =
     -.5f, -.5f, 0.f, 0.f, 
      .5f, -.5f, 1.f, 0.f,
      .5f,  .5f, 1.f, 1.f,
-    -.5f,  .5f, 0.f, 1.f,
+    -.5f,  .5f, 0.f, 1.f, 
 };
 
 global_variable GLuint indices[] = 
@@ -83,13 +83,18 @@ internal GLuint CompileShader(const char* src, GLenum type)
     return shader;
 }
 
-RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap** bitmaps, uint8 nbBitmaps)
+RenderingPattern* CreateRenderingPattern(GameState* gameState, 
+                                         Vec2 size, 
+                                         uint8* pattern, 
+                                         Bitmap** bitmaps, 
+                                         uint8 nbBitmaps,
+                                         RenderingPatternType type)
 {
 	ComponentID id = gameState->nbPatterns++;
 	Assert(id < WORLD_SIZE);
 	RenderingPattern* result = &gameState->patterns[id];
-	result->id = id;
 	result->size = size;
+    result->patternType = type;
 
 	result->pattern = new uint8[size.x * size.y];
 	memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
@@ -156,6 +161,18 @@ void InitializeRenderer()
 
 void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
 {
+    switch (pattern->patternType)
+    {
+        case RenderingPattern_Unique:
+        {
+            RenderBitmap(pattern->bitmaps[0], transform);
+        } break;
+
+        default:
+        {
+            // Unknown render pattern type
+        }; 
+    }
 	// uint32 deltaX = size.x - pattern->size.x;
 	// uint32 deltaY = size.y - pattern->size.y;
 	// uint32 halfSizeX = size.x * 0.5;
@@ -221,6 +238,18 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform)
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.f);
+	glEnable(GL_POLYGON_OFFSET_LINE);
+	glPolygonOffset(-1.f, -1.1f);
+
+	glBindVertexArray(vao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glEnable(GL_DEPTH_TEST);
 }

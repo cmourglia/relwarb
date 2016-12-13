@@ -2,6 +2,7 @@
 #include "relwarb_math.h"
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
+#include "relwarb_debug.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -15,34 +16,30 @@ void InitGame(GameState* gameState)
     real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
 	// NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport size are computed accordingly.
-    gameState->worldSize = Vec2(20.f, 20.f / ratio);
+    gameState->worldSize = Vec2(32, 18);
 
     Mat4 worldMat = {0};
     worldMat[0][0] = (gameState->viewportSize.x / 2.f) / (gameState->worldSize.x / 2.f);
     worldMat[1][1] = (gameState->viewportSize.y / 2.f) / (gameState->worldSize.y / 2.f);
     worldMat[2][2] = 1.f;
     worldMat[3][3] = 1.f;
-    worldMat[3][1] = -gameState->viewportSize.y / 2.f;
+    //worldMat[3][1] = -gameState->viewportSize.y / 2.f;
     gameState->worldMatrix = worldMat;
 
-    gameState->gravity = Vec2(0.f, -9.8f);
+    gameState->gravity = Vec2(0.f, -1.f);
 
 	Vec2 halfSize = gameState->worldSize * 0.5f;
-
-    Entity* entity0 = CreateEntity(gameState, Vec2(0, gameState->worldSize.y / 2.f));
     
     Bitmap* bitmap = CreateBitmap(gameState);
-    bitmap->entityID = entity0->id;
     LoadBitmapData("assets/smiley.png", bitmap);
 
 	uint8 tiles_indices[] = { 1 };
 	RenderingPattern* pattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
 
+	Entity* e0 = CreateEntity(gameState, Vec2(0, 0));
     RigidBody* body = CreateRigidBody(gameState, 0.1f);
-    body->invMass = .1f;
-
-    AddRenderingPatternToEntity(entity0, pattern);
-    AddRigidBodyToEntity(entity0, body);
+	AddRenderingPatternToEntity(e0, pattern);
+    AddRigidBodyToEntity(e0, body);
 
 	Bitmap* textures[10];
     textures[7] = CreateBitmap(gameState);
@@ -173,7 +170,12 @@ void RenderGame(GameState* gameState)
 			transform.proj = gameState->projMatrix;
 			transform.world = gameState->worldMatrix;
 
-			// RenderPattern(pattern, &transform);
+			if (elementIdx == 0)
+			{
+				Log(Log_Debug, "% .3f % .3f", pos.x, pos.y);
+			}
+
+			RenderPattern(pattern, &transform);
 		}
 	}
 }

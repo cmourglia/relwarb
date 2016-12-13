@@ -8,7 +8,12 @@ struct Bitmap;
 struct GameState;
 struct Entity;
 
-struct RenderingPattern: public Component
+enum RenderingPatternType
+{
+	RenderingPattern_Unique,
+};
+
+struct RenderingPattern
 {
 	Vec2 size;
 	// NOTE(Thomas): Pattern to be rendered.
@@ -20,6 +25,8 @@ struct RenderingPattern: public Component
 	uint8* pattern;
 	// NOTE(Thomas): Arrays of tiles needed for the pattern
 	Bitmap** bitmaps;
+
+	RenderingPatternType patternType;
 };
 
 struct Transform
@@ -37,11 +44,17 @@ struct Transform
 void InitializeRenderer();
 void ResizeRenderer(GameState* gameState);
 
-RenderingPattern* CreateRenderingPattern(GameState* gameState, Vec2 size, uint8* pattern, Bitmap** bitmaps, uint8 nbBitmaps);
+RenderingPattern* CreateRenderingPattern(GameState* gameState, 
+										 Vec2 size,
+										 uint8* pattern, 
+										 Bitmap** bitmaps, 
+										 uint8 nbBitmaps,
+										 RenderingPatternType type = RenderingPattern_Unique);
+
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
 
 // Render the pattern at the position given in transform, and repeated to fit the given size
-void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size);
+void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size = Vec2(0));
 
 // TODO(Charly): x and y are given in opengl coordinates for now,
 //               maybe this should change
@@ -51,5 +64,7 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform);
 void ReleaseBitmap(Bitmap* bitmap);
 
 void AddBitmapToEntity(Entity* entity, Bitmap* bitmap);
+
+void RenderGrid(Vec2 resolution = Vec2(10, 10), Vec2 center = Vec2(0));
 
 #endif // RELWARB_RENDERER_H
