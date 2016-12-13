@@ -133,6 +133,41 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	// 		}
 	// 	}
 	// }
+	
+	// HACK(Charly): Stupid hack to keep the entities inside the world
+	for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
+	{
+		Entity* entity = &gameState->entities[entityIdx];
+
+		if (EntityHasFlag(entity, ComponentFlag_Collidable))
+		{
+			Shape* shape = entity->shape;
+
+			// World center in (0,0)
+			Vec2 minBound = entity->p - (shape->size / 2.f);
+			Vec2 maxBound = entity->p + (shape->size / 2.f);
+
+			Vec2 hs = gameState->worldSize / 2.f;
+
+			if (minBound.x <= -hs.x)
+			{
+				entity->p.x = -hs.x + (shape->size.x / 2.f);
+			}
+			else if (maxBound.x >= hs.x)
+			{
+				entity->p.x = hs.x - (shape->size.x / 2.f);
+			}
+
+			if (minBound.y <= -hs.y)
+			{
+				entity->p.y = -hs.y + (shape->size.y / 2.f);
+			}
+			else if (maxBound.y >= hs.y)
+			{
+				entity->p.y = hs.y - (shape->size.y / 2.f);
+			}
+		}
+	}
 }
 
 bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)

@@ -34,12 +34,14 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/smiley.png", bitmap);
 
 	uint8 tiles_indices[] = { 1 };
-	RenderingPattern* pattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
+	Entity* heroEntity = CreateEntity(gameState, Vec2(0, 0));
+    RigidBody* heroBody = CreateRigidBody(gameState, 0.1f);
+	Shape* heroShape = CreateShape(gameState, Vec2(1, 1));
+	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
 
-	Entity* e0 = CreateEntity(gameState, Vec2(0, 0));
-    RigidBody* body = CreateRigidBody(gameState, 0.1f);
-	AddRenderingPatternToEntity(e0, pattern);
-    AddRigidBodyToEntity(e0, body);
+	AddRenderingPatternToEntity(heroEntity, heroPattern);
+    AddRigidBodyToEntity(heroEntity, heroBody);
+	AddShapeToEntity(heroEntity, heroShape);
 
 	Bitmap* textures[10];
     textures[7] = CreateBitmap(gameState);
