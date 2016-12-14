@@ -31,7 +31,8 @@ set(sources
     src/relwarb_utils.cpp
     src/relwarb_world_sim.cpp
     src/relwarb_renderer.cpp
-    src/relwarb_debug.cpp)
+    src/relwarb_debug.cpp
+	src/relwarb_entity.cpp)
 
 set(headers 
     src/relwarb.h
@@ -40,7 +41,9 @@ set(headers
     src/relwarb_opengl.h
     src/relwarb_math.h
     src/relwarb_renderer.h
-    src/relwarb_debug.h)
+    src/relwarb_debug.h
+	src/relwarb_world_sim.h
+	src/relwarb_entity.h)
 
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})

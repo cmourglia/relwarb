@@ -34,14 +34,11 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/smiley.png", bitmap);
 
 	uint8 tiles_indices[] = { 1 };
-	Entity* heroEntity = CreateEntity(gameState, Vec2(0, 0));
-    RigidBody* heroBody = CreateRigidBody(gameState, 0.1f);
+	
 	Shape* heroShape = CreateShape(gameState, Vec2(1, 1));
 	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
 
-	AddRenderingPatternToEntity(heroEntity, heroPattern);
-    AddRigidBodyToEntity(heroEntity, heroBody);
-	AddShapeToEntity(heroEntity, heroShape);
+	CreatePlayerEntity(gameState, Vec2(0, 0), heroPattern, heroShape, &gameState->controllers[0]);
 
 	Bitmap* textures[10];
     textures[7] = CreateBitmap(gameState);
@@ -78,33 +75,33 @@ void InitGame(GameState* gameState)
     Shape* horizontalBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x, 2.f));
     Shape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->worldSize.y));
 
-    Entity* floor = CreateEntity(gameState, Vec2(0.f, 1.f));
+    Entity* floor = CreateEntity(gameState, EntityType_Wall, (0.f, 1.f));
     AddShapeToEntity(floor, horizontalBoundary);
     AddRenderingPatternToEntity(floor, horizPattern);
 
-    Entity* ceiling = CreateEntity(gameState, Vec2(0.f, gameState->worldSize.y - 1.f));
+    Entity* ceiling = CreateEntity(gameState, EntityType_Wall, Vec2(0.f, gameState->worldSize.y - 1.f));
 	AddShapeToEntity(ceiling, horizontalBoundary);
 	AddRenderingPatternToEntity(ceiling, horizPattern);
 
-    Entity* leftWall = CreateEntity(gameState, Vec2(-halfSize.x + 1.f, halfSize.y));
+    Entity* leftWall = CreateEntity(gameState, EntityType_Wall, Vec2(-halfSize.x + 1.f, halfSize.y));
 	AddShapeToEntity(leftWall, verticalBoundary);
 	AddRenderingPatternToEntity(leftWall, vertPattern);
 
-    Entity* rightWall = CreateEntity(gameState, Vec2(halfSize.x - 1.f, halfSize.y));
+    Entity* rightWall = CreateEntity(gameState, EntityType_Wall, Vec2(halfSize.x - 1.f, halfSize.y));
 	AddShapeToEntity(rightWall, verticalBoundary);
 	AddRenderingPatternToEntity(rightWall, vertPattern);
 
     Shape* platformBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x * 0.125f, 2.f));
 
-    Entity* leftPlatform = CreateEntity(gameState, Vec2(-halfSize.x * 0.5f, halfSize.y * 0.5f));
+    Entity* leftPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(-halfSize.x * 0.5f, halfSize.y * 0.5f));
 	AddShapeToEntity(leftPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(leftPlatform, horizPattern);
 
-    Entity* rightPlatform = CreateEntity(gameState, Vec2(halfSize.x * 0.5f, halfSize.y * 0.5f));
+    Entity* rightPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(halfSize.x * 0.5f, halfSize.y * 0.5f));
 	AddShapeToEntity(rightPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(rightPlatform, horizPattern);
 
-    Entity* centerPlatform = CreateEntity(gameState, Vec2(0.f, halfSize.y));
+    Entity* centerPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(0.f, halfSize.y));
 	AddShapeToEntity(centerPlatform, horizontalBoundary);
 	AddRenderingPatternToEntity(centerPlatform, horizPattern);
     
@@ -112,12 +109,13 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/horizontal_up.png", wallTexture);
 }
 
-void UpdateGame(GameState* gameState)
+void UpdateGame(GameState* gameState, real32 dt)
 {
 	// TODO(Charly): How do we retrieve actual characters ?
 	// NOTE(Thomas): Actual like in "the one really moving/played" or actual like in a french mistranslation of 'current' ?
-	gameState->onEdge = false;
-	// if (gameState->controller.moveLeft)   gameState->character.posX -= 0.02f;
+	// NOTE(Charly): The first one I guess
+	
+	// if (gameState->controller.moveLeft)   gameState->character.posX -= 0.02f
 	// if (gameState->controller.moveRight)  gameState->character.posX += 0.02f;
 	// if (gameState->controller.moveDown)   gameState->character.posY -= 0.02f;
 	// if (gameState->controller.moveUp)     gameState->character.posY += 0.02f;
@@ -141,11 +139,11 @@ void UpdateGame(GameState* gameState)
 	// gameState->entities[0].shape.posY = 1.f - gameState->entities[0].shape.sizeY;
 	// gameState->onEdge = true;
 	// }
-	UpdateWorld(gameState, 1.f / 60.f);
+	UpdateWorld(gameState, dt);
 }
 
 // TODO(Charly): Move this in renderer ? 
-void RenderGame(GameState* gameState)
+void RenderGame(GameState* gameState, real32 dt)
 {
 	glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
 
@@ -172,11 +170,6 @@ void RenderGame(GameState* gameState)
 			transform.proj = gameState->projMatrix;
 			transform.world = gameState->worldMatrix;
 
-			if (elementIdx == 0)
-			{
-				Log(Log_Debug, "% .3f % .3f", pos.x, pos.y);
-			}
-
 			RenderPattern(pattern, &transform);
 		}
 	}
@@ -197,16 +190,21 @@ void ReleaseBitmapData(Bitmap* bitmap)
 	stbi_image_free(bitmap->data);
 }
 
-Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp, Vec2 ddp)
+Entity* CreateEntity(GameState* gameState, EntityType type, Vec2 p, Vec2 dp, Vec2 ddp)
 {
 	EntityID id = gameState->nbEntities++;
 	Assert(id < WORLD_SIZE);
+
 	Entity* result = &gameState->entities[id];
 	*result = {0};
+
 	result->id = id;
+
 	result->p = p;
 	result->dp = dp;
 	result->ddp = ddp;
+
+	result->entityType = type;
 
 	return result;
 }
@@ -216,7 +214,6 @@ Bitmap* CreateBitmap(GameState* gameState)
 	ComponentID id = gameState->nbBitmaps++;
 	Assert(id < WORLD_SIZE);
 	Bitmap* result = &gameState->bitmaps[id];
-	result->id = id;
 
 	return result;
 }

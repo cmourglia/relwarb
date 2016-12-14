@@ -7,6 +7,7 @@
 #include "relwarb_defines.h"
 #include "relwarb_utils.h"
 #include "relwarb_opengl.h"
+#include "relwarb_debug.h"
 #include "relwarb.h"
 
 global_variable bool g_running;
@@ -43,17 +44,19 @@ do {                                                                    \
 #define WGL_SAMPLE_BUFFERS_ARB                      0x2041
 #define WGL_SAMPLES_ARB                             0x2042
 
-typedef BOOL WINAPI def_wglGetPixelFormatAttribivARB(HDC, int, int, UINT, const int*, int*);
-typedef BOOL WINAPI def_wglGetPixelFormatAttribfvARB(HDC, int, int, UINT, const int*, FLOAT*);
-typedef BOOL WINAPI def_wglChoosePixelFormatARB(HDC, const int*, const FLOAT*, UINT, int*, UINT*);
-typedef HGLRC WINAPI def_wglCreateContextAttribsARB(HDC, HGLRC, const int*);
-typedef const char* WINAPI def_wglGetExtensionsStringARB(HDC);
+typedef BOOL (WINAPI *def_wglGetPixelFormatAttribivARB)(HDC, int, int, UINT, const int*, int*);
+typedef BOOL (WINAPI *def_wglGetPixelFormatAttribfvARB)(HDC, int, int, UINT, const int*, FLOAT*);
+typedef BOOL (WINAPI *def_wglChoosePixelFormatARB)(HDC, const int*, const FLOAT*, UINT, int*, UINT*);
+typedef HGLRC (WINAPI *def_wglCreateContextAttribsARB)(HDC, HGLRC, const int*);
+typedef const char* (WINAPI *def_wglGetExtensionsStringARB)(HDC);
+typedef BOOL (WINAPI *def_wglSwapIntervalEXT)(int);
 
-global_variable def_wglGetPixelFormatAttribivARB* wglGetPixelFormatAttribivARB;
-global_variable def_wglGetPixelFormatAttribfvARB* wglGetPixelFormatAttribfvARB;
-global_variable def_wglChoosePixelFormatARB* wglChoosePixelFormatARB;
-global_variable def_wglCreateContextAttribsARB* wglCreateContextAttribsARB;
-global_variable def_wglGetExtensionsStringARB* wglGetExtensionsStringARB;
+global_variable def_wglGetPixelFormatAttribivARB wglGetPixelFormatAttribivARB;
+global_variable def_wglGetPixelFormatAttribfvARB wglGetPixelFormatAttribfvARB;
+global_variable def_wglChoosePixelFormatARB wglChoosePixelFormatARB;
+global_variable def_wglCreateContextAttribsARB wglCreateContextAttribsARB;
+global_variable def_wglGetExtensionsStringARB wglGetExtensionsStringARB;
+global_variable def_wglSwapIntervalEXT wglSwapIntervalEXT;
 
 #define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD, XINPUT_STATE*)
 typedef X_INPUT_GET_STATE(def_XInputGetState);
@@ -155,11 +158,12 @@ internal void win32_LoadWGLFunctions()
         if (wglMakeCurrent(hdc, glrc))
         {
             // Retrieve wgl function pointers
-            WGL_GET_AND_CHECK(wglGetPixelFormatAttribivARB, def_wglGetPixelFormatAttribivARB*);
-            WGL_GET_AND_CHECK(wglGetPixelFormatAttribfvARB, def_wglGetPixelFormatAttribfvARB*);
-            WGL_GET_AND_CHECK(wglChoosePixelFormatARB, def_wglChoosePixelFormatARB*);
-            WGL_GET_AND_CHECK(wglCreateContextAttribsARB, def_wglCreateContextAttribsARB*);
-            WGL_GET_AND_CHECK(wglGetExtensionsStringARB, def_wglGetExtensionsStringARB*);
+            WGL_GET_AND_CHECK(wglGetPixelFormatAttribivARB, def_wglGetPixelFormatAttribivARB);
+            WGL_GET_AND_CHECK(wglGetPixelFormatAttribfvARB, def_wglGetPixelFormatAttribfvARB);
+            WGL_GET_AND_CHECK(wglChoosePixelFormatARB, def_wglChoosePixelFormatARB);
+            WGL_GET_AND_CHECK(wglCreateContextAttribsARB, def_wglCreateContextAttribsARB);
+            WGL_GET_AND_CHECK(wglGetExtensionsStringARB, def_wglGetExtensionsStringARB);
+			WGL_GET_AND_CHECK(wglSwapIntervalEXT, def_wglSwapIntervalEXT);
 
             wglMakeCurrent(nullptr, nullptr);
         }
@@ -332,25 +336,20 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         case VK_LEFT:
                         case 'A':
                         {
-			    gameState->controller[0].moveLeft = isDown;
+							gameState->controllers[0].moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
                         case 'D':
                         {
-                            gameState->controller[0].moveRight = isDown;
+                            gameState->controllers[0].moveRight = isDown;
                         } break;
 
                         case VK_UP:
+						case VK_SPACE:
                         case 'W':
                         {
-                            gameState->controller[0].moveUp = isDown;
-                        } break;
-
-                        case VK_DOWN:
-                        case 'S':
-                        {
-                            gameState->controller[0].moveDown = isDown;
+                            gameState->controllers[0].jump = isDown;
                         } break;
                     }
                 }
@@ -408,34 +407,18 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 
             if (lx > INPUT_DEADZONE || bRight)
             {
-                gameState->controller[controllerIndex + 1].moveLeft = false;
-                gameState->controller[controllerIndex + 1].moveRight = true;
+                gameState->controllers[controllerIndex + 1].moveLeft = false;
+                gameState->controllers[controllerIndex + 1].moveRight = true;
             }
             else if (lx < -INPUT_DEADZONE || bLeft)
             {
-                gameState->controller[controllerIndex + 1].moveLeft = true;
-                gameState->controller[controllerIndex + 1].moveRight = false;
+                gameState->controllers[controllerIndex + 1].moveLeft = true;
+                gameState->controllers[controllerIndex + 1].moveRight = false;
             }
             else
             {
-                gameState->controller[controllerIndex + 1].moveLeft = false;
-                gameState->controller[controllerIndex + 1].moveRight = false;
-            }
-
-            if (ly > INPUT_DEADZONE || bUp)
-            {
-                gameState->controller[controllerIndex + 1].moveUp = true;
-                gameState->controller[controllerIndex + 1].moveDown = false;
-            }
-            else if (ly < -INPUT_DEADZONE || bDown)
-            {
-                gameState->controller[controllerIndex + 1].moveDown = true;
-                gameState->controller[controllerIndex + 1].moveUp = false;
-            }
-            else
-            {
-                gameState->controller[controllerIndex + 1].moveDown = false;
-                gameState->controller[controllerIndex + 1].moveUp = false;
+                gameState->controllers[controllerIndex + 1].moveLeft = false;
+                gameState->controllers[controllerIndex + 1].moveRight = false;
             }
 
             // Vibrate on edges
@@ -493,6 +476,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         HGLRC openglRC = win32_InitOpenGL(openglDC);
 
         wglMakeCurrent(openglDC, openglRC);
+		wglSwapIntervalEXT(1);
 
         g_running = true;
 
@@ -502,15 +486,24 @@ int CALLBACK WinMain(HINSTANCE instance,
 
         InitGame(&gameState);
 
+		LARGE_INTEGER timerFreq;
+		QueryPerformanceFrequency(&timerFreq);
+		LARGE_INTEGER t0, t1;
+		QueryPerformanceCounter(&t0);
+
         while (g_running)
         {
+			QueryPerformanceCounter(&t1);
+			real32 dt = (t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart;
+			t0 = t1;
+
             // TODO(Charly): Handle keyboard and xbox controller separatly
             //               For now xbox controller is commented out to avoid overriding keyboard state.
             win32_ProcessInputMessages(&gameState);
             // win32_ProcessXBoxControllers(&inputState, &gameState);
 
-            UpdateGame(&gameState);
-            RenderGame(&gameState);
+            UpdateGame(&gameState, dt);
+            RenderGame(&gameState, dt);
 
             SwapBuffers(openglDC);
         }

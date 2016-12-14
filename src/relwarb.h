@@ -12,10 +12,12 @@
 //               controller0 -> keyboard
 //               controller{1 - 4} -> xbox controllers 
 #define MAX_CONTROLLERS 5
-struct Controller : public Component
+struct Controller
 {
-    bool32 moveUp;
-    bool32 moveDown;
+	uint32 controlledEntityID;
+
+	bool32 enabled;
+
     bool32 moveLeft;
     bool32 moveRight;
 
@@ -23,7 +25,7 @@ struct Controller : public Component
 };
 
 // TODO(Charly): This should go somewhere else
-struct Bitmap : public Component
+struct Bitmap
 {
     uint32 texture = 0;
     uint8* data;
@@ -63,7 +65,7 @@ struct GameState
 	RenderingPattern	patterns[WORLD_SIZE];
 	uint32				nbPatterns;
 
-    Controller          controller[MAX_CONTROLLERS];
+    Controller          controllers[MAX_CONTROLLERS];
     uint32              nbControllers;
 
     Vec2 gravity;
@@ -75,19 +77,19 @@ void InitGame(GameState* gameState);
 
 // NOTE(Charly): Do all game logic and computations here
 // TODO(Charly): This should probably be exposed to the scripting
-void UpdateGame(GameState* gameState);
+void UpdateGame(GameState* gameState, real32 dt);
 
 // NOTE(Charly): Render the current state of the game
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
-void RenderGame(GameState* gameState);
+void RenderGame(GameState* gameState, real32 dt);
 
 // TODO(Charly): This should go somewhere else
 // NOTE(Charly): bitmap must not be null, otherwise UB
 void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
-Entity* CreateEntity(GameState* gameState, Vec2 p, Vec2 dp = Vec2(0), Vec2 ddp = Vec2(0));
+Entity* CreateEntity(GameState* gameState, EntityType type, Vec2 p, Vec2 dp = Vec2(0), Vec2 ddp = Vec2(0));
 
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);

@@ -9,6 +9,7 @@ typedef uint32 ComponentID;
 struct RigidBody;
 struct Shape;
 struct RenderingPattern;
+struct Controller;
 
 enum ComponentFlag
 {
@@ -18,8 +19,20 @@ enum ComponentFlag
 	ComponentFlag_Renderable    = 1 << 2,
 };
 
+enum EntityType
+{
+	EntityType_Player = 0,
+	EntityType_Enemy,
+	EntityType_Wall,
+	// ...
+};
+
 struct Entity
 {
+	EntityID id;
+	EntityType entityType;
+	uint32 flags;
+
 	Vec2 p;     // NOTE(Charly): Linear position
 	Vec2 dp;    // NOTE(Charly): Linear velocity
 	Vec2 ddp;   // NOTE(Charly): Linear acceleration
@@ -27,9 +40,6 @@ struct Entity
 	RigidBody* body;
 	Shape* shape;
 	RenderingPattern* pattern;
-
-	EntityID id;
-	uint32 flags;
 
 	// TODO(Thomas): Handle flags a nicer way. That way :
 	//					1) we have to do a constructor for each combination
@@ -39,6 +49,26 @@ struct Entity
     // NOTE(Charly): There are two different things that needs to be done here,
     //                - Create a component and add it to the game state, those are defined by the systems.
     //                - Add a component to an entity, just takes id and flag as input
+
+	// TODO(Charly): Here are gameplay related stuff, tied to some particular
+	//				 entity types. Not sure how we want to handle this yet.
+
+	real32 playerSpeed;
+	real32 playerJumpHeight;
+	real32 playerJumpDist;
+
+	real32 gravity;
+
+	real32 initialJumpVelocity;
+	bool32 alreadyJumping;
+	bool32 newJump;
+	real32 jumpTime;
+	int nbJumps;
+
+	bool32 quickFall;
+	real32 quickFallTime;
+	
+	Controller* controller;
 };
 
 // NOTE(Charly): Helps compressing a bit of code
@@ -64,5 +94,11 @@ inline bool32 EntityHasFlag(Entity* entity, ComponentFlag flag)
     bool32 result = entity->flags & flag;
     return result;
 }
+
+// TODO(Charly): Add CreateXEntityFromData stuff
+Entity* CreatePlayerEntity(GameState* state, Vec2 p, 
+						RenderingPattern* pattern, 
+						Shape* shape, 
+						Controller* controller);
 
 #endif // RELWARB_ENTITY_H

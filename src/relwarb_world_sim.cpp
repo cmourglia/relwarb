@@ -5,41 +5,142 @@
 #include "relwarb_defines.h"
 #include "relwarb_utils.h"
 #include "relwarb_entity.h"
+#include "relwarb_debug.h"
 #include "relwarb.h"
 
 void UpdateWorld(GameState* gameState, real32 dt)
 {
-    // Here is where the magic happens
-    // Multiple stuff has to be done here, for each dynamic entities
-    // (objects, actors or however you wanna call them).
-
-    // 1. Integration step (Symplectic-Euler):
-    // for each entity
-    //      - Add gravity if needed :
-    //          This needs more thinking / testing : how do we want to handle
-    //          dashes, spells that may require a big air-time, etc ?
-    //      - Compute acceleration (Newton FTW, a(t) = F(t) * 1 / m)
-    //      - Compute new velocity : v(t) = v(t-1) + a(t) * dt
-    //      - Compute new position : p(t) = p(t-1) + v(t) * dt
-    //
-    //      - NOTE(Charly): Forward Euler would have been
-    //          p(t) = p(t-1) + v(t-1) * dt
-    //          v(t) = v(t-1) + a(t) * dt
-    for (uint32 entityIdx = 0; entityIdx < gameState->nbRigidBodies; ++entityIdx)
+	// NOTE(Charly): I have removed generic integration stuff for now.
+	//				 This function might actually be scripted, or call 
+	//				 scripted entity update functions.
+    for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
     {
         Entity* entity = &gameState->entities[entityIdx];
 
-        if (EntityHasFlag(entity, ComponentFlag_Movable))
-        {
-            RigidBody* body = entity->body;
-            body->forces += gameState->gravity;
-            entity->ddp = body->forces * body->invMass;
-            body->forces = Vec2(0.f); 
-        }
+		switch (entity->entityType)
+		{
+			case EntityType_Player:
+			{
+				// NOTE(Charly): We are updating a player, so we need to :
+				//	- Change x velocity based on left / right inputs
+				//	- If jump is pressed:
+				//		- Is it the start of a new jump ? 
+				//			- Y: start jumping, compute gravity and velocity
+				//			based on current state and wished jump height,
+				//			keep track of the number of total jumps (gd related)
+				//			- N: update jumping elapsed time
+				//	- Else:
+				//		- Did we begin a jump and stopped early ? 
+				//			- Change the gravity momentarily and track time
 
+				Controller* controller = entity->controller;
 
-        entity->dp += dt * entity->ddp;
-        entity->p += dt * entity->dp; 
+				entity->dp.x = 0.0;
+				if (controller->moveLeft)
+				{
+					entity->dp.x += -10.0;
+				}
+				
+				if (controller->moveRight)
+				{
+					entity->dp.x += 10.0;
+				}
+
+				Vec2 acc = Vec2(0, entity->gravity);
+
+#define MAX_JUMP_TIME   0.5f
+#define MAX_STOP_TIME   0.1f
+#define MAX_NB_JUMPS	2
+
+				if (controller->jump)
+				{
+					if (!entity->alreadyJumping || entity->newJump && entity->nbJumps < MAX_NB_JUMPS)
+					{
+						// Start jumping
+						entity->dp.y = entity->initialJumpVelocity;
+						entity->alreadyJumping = true;
+						entity->newJump = false;
+						++entity->nbJumps;
+					}
+					else
+					{
+						entity->jumpTime += dt;
+					}
+				}
+				else
+				{
+					entity->newJump = true;
+
+					if (entity->alreadyJumping)
+					{
+						if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
+						{
+							entity->quickFall = true;
+							entity->quickFallTime = 0;
+						}
+
+						if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
+						{
+							entity->quickFallTime += dt;
+							acc.y *= 5;
+						}
+					}
+				}
+
+				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
+				entity->dp += dt * acc;
+
+				// HACK(Charly): Stupid hack to keep the entities inside the world
+				Shape* shape = entity->shape;
+
+				// World center in (0,0)
+				Vec2 minBound = entity->p - (shape->size / 2.f);
+				Vec2 maxBound = entity->p + (shape->size / 2.f);
+
+				Vec2 hs = gameState->worldSize / 2.f;
+
+				bool32 resetJumps = false;
+
+				if (minBound.x <= -hs.x)
+				{
+					entity->p.x = -hs.x + (shape->size.x / 2.f);
+					resetJumps = true;
+				}
+				else if (maxBound.x >= hs.x)
+				{
+					entity->p.x = hs.x - (shape->size.x / 2.f);
+					resetJumps = true;
+				}
+
+				if (minBound.y <= -hs.y)
+				{
+					entity->p.y = -hs.y + (shape->size.y / 2.f);
+					entity->dp.y = 0;
+
+					resetJumps = true;
+				}
+				else if (maxBound.y >= hs.y)
+				{
+					entity->p.y = hs.y - (shape->size.y / 2.f);
+					entity->dp.y = 0;
+
+					resetJumps = false;
+				}
+
+				if (resetJumps)
+				{
+					entity->alreadyJumping = false;
+					entity->quickFall = false;
+					entity->jumpTime = 0.f;
+					entity->quickFallTime = 0.f;
+					entity->nbJumps = 0;
+				}
+			} break;
+
+			default:
+			{
+			}
+		}
     }
 	
     // 2. Collision detection
@@ -133,41 +234,6 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	// 		}
 	// 	}
 	// }
-	
-	// HACK(Charly): Stupid hack to keep the entities inside the world
-	for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
-	{
-		Entity* entity = &gameState->entities[entityIdx];
-
-		if (EntityHasFlag(entity, ComponentFlag_Collidable))
-		{
-			Shape* shape = entity->shape;
-
-			// World center in (0,0)
-			Vec2 minBound = entity->p - (shape->size / 2.f);
-			Vec2 maxBound = entity->p + (shape->size / 2.f);
-
-			Vec2 hs = gameState->worldSize / 2.f;
-
-			if (minBound.x <= -hs.x)
-			{
-				entity->p.x = -hs.x + (shape->size.x / 2.f);
-			}
-			else if (maxBound.x >= hs.x)
-			{
-				entity->p.x = hs.x - (shape->size.x / 2.f);
-			}
-
-			if (minBound.y <= -hs.y)
-			{
-				entity->p.y = -hs.y + (shape->size.y / 2.f);
-			}
-			else if (maxBound.y >= hs.y)
-			{
-				entity->p.y = hs.y - (shape->size.y / 2.f);
-			}
-		}
-	}
 }
 
 bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
