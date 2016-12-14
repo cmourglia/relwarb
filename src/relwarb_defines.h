@@ -3,6 +3,24 @@
 
 #include <stdint.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#define OS_WINDOWS
+#elif defined(__linux__) || defined(__CYGWIN__)
+#define OS_LINUX
+#elif defined(__APPLE__) || defined(__MACH__)
+#define OS_MACOS
+#endif
+
+#if defined(_DEBUG)
+#define RELWARB_DEBUG
+#endif
+
+#if defined(OS_WINDOWS)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
 #define global_variable static
 #define internal static
 
@@ -20,7 +38,7 @@ typedef float real32;
 typedef double real64;
 
 #if defined(RELWARB_DEBUG)
-# if defined(LINUX)
+# if defined(OS_LINUX)
 #  define Assert(x) if (!(x)) { __builtin_trap(); }
 # else
 #  define Assert(x) if (!(x)) { *(int*)0 = 0; }

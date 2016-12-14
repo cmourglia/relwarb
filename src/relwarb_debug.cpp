@@ -3,10 +3,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #include "relwarb_defines.h"
 
 internal const char* GetLogLevelMessage(LogLevel level)
@@ -28,7 +24,7 @@ internal void VarLog(LogLevel level, const char* format, va_list args)
 
     vsnprintf(str, 1024, format, args);
 
-#ifdef WIN32
+#ifdef OS_WINDOWS
     OutputDebugString(GetLogLevelMessage(level));
     OutputDebugString(str);
     OutputDebugString("\n");
