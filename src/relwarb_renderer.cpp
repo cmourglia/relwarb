@@ -85,9 +85,9 @@ internal GLuint CompileShader(const char* src, GLenum type)
 
 RenderingPattern* CreateRenderingPattern(GameState* gameState, 
                                          Vec2 size, 
-                                         uint8* pattern, 
-                                         Bitmap** bitmaps, 
-                                         uint8 nbBitmaps,
+                                         uint8* pattern,
+										 uint8 nbBitmaps,
+                                         Bitmap** bitmaps,
                                          RenderingPatternType type)
 {
 	ComponentID id = gameState->nbPatterns++;

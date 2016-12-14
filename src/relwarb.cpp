@@ -3,6 +3,7 @@
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
+#include "relwarb_parser.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -29,6 +30,8 @@ void InitGame(GameState* gameState)
     gameState->gravity = Vec2(0.f, -1.f);
 
 	Vec2 halfSize = gameState->worldSize * 0.5f;
+
+	LoadMapFile(gameState, "config/base_map.ini");
     
     Bitmap* bitmap = CreateBitmap(gameState);
     LoadBitmapData("assets/smiley.png", bitmap);
@@ -36,77 +39,10 @@ void InitGame(GameState* gameState)
 	uint8 tiles_indices[] = { 1 };
 	
 	Shape* heroShape = CreateShape(gameState, Vec2(1, 1));
-	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, &bitmap, 1);
+	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, 1, &bitmap);
 
 	CreatePlayerEntity(gameState, Vec2(0, 0), heroPattern, heroShape, &gameState->controllers[0]);
 
-	Bitmap* textures[10];
-    textures[7] = CreateBitmap(gameState);
-    LoadBitmapData("assets/corner_topleft.png", textures[7]);
-	textures[8] = CreateBitmap(gameState);
-	LoadBitmapData("assets/horizontal_up.png", textures[8]);
-	textures[9] = CreateBitmap(gameState);
-	LoadBitmapData("assets/corner_topright.png", textures[9]);
-	textures[4] = CreateBitmap(gameState);
-	LoadBitmapData("assets/vertical_left.png", textures[4]);
-	textures[6] = CreateBitmap(gameState);
-	LoadBitmapData("assets/vertical_right.png", textures[6]);
-	textures[1] = CreateBitmap(gameState);
-	LoadBitmapData("assets/corner_bottomleft.png", textures[1]);
-	textures[2] = CreateBitmap(gameState);
-	LoadBitmapData("assets/horizontal_down.png", textures[2]);
-	textures[3] = CreateBitmap(gameState);
-	LoadBitmapData("assets/corner_bottomright.png", textures[3]);
-
-	uint8 horiz_indices[] = {	7, 8, 9,
-								1, 2, 3 };
-	Bitmap* horiz_bitmaps[] = { textures[horiz_indices[0]], textures[horiz_indices[1]], textures[horiz_indices[2]],
-								textures[horiz_indices[3]], textures[horiz_indices[4]], textures[horiz_indices[5]] };
-	uint8 vert_indices[] = {	7, 9,
-								4, 6,
-								1, 3 };
-	Bitmap* vert_bitmaps[] = {  textures[vert_indices[0]], textures[vert_indices[1]],
-								textures[vert_indices[2]], textures[vert_indices[3]],
-								textures[vert_indices[4]], textures[vert_indices[5]] };
-
-	RenderingPattern* horizPattern = CreateRenderingPattern(gameState, Vec2(3, 2), horiz_indices, horiz_bitmaps, 6);
-	RenderingPattern* vertPattern = CreateRenderingPattern(gameState, Vec2(2, 3), vert_indices, vert_bitmaps, 6);
-
-    Shape* horizontalBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x, 2.f));
-    Shape* verticalBoundary = CreateShape(gameState, Vec2(2.f, gameState->worldSize.y));
-
-    Entity* floor = CreateEntity(gameState, EntityType_Wall, (0.f, 1.f));
-    AddShapeToEntity(floor, horizontalBoundary);
-    AddRenderingPatternToEntity(floor, horizPattern);
-
-    Entity* ceiling = CreateEntity(gameState, EntityType_Wall, Vec2(0.f, gameState->worldSize.y - 1.f));
-	AddShapeToEntity(ceiling, horizontalBoundary);
-	AddRenderingPatternToEntity(ceiling, horizPattern);
-
-    Entity* leftWall = CreateEntity(gameState, EntityType_Wall, Vec2(-halfSize.x + 1.f, halfSize.y));
-	AddShapeToEntity(leftWall, verticalBoundary);
-	AddRenderingPatternToEntity(leftWall, vertPattern);
-
-    Entity* rightWall = CreateEntity(gameState, EntityType_Wall, Vec2(halfSize.x - 1.f, halfSize.y));
-	AddShapeToEntity(rightWall, verticalBoundary);
-	AddRenderingPatternToEntity(rightWall, vertPattern);
-
-    Shape* platformBoundary = CreateShape(gameState, Vec2(gameState->worldSize.x * 0.125f, 2.f));
-
-    Entity* leftPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(-halfSize.x * 0.5f, halfSize.y * 0.5f));
-	AddShapeToEntity(leftPlatform, horizontalBoundary);
-	AddRenderingPatternToEntity(leftPlatform, horizPattern);
-
-    Entity* rightPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(halfSize.x * 0.5f, halfSize.y * 0.5f));
-	AddShapeToEntity(rightPlatform, horizontalBoundary);
-	AddRenderingPatternToEntity(rightPlatform, horizPattern);
-
-    Entity* centerPlatform = CreateEntity(gameState, EntityType_Wall, Vec2(0.f, halfSize.y));
-	AddShapeToEntity(centerPlatform, horizontalBoundary);
-	AddRenderingPatternToEntity(centerPlatform, horizPattern);
-    
-    Bitmap* wallTexture = CreateBitmap(gameState);
-    LoadBitmapData("assets/horizontal_up.png", wallTexture);
 }
 
 void UpdateGame(GameState* gameState, real32 dt)

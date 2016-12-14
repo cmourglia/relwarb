@@ -10,7 +10,7 @@ struct Entity;
 
 enum RenderingPatternType
 {
-	RenderingPattern_Unique,
+	RenderingPattern_Unique = 0,
 };
 
 struct RenderingPattern
@@ -46,9 +46,9 @@ void ResizeRenderer(GameState* gameState);
 
 RenderingPattern* CreateRenderingPattern(GameState* gameState, 
 										 Vec2 size,
-										 uint8* pattern, 
-										 Bitmap** bitmaps, 
+										 uint8* pattern,
 										 uint8 nbBitmaps,
+										 Bitmap** bitmaps, 
 										 RenderingPatternType type = RenderingPattern_Unique);
 
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);

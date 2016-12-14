@@ -296,6 +296,21 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
     return openglRC;
 }
 
+#define AZERTY
+//#define QWERTY
+#ifdef AZERTY
+	#define TEMP_W 'Z'
+	#define TEMP_A 'Q'
+	#define TEMP_S 'S'
+	#define TEMP_D 'D'
+#endif
+#ifdef QWERTY
+	#define TEMP_W 'W'
+	#define TEMP_A 'A'
+	#define TEMP_S 'S'
+	#define TEMP_D 'D'
+#endif
+
 internal void win32_ProcessInputMessages(GameState* gameState)
 {
     MSG message;
@@ -334,20 +349,20 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         } break;
 
                         case VK_LEFT:
-                        case 'A':
+                        case TEMP_A:
                         {
 							gameState->controllers[0].moveLeft = isDown;
                         } break;
 
                         case VK_RIGHT:
-                        case 'D':
+                        case TEMP_D:
                         {
                             gameState->controllers[0].moveRight = isDown;
                         } break;
 
                         case VK_UP:
 						case VK_SPACE:
-                        case 'W':
+                        case TEMP_W:
                         {
                             gameState->controllers[0].jump = isDown;
                         } break;
@@ -461,7 +476,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         HWND window = CreateWindowExA(0,
                                       wc.lpszClassName,
                                       "Relwrab",
-                                       WS_VISIBLE | WS_POPUP,
+                                      WS_VISIBLE | WS_POPUP,
                                       //WS_VISIBLE,
                                       CW_USEDEFAULT,
                                       CW_USEDEFAULT,
