@@ -10,8 +10,12 @@
 
 #include <xinput.h>
 
-global_variable bool g_running;
+global_variable bool32 g_running;
 global_variable WORD g_vibrationLevel;
+
+global_variable uint32 localLeft;
+global_variable uint32 localRight;
+global_variable uint32 localUp;
 
 #define WGL_GET_AND_CHECK(name, type)                                   \
 do {                                                                    \
@@ -283,7 +287,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                 if (StrEqual(extensionName, "GL_ARB_debug_output", StrLength("GL_ARB_debug_output")))
                 {
                     // WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
-                    // glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
+                     glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
                 }
             }
         }
@@ -380,21 +384,6 @@ internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clic
 	}
 }
 
-#define AZERTY
-//#define QWERTY
-#ifdef AZERTY
-	#define TEMP_W 'Z'
-	#define TEMP_A 'Q'
-	#define TEMP_S 'S'
-	#define TEMP_D 'D'
-#endif
-#ifdef QWERTY
-	#define TEMP_W 'W'
-	#define TEMP_A 'A'
-	#define TEMP_S 'S'
-	#define TEMP_D 'D'
-#endif
-
 internal void win32_ProcessInputMessages(GameState* gameState)
 {
     MSG message;
@@ -441,31 +430,21 @@ internal void win32_ProcessInputMessages(GameState* gameState)
 						gameState->keyStates[key] = state;
 					}
 
-                    switch (vkCode)
+                    if (vkCode == VK_ESCAPE)
                     {
-                        case VK_ESCAPE:
-                        {
-                            g_running = false;
-                        } break;
-
-                        case VK_LEFT:
-                        case TEMP_A:
-                        {
-							gameState->controllers[0].moveLeft = isDown;
-                        } break;
-
-                        case VK_RIGHT:
-                        case TEMP_D:
-                        {
-                            gameState->controllers[0].moveRight = isDown;
-                        } break;
-
-                        case VK_UP:
-						case VK_SPACE:
-                        case TEMP_W:
-                        {
-                            gameState->controllers[0].jump = isDown;
-                        } break;
+                        g_running = false;
+                    }
+                    else if (vkCode == VK_LEFT || vkCode == localLeft)
+                    {
+                        gameState->controllers[0].moveLeft = isDown;
+                    }
+                    else if (vkCode == VK_RIGHT || vkCode == localRight)
+                    {
+                        gameState->controllers[0].moveRight = isDown;
+                    }
+                    else if (vkCode == VK_UP || vkCode == VK_SPACE || vkCode == localUp)
+                    {
+                        gameState->controllers[0].jump = isDown;
                     }
                 }
             } break;
@@ -628,6 +607,30 @@ int CALLBACK WinMain(HINSTANCE instance,
 		wglSwapIntervalEXT(1);
 
         g_running = true;
+
+        HKL layout = GetKeyboardLayout(0);
+        // https://msdn.microsoft.com/en-us/library/windows/desktop/dd318693(v=vs.85).aspx
+        switch (LOWORD(layout))
+        {
+            case 0x080c:
+            case 0x0c0c:
+            case 0x040c:
+            case 0x140c:
+            case 0x180c:
+            case 0x100c:
+            {
+                localLeft = 'Q';
+                localRight = 'D';
+                localUp = 'Z';
+            } break;
+
+            default:
+            {
+                localLeft = 'A';
+                localRight = 'D';
+                localUp = 'W';
+            }
+        }
 
         GameState gameState;
 		gameState = {0};
