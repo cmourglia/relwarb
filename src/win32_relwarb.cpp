@@ -251,7 +251,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
 
     HGLRC openglRC = 0;
 
-    OutputDebugString("Hello there\n");
+    OutputDebugString("Hello there!\n");
 
     if (wglCreateContextAttribsARB)
     {

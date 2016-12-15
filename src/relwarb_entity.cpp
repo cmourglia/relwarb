@@ -57,8 +57,8 @@ bool32 Intersect(const Entity* entity1, const Entity* entity2)
 	const Shape* shape1 = entity1->shape;
 	const Shape* shape2 = entity2->shape;
 
-	real32 diffX = Abs(pos1.x + shape1->offset.x - pos2.x - shape2->offset.x) - Epsilon32;
-	real32 diffY = Abs(pos1.y + shape1->offset.y - pos2.y - shape2->offset.y) - Epsilon32;
+	real32 diffX = Abs(pos1.x + shape1->offset.x - pos2.x - shape2->offset.x);
+	real32 diffY = Abs(pos1.y + shape1->offset.y - pos2.y - shape2->offset.y);
 	return (diffX < (shape1->size.x + shape2->size.x) * 0.5f && diffY < (shape1->size.y + shape2->size.y) * 0.5f);
 }
 

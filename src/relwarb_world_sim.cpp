@@ -147,12 +147,9 @@ void UpdateWorld(GameState* gameState, real32 dt)
     // Then, for each potentially colliding pair of entities, perform the test
     // (Depending on the shapes, GJK might be the best tool)
 
+	// TODO(Thomas): Do something smart.
 	std::vector<std::pair <Entity *, Entity *>> collisions;
 
-    // QUESTION(THOMAS): Double loop ? with test to handle each pair only once ?
-    // ANSWER(Charly):   Yup, but you do not want to iterate over the entities, 
-    //                   you want to iterate over the shapes and retrieve their 
-    //                   position from their entityID.
 	for (uint32 firstIdx = 0; firstIdx < (gameState->nbEntities - 1); ++firstIdx)
 	{
 		Entity* firstEntity = &gameState->entities[firstIdx];
@@ -235,9 +232,9 @@ void UpdateWorld(GameState* gameState, real32 dt)
 					it.second->p += overlap;
 					it.second->dp = Times(it.second->dp, clampDp);
 	 			}
-	 		}
-	 	}
-	 }
+			}
+		}
+	}
 }
 
 bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
@@ -260,8 +257,8 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 			ResetJump(e2);
 		}
 	}
-	
-return		true;
+
+	return true;
 }
 
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
