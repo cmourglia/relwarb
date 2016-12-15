@@ -26,3 +26,13 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 
 	return result;
 }
+
+Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Shape* shape)
+{
+	Entity* result = CreateEntity(state, EntityType_Wall, p);
+
+	AddRenderingPatternToEntity(result, pattern);
+	AddShapeToEntity(result, shape);
+
+	return result;
+}

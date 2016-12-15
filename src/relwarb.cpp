@@ -3,7 +3,6 @@
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
-#include "relwarb_parser.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -43,70 +42,89 @@ void InitGame(GameState* gameState)
 
 	CreatePlayerEntity(gameState, Vec2(0, 0), heroPattern, heroShape, &gameState->controllers[0]);
 
+    LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/corner_topright.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/vertical_left.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/vertical_right.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/corner_bottomleft.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/horizontal_down.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/corner_bottomright.png", CreateBitmap(gameState));e);
+    LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
 }
 
 void UpdateGame(GameState* gameState, real32 dt)
 {
-	// TODO(Charly): How do we retrieve actual characters ?
-	// NOTE(Thomas): Actual like in "the one really moving/played" or actual like in a french mistranslation of 'current' ?
-	// NOTE(Charly): The first one I guess
-	
-	// if (gameState->controller.moveLeft)   gameState->character.posX -= 0.02f
-	// if (gameState->controller.moveRight)  gameState->character.posX += 0.02f;
-	// if (gameState->controller.moveDown)   gameState->character.posY -= 0.02f;
-	// if (gameState->controller.moveUp)     gameState->character.posY += 0.02f;
-	// if (gameState->entities[0].shape.posX < -1.f)
-	// {
-	//    gameState->entities[0].shape.posX = -1.f;
-	//    gameState->onEdge = true;
-	// }
-	// if (gameState->entities[0].shape.posX > 1.f - gameState->entities[0].shape.sizeX)
-	// {
-	// gameState->entities[0].shape.posX = 1.f - gameState->entities[0].shape.sizeX;
-	// gameState->onEdge = true;
-	// }
-	// if (gameState->entities[0].shape.posY < -1.f)
-	// {
-	// gameState->entities[0].shape.posY = -1.f;
-	// gameState->onEdge = true;
-	// }
-	// if (gameState->entities[0].shape.posY > 1.f - gameState->entities[0].shape.sizeY)
-	// {
-	// gameState->entities[0].shape.posY = 1.f - gameState->entities[0].shape.sizeY;
-	// gameState->onEdge = true;
-	// }
-	UpdateWorld(gameState, dt);
+	// NOTE(Charly): Toggle game mode on presses
+	if (gameState->keyStates[Key_F1].stateChange && gameState->keyStates[Key_F1].clicked)
+	{
+		gameState->mode = gameState->mode == GameMode_Game ? GameMode_Editor : GameMode_Game;
+	}
+
+	switch (gameState->mode)
+	{
+		case GameMode_Game:
+		{
+			UpdateWorld(gameState, dt);
+		} break;
+
+		case GameMode_Editor:
+		{
+			UpdateEditor(gameState);
+		} break;
+		
+		default:
+		{
+			Assert(!"Wrong code path");
+		}
+	}
 }
 
 // TODO(Charly): Move this in renderer ? 
 void RenderGame(GameState* gameState, real32 dt)
 {
-	glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
-
-	glClearColor(0.3f, 0.8f, 0.7f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
+	switch (gameState->mode)
 	{
-		Entity* entity = &gameState->entities[elementIdx];
-		if (EntityHasFlag(entity, ComponentFlag_Renderable))
+		case GameMode_Game:
 		{
-			RenderingPattern* pattern = entity->pattern;
-			Vec2 pos(entity->p);
+			glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
 
-			if (EntityHasFlag(entity, ComponentFlag_Movable))
+			glClearColor(0.3f, 0.8f, 0.7f, 0.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
 			{
-				// NOTE(Thomas): Do something maybe.
+				Entity* entity = &gameState->entities[elementIdx];
+				if (EntityHasFlag(entity, ComponentFlag_Renderable))
+				{
+					RenderingPattern* pattern = entity->pattern;
+					Vec2 pos(entity->p);
+
+					if (EntityHasFlag(entity, ComponentFlag_Movable))
+					{
+						// NOTE(Thomas): Do something maybe.
+					}
+
+					Transform transform;
+					transform.offset = Vec2(0, 0);
+					transform.position = pos;
+					transform.scale = Vec2(1);
+					transform.proj = gameState->projMatrix;
+					transform.world = gameState->worldMatrix;
+
+					RenderPattern(pattern, &transform);
+				}
 			}
+		} break;
 
-			Transform transform;
-			transform.offset = Vec2(0, 0);
-			transform.position = pos;
-			transform.scale = Vec2(1);
-			transform.proj = gameState->projMatrix;
-			transform.world = gameState->worldMatrix;
+		case GameMode_Editor:
+		{
+			RenderEditor(gameState);
+		} break;
 
-			RenderPattern(pattern, &transform);
+		default:
+		{
+			Assert(!"Wrong code path");
 		}
 	}
 }
@@ -150,6 +168,20 @@ Bitmap* CreateBitmap(GameState* gameState)
 	ComponentID id = gameState->nbBitmaps++;
 	Assert(id < WORLD_SIZE);
 	Bitmap* result = &gameState->bitmaps[id];
+
+	return result;
+}
+
+Vec2 ViewportToWorld(GameState* state, Vec2 in)
+{
+	// [0, viewport] -> [0, 1], origin top left
+	Vec2 result = in / state->viewportSize;
+	// [0, 1] -> [0, 1] origin bot left
+	result.y = 1 - result.y;
+	// [0, 1] -> [-0.5, 0.5]
+	result = result - Vec2(0.5);
+	// [-0.5, 0.5] -> [-world / 2, world / 2]
+	result = result * state->worldSize;
 
 	return result;
 }

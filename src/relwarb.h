@@ -5,6 +5,7 @@
 #include "relwarb_math.h"
 #include "relwarb_world_sim.h"
 #include "relwarb_renderer.h"
+#include "relwarb_input.h"
 
 #define WORLD_SIZE	1024
 
@@ -34,7 +35,11 @@ struct Bitmap
     int height;
 };
 
-
+enum GameMode
+{
+	GameMode_Game = 0,
+	GameMode_Editor,
+};
 
 // NOTE(Charly): Store the current state of the game
 struct GameState
@@ -69,6 +74,13 @@ struct GameState
     uint32              nbControllers;
 
     Vec2 gravity;
+
+	GameMode mode;
+
+	// NOTE(Charly): Windows coordinates
+	Vec2 cursor;
+	InputState keyStates[Key_Count];
+	InputState buttonStates[Button_Count];
 };
 
 // NOTE(Charly): Initialize all the game logic related stuff here
@@ -94,6 +106,6 @@ Entity* CreateEntity(GameState* gameState, EntityType type, Vec2 p, Vec2 dp = Ve
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);
 
-
+Vec2 ViewportToWorld(GameState* state, Vec2 in);
 
 #endif // RELWARB_H

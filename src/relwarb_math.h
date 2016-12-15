@@ -80,6 +80,16 @@ inline real32 Clamp(real32 x, real32 vmin, real32 vmax)
     return Min(vmax, Max(x, vmin));
 }
 
+inline real32 Floor(real32 x)
+{
+	return floorf(x);
+}
+
+inline real32 Ceil(real32 x)
+{
+	return ceilf(x);
+}
+
 // NOTE(Charly): Clamp x between 0 and 1
 inline real32 Saturate(real32 x)
 {
@@ -139,6 +149,8 @@ inline Vec2 operator-(Vec2 v, Vec2 w) { return Vec2(v.x - w.x, v.y - w.y); }
 inline Vec2 operator*(Vec2 v, real32 x) { return Vec2(v.x * x, v.y * x); }
 inline Vec2 operator*(real32 x, Vec2 v) { return Vec2(v.x * x, v.y * x); }
 inline Vec2 operator/(Vec2 v, real32 x) { return Vec2(v.x / x, v.y / x); }
+inline Vec2 operator*(Vec2 v, Vec2 w) { return Vec2(v.x * w.x, v.y * w.y); }
+inline Vec2 operator/(Vec2 v, Vec2 w) { return Vec2(v.x / w.x, v.y / w.y); }
 
 inline real32 Dot(Vec2 v, Vec2 w) { return v.x * w.x + v.y * w.y; }
 inline real32 Cross(Vec2 v, Vec2 w) { return v.x * w.y - v.y * w.x; }

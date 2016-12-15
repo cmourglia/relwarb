@@ -96,9 +96,11 @@ inline bool32 EntityHasFlag(Entity* entity, ComponentFlag flag)
 }
 
 // TODO(Charly): Add CreateXEntityFromData stuff
-Entity* CreatePlayerEntity(GameState* state, Vec2 p, 
-						RenderingPattern* pattern, 
-						Shape* shape, 
-						Controller* controller);
+Entity* CreatePlayerEntity(GameState* state, Vec2 p,  
+						   RenderingPattern* pattern, 
+						   Shape* shape,  
+						   Controller* controller);
+
+Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Shape* shape);
 
 #endif // RELWARB_ENTITY_H
