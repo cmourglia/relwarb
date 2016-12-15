@@ -11,6 +11,7 @@
 
 enum ObjectParsing
 {
+    ObjectParsing_Unknown = -1,
 	ObjectParsing_Bitmap = 0,
 	ObjectParsing_Shape,
 	ObjectParsing_RenderingPattern,
@@ -35,6 +36,7 @@ int SwitchParseObject(const std::string & header)
 		return ObjectParsing_PatternToEntity;
 
 	Log(Log_Error, "Wrong header '%s'", header);
+    return ObjectParsing_Unknown;
 }
 
 void ExtractString(std::string& line, std::string& extract)
