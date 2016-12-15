@@ -11,6 +11,7 @@ struct Entity;
 enum RenderingPatternType
 {
 	RenderingPattern_Unique = 0,
+	RenderingPattern_Fill
 };
 
 struct RenderingPattern
@@ -53,12 +54,15 @@ RenderingPattern* CreateRenderingPattern(GameState* gameState,
 
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
 
-// Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size = Vec2(0));
+
+// Render the pattern at the position given in transform, and repeated to fit the given size
+void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 size);
 
 // TODO(Charly): x and y are given in opengl coordinates for now,
 //               maybe this should change
 void RenderBitmap(Bitmap* bitmap, Transform* transform);
+
 
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseBitmap(Bitmap* bitmap);

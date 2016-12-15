@@ -32,6 +32,7 @@ void InitGame(GameState* gameState)
 
 	Vec2 halfSize = gameState->worldSize * 0.5f;
 
+	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
 	LoadMapFile(gameState, "config/base_map.ini");
     
     Bitmap* bitmap = CreateBitmap(gameState);
@@ -114,7 +115,7 @@ void RenderGame(GameState* gameState, real32 dt)
 					transform.proj = gameState->projMatrix;
 					transform.world = gameState->worldMatrix;
 
-					RenderPattern(pattern, &transform);
+					RenderPattern(pattern, &transform, entity->shape->size);
 				}
 			}
 		} break;

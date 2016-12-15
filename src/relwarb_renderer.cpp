@@ -167,38 +167,51 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
         {
             RenderBitmap(pattern->bitmaps[0], transform);
         } break;
+		case RenderingPattern_Fill:
+		{
+			RenderFillPattern(pattern, transform, size);
+		} break;
 
         default:
         {
             // Unknown render pattern type
         }; 
     }
-	// uint32 deltaX = size.x - pattern->size.x;
-	// uint32 deltaY = size.y - pattern->size.y;
-	// uint32 halfSizeX = size.x * 0.5;
-	// uint32 halfSizeY = size.y * 0.5;
-	// Assert(deltaX >= 0 && deltaY >= 0);
-	// for (uint32 i = -halfSizeX; i < halfSizeX; ++i)
-	// {
-	// 	uint32 indexX = i ;
-	// 	if (deltaX > 0 && i > 0)
-	// 	{
-	// 		indexX--;
-	// 		deltaX--;
-	// 	}
-	// 	for (uint32 j = 0; j < size.y; ++j)
-	// 	{
-	// 		uint32 indexY = j;
-	// 		if (deltaY > 0 && j > 0)
-	// 		{
-	// 			indexY--;
-	// 			deltaY--;
-	// 		}
-	// 		Transform currentTransform = *transform;
-	// 		currentTransform.position += Vec2();
-	// 		RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
-	// 	}
-	// }
+}
+
+void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
+{
+	uint32 middleTileX = pattern->size.x * 0.5f;
+	uint32 middleTileY = pattern->size.y * 0.5f;
+	uint32 deltaX = size.x - pattern->size.x;
+	uint32 deltaY = size.y - pattern->size.y;
+	real32 halfSizeX = size.x * 0.5f - 0.5f;
+	real32 halfSizeY = size.y * 0.5f - 0.5f;
+	Assert(deltaX >= 0 && deltaY >= 0);
+
+	uint32 indexX = 0, indexY;
+	for (real32 i = -halfSizeX; i <= halfSizeX; i += 1, ++indexX)
+	{
+		indexY = 0;
+	 	for (real32 j = -halfSizeY; j <= halfSizeY; j += 1, ++indexY)
+	 	{
+	 		Transform currentTransform = *transform;
+	 		currentTransform.position += Vec2(i, j);
+	 		RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
+
+			if (indexY == middleTileY && deltaY > 0)
+			{
+				--indexY;
+				--deltaY;
+			}
+	 	}
+
+		if (indexX == middleTileX && deltaX > 0)
+		{
+			--indexX;
+			--deltaX;
+		}
+	}
 }
 
 void RenderBitmap(Bitmap* bitmap, Transform* transform)

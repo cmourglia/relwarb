@@ -2,6 +2,7 @@
 #define RELWARB_DEFINES_H
 
 #include <stdint.h>
+#include <limits>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define OS_WINDOWS
@@ -44,6 +45,8 @@ typedef int32_t bool32;
 
 typedef float real32;
 typedef double real64;
+
+constexpr real32 Epsilon32 = std::numeric_limits<real32>::epsilon();
 
 #if defined(RELWARB_DEBUG)
 # if defined(OS_LINUX)
