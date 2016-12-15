@@ -19,6 +19,14 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+
+#pragma warning(push)
+#pragma warning(disable : 4100) // Parameters not used
+#pragma warning(disable : 4189) // Variable initialized but not used
+#pragma warning(disable : 4201) // Nameless struct / unions
+#pragma warning(disable : 4244) // Conversion from double to float
+#pragma warning(disable : 4505) // Function not used
+
 #endif
 
 #define global_variable static
