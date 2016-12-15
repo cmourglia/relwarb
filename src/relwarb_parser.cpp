@@ -66,8 +66,6 @@ void ExtractVec2(std::string& line, Vec2& extract)
 		line = line.substr(separator + 1);
 	else
 		line = "";
-
-	Log(Log_Debug, "Vec2(%f,%f)", x, y);
 }
 
 void ExtractUint8(std::string& line, uint8& extract)
@@ -91,14 +89,12 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
 	if (ini.is_open())
 	{
 		std::string previousLocale = setlocale(LC_NUMERIC, "en-US");
-
 		std::string currentLine;
+
 		while (getline(ini, currentLine))
 		{
 			if (!currentLine.empty() && !(currentLine[0] == '#'))
 			{
-				Log(Log_Info, "Parsing '%s'", currentLine);
-
 				std::string header;
 				ExtractString(currentLine, header);
 

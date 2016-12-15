@@ -32,7 +32,7 @@ void InitGame(GameState* gameState)
 
 	Vec2 halfSize = gameState->worldSize * 0.5f;
 
-	//LoadMapFile(gameState, "config/base_map.ini");
+	LoadMapFile(gameState, "config/base_map.ini");
     
     Bitmap* bitmap = CreateBitmap(gameState);
     LoadBitmapData("assets/smiley.png", bitmap);
@@ -43,7 +43,7 @@ void InitGame(GameState* gameState)
 	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, 1, &bitmap);
 
 	CreatePlayerEntity(gameState, Vec2(0, 0), heroPattern, heroShape, &gameState->controllers[0]);
-
+	
     LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
     LoadBitmapData("assets/corner_topright.png", CreateBitmap(gameState));
