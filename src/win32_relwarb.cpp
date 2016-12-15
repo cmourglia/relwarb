@@ -668,7 +668,8 @@ int CALLBACK WinMain(HINSTANCE instance,
         while (g_running)
         {
 			QueryPerformanceCounter(&t1);
-			real32 dt = (t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart;
+            // HACK(Charly): Prevent dt from being stupidly large.
+			real32 dt = Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 1.f / 60.f);
 			t0 = t1;
 
             // TODO(Charly): Handle keyboard and xbox controller separatly

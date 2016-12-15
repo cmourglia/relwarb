@@ -5,6 +5,7 @@
 #include "relwarb_debug.h"
 
 global_variable GLuint g_bitmapProg;
+global_variable GLuint g_colorProg;
 
 global_variable const char* bitmapVert = R"(
 #version 330
@@ -40,6 +41,19 @@ void main()
     {
         discard;
     }
+}
+)";
+
+global_variable const char* colorFrag = R"(
+#version 330
+
+out vec4 color;
+uniform vec3 u_color;
+
+void main()
+{
+    color.rgb = u_color;
+    color.a = 1.0;
 }
 )";
 
@@ -155,6 +169,23 @@ void InitializeRenderer()
         GLsizei length;
         GLchar message[1024];
         glGetProgramInfoLog(g_bitmapProg, 1024, &length, message);
+        Log(Log_Error, "Program not linked : %s", message);
+    }
+
+    fshader = CompileShader(colorFrag, GL_FRAGMENT_SHADER);
+    Assert(fshader);
+
+    g_colorProg = glCreateProgram();
+    glAttachShader(g_colorProg, vshader);
+    glAttachShader(g_colorProg, fshader);
+    glLinkProgram(g_colorProg);
+
+    glGetProgramiv(g_colorProg, GL_LINK_STATUS, &linked);
+    if (linked != GL_TRUE)
+    {
+        GLsizei length;
+        GLchar message[1024];
+        glGetProgramInfoLog(g_colorProg, 1024, &length, message);
         Log(Log_Error, "Program not linked : %s", message);
     }
 }

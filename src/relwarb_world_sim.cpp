@@ -49,8 +49,8 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Vec2 acc = Vec2(0, entity->gravity);
 
-#define MAX_JUMP_TIME   0.5f
-#define MAX_STOP_TIME   0.1f
+#define MAX_JUMP_TIME   0.25f
+#define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
 
 				if (controller->jump)
