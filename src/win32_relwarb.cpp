@@ -367,18 +367,27 @@ internal Key win32_ConvertKey(uint32 vkCode)
 	}
 }
 
+internal Vec2 win32_GetCursorPos()
+{
+    POINT cursor;
+    GetCursorPos(&cursor);
+    ScreenToClient(GetActiveWindow(), &cursor);
+
+    Vec2 result = Vec2(cursor.x, cursor.y);
+    return result;
+}
+
 internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clicked)
 {
 	if (bt != Button_Unknown)
 	{
-		POINT cursor;
-		GetCursorPos(&cursor);
-
 		InputState state;
 		state.clicked = clicked;
 		state.stateChange = true;
-		state.cursorX = cursor.x;
-		state.cursorY = cursor.y;
+
+        Vec2 cursor = win32_GetCursorPos();
+        state.cursorX = cursor.x;
+        state.cursorY = cursor.y;
 
 		gameState->buttonStates[bt] = state;
 	}
@@ -427,13 +436,12 @@ internal void win32_ProcessInputMessages(GameState* gameState)
 					Key key = win32_ConvertKey(vkCode);
 					if (key != Key_Unknown)
 					{
-						POINT cursor;
-						GetCursorPos(&cursor);
-
 						InputState state;
 
 						state.clicked = isDown;
 						state.stateChange = true;
+						
+                        Vec2 cursor = win32_GetCursorPos();
 						state.cursorX = cursor.x;
 						state.cursorY = cursor.y;
 
@@ -497,10 +505,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
         }
     }
 
-	POINT cursor;
-	GetCursorPos(&cursor);
-	gameState->cursor.x = cursor.x;
-	gameState->cursor.y = cursor.y;
+    gameState->cursor = win32_GetCursorPos();
 }
 
 internal void win32_InitXInput()
@@ -602,27 +607,14 @@ int CALLBACK WinMain(HINSTANCE instance,
         windowSize.right = 1280;
         windowSize.top = 0;
         windowSize.bottom = 720;
-#if 1
-        DWORD windowStyle = WS_OVERLAPPEDWINDOW;
-#else
-        DWORD windowStyle = WS_POPUP;
-#endif
 
-        if (!AdjustWindowRect(&windowSize, windowStyle, false))
-        {
-            Assert(!"Wut ?");
-        }
-
-        Log(Log_Debug, "%d %d %d %d", 
-            windowSize.left, windowSize.right,
-            windowSize.top, windowSize.bottom);
-
+        AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, false);
         HWND window = CreateWindowExA(0,
                                       wc.lpszClassName,
                                       "Relwarb",
-                                      WS_VISIBLE | windowStyle,
-                                      windowSize.left,
-                                      windowSize.top,
+                                      WS_VISIBLE | WS_OVERLAPPED,
+                                      0,
+                                      0,
                                       windowSize.right - windowSize.left,
                                       windowSize.bottom - windowSize.top,
                                       0,

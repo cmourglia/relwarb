@@ -24,8 +24,8 @@ global_variable int* tiles;
 
 internal int GetTileIndex(Vec2 worldPos)
 {
-    int x = Clamp(Floor(worldPos.x) + width / 2, 0, width);
-	int y = Clamp(Floor(worldPos.y) + height / 2, 0, height);
+    int x = Clamp(Floor(worldPos.x) + width / 2, 0, width - 1);
+	int y = Clamp(Floor(worldPos.y) + height / 2, 0, height - 1);
 
 	int result = y * width + x;
 	return result;
@@ -41,14 +41,9 @@ internal void AddBitmap(GameState* state, Vec2 worldPos)
 {
 	int* tile = tiles + GetTileIndex(worldPos);
 	Log(Log_Debug, "%d", *tile);
-	if (*tile == -1)
+	if (*tile != selectedBitmap)
 	{
-		uint8 patternArray[] = { 1 };
-		Bitmap* bitmap = state->bitmaps + selectedBitmap;
-		//RenderingPattern* pattern = CreateRenderingPattern(state, Vec2(1), patternArray, 1, &bitmap);
-		//CreateWallEntity(state, Vec2(Floor(worldPos.x) + 0.5, Floor(worldPos.y) + 0.5), pattern, &state->shapes[0]);
-
-		*tile = selectedBitmap;
+        *tile = selectedBitmap;
 	}
 }
 
@@ -57,12 +52,7 @@ internal void RemoveBitmap(GameState* state, Vec2 worldPos)
     int* tile = tiles + GetTileIndex(worldPos);
     if (*tile != -1)
     {
-        uint8 patternArray[] = { 1 };
-        Bitmap* bitmap = state->bitmaps + selectedBitmap;
-        RenderingPattern* pattern = CreateRenderingPattern(state, Vec2(1), patternArray, 1, &bitmap);
-        CreateWallEntity(state, Vec2(Floor(worldPos.x) + 0.5, Floor(worldPos.y) + 0.5), pattern, &state->shapes[0]);
-
-        *tile = state->nbEntities - 1;
+        *tile = -1;
     }
 }
 
@@ -95,6 +85,11 @@ void UpdateEditor(GameState* state)
 	{
 		AddBitmap(state, ViewportToWorld(state, state->cursor));
 	}
+
+    if (state->buttonStates[Button_Right].clicked)
+    {
+        RemoveBitmap(state, ViewportToWorld(state, state->cursor));
+    }
 }
 
 void RenderEditor(GameState* gameState)
@@ -130,10 +125,10 @@ void RenderEditor(GameState* gameState)
         t.position = Vec2(Floor(cursor.x) + 0.5, Floor(cursor.y) + 0.5);
         RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
 	}
-
+/*
     {
         Vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
         t.position = Vec2(cursor.x, cursor.y);
         RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
-    }
+    }*/
 }
