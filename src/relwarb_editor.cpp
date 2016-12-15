@@ -24,8 +24,8 @@ global_variable int* tiles;
 
 internal int GetTileIndex(Vec2 worldPos)
 {
-	int x = (int)worldPos.x + width / 2;
-	int y = (int)worldPos.y + height / 2;
+    int x = Clamp(Floor(worldPos.x) + width / 2, 0, width);
+	int y = Clamp(Floor(worldPos.y) + height / 2, 0, height);
 
 	int result = y * width + x;
 	return result;
@@ -45,11 +45,25 @@ internal void AddBitmap(GameState* state, Vec2 worldPos)
 	{
 		uint8 patternArray[] = { 1 };
 		Bitmap* bitmap = state->bitmaps + selectedBitmap;
-		RenderingPattern* pattern = CreateRenderingPattern(state, Vec2(1), patternArray, &bitmap, 1);
-		CreateWallEntity(state, Vec2(Floor(worldPos.x) + 0.5, Floor(worldPos.y) + 0.5), pattern, &state->shapes[0]);
+		//RenderingPattern* pattern = CreateRenderingPattern(state, Vec2(1), patternArray, 1, &bitmap);
+		//CreateWallEntity(state, Vec2(Floor(worldPos.x) + 0.5, Floor(worldPos.y) + 0.5), pattern, &state->shapes[0]);
 
-		*tile = state->nbEntities - 1;
+		*tile = selectedBitmap;
 	}
+}
+
+internal void RemoveBitmap(GameState* state, Vec2 worldPos)
+{
+    int* tile = tiles + GetTileIndex(worldPos);
+    if (*tile != -1)
+    {
+        uint8 patternArray[] = { 1 };
+        Bitmap* bitmap = state->bitmaps + selectedBitmap;
+        RenderingPattern* pattern = CreateRenderingPattern(state, Vec2(1), patternArray, 1, &bitmap);
+        CreateWallEntity(state, Vec2(Floor(worldPos.x) + 0.5, Floor(worldPos.y) + 0.5), pattern, &state->shapes[0]);
+
+        *tile = state->nbEntities - 1;
+    }
 }
 
 void UpdateEditor(GameState* state)
@@ -90,41 +104,36 @@ void RenderEditor(GameState* gameState)
 	glClearColor(0.3f, 0.8f, 0.7f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
-	{
-		Entity* entity = &gameState->entities[entityIdx];
-		if (EntityHasFlag(entity, ComponentFlag_Renderable) && entity->entityType == EntityType_Wall)
-		{
-			RenderingPattern* pattern = entity->pattern;
-			Vec2 pos(entity->p);
+    Transform t;
+    t.offset = Vec2(0, 0);
+    t.scale = Vec2(1);
+    t.proj = gameState->projMatrix;
+    t.world = gameState->worldMatrix;
 
-			if (EntityHasFlag(entity, ComponentFlag_Movable))
-			{
-				// NOTE(Thomas): Do something maybe.
-			}
+    for (int i = 0; i < width; ++i)
+    {
+        for (int j = 0; j < height; ++j)
+        {
+            int tile = tiles[j * width + i];
+            if (tile != -1)
+            {
+                t.position = Vec2((i - width / 2) + 0.5, (j - height / 2) + 0.5);
+                RenderBitmap(&gameState->bitmaps[tile], &t);
+            }
+            ++tile;
+        }
+    }
 
-			Transform transform;
-			transform.offset = Vec2(0, 0);
-			transform.position = pos;
-			transform.scale = Vec2(1);
-			transform.proj = gameState->projMatrix;
-			transform.world = gameState->worldMatrix;
-
-			RenderPattern(pattern, &transform);
-		}
-	}
-
-	// NOTE(Charly): Render attached bitmap
+    // NOTE(Charly): Render attached bitmap
 	{
 		Vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
-
-		Transform transform;
-		transform.offset = Vec2(0, 0);
-		transform.position = Vec2(Floor(cursor.x) + 0.5, Floor(cursor.y) + 0.5);
-		transform.scale = Vec2(1);
-		transform.proj = gameState->projMatrix;
-		transform.world = gameState->worldMatrix;
-
-		RenderBitmap(&gameState->bitmaps[selectedBitmap], &transform);
+        t.position = Vec2(Floor(cursor.x) + 0.5, Floor(cursor.y) + 0.5);
+        RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
 	}
+
+    {
+        Vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
+        t.position = Vec2(cursor.x, cursor.y);
+        RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
+    }
 }

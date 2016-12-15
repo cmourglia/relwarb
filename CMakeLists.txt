@@ -14,9 +14,9 @@ if (UNIX)
 elseif (WIN32)
     set(platform_sources src/win32_relwarb.cpp)
 
-    set(NO_WARN "/wd4100 /wd4189 /wd4065 /wd4505 /wd4101 /wd4244 /wd4201 /wd4577")
+    #set(NO_WARN "/wd4100 /wd4189 /wd4065 /wd4505 /wd4101 /wd4244 /wd4201 /wd4577")
     set(OTHER_FLAGS "/WX /W4 /FC /GR- /EHa- /nologo")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NO_WARN} ${OTHER_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OTHER_FLAGS}")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS} /Z7 /Od")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS} /Ox")
 
@@ -33,7 +33,8 @@ set(sources
     src/relwarb_renderer.cpp
     src/relwarb_debug.cpp
 	src/relwarb_entity.cpp
-	src/relwarb_editor.cpp)
+	src/relwarb_editor.cpp
+	src/relwarb_parser.cpp)
 
 set(headers 
     src/relwarb.h
@@ -46,7 +47,8 @@ set(headers
 	src/relwarb_world_sim.h
 	src/relwarb_entity.h
 	src/relwarb_input.h
-	src/relwarb_editor.h)
+	src/relwarb_editor.h
+	src/relwarb_parser.h)
 
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})

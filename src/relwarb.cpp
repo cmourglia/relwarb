@@ -3,6 +3,8 @@
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
+#include "relwarb_parser.h"
+#include "relwarb_editor.h"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -30,7 +32,7 @@ void InitGame(GameState* gameState)
 
 	Vec2 halfSize = gameState->worldSize * 0.5f;
 
-	LoadMapFile(gameState, "config/base_map.ini");
+	//LoadMapFile(gameState, "config/base_map.ini");
     
     Bitmap* bitmap = CreateBitmap(gameState);
     LoadBitmapData("assets/smiley.png", bitmap);
@@ -49,7 +51,7 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/vertical_right.png", CreateBitmap(gameState));
     LoadBitmapData("assets/corner_bottomleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_down.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/corner_bottomright.png", CreateBitmap(gameState));e);
+    LoadBitmapData("assets/corner_bottomright.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
 }
 

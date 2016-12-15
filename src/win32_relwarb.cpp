@@ -183,7 +183,7 @@ internal void win32_GLDebugOutput(GLenum source,
                                   GLuint id,
                                   GLenum severity,
                                   GLsizei length,
-                                  const char* message,
+                                  const GLchar* message,
                                   const void* userParam)
 {
     switch (type)
@@ -386,6 +386,16 @@ internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clic
 
 internal void win32_ProcessInputMessages(GameState* gameState)
 {
+    for (int key = 0; key < Key_Count; ++key)
+    {
+        gameState->keyStates[key].stateChange = false;
+    }
+
+    for (int button = 0; button < Button_Count; ++button)
+    {
+        gameState->buttonStates[button].stateChange = false;
+    }
+
     MSG message;
     while (PeekMessage(&message, 0, 0, 0, PM_REMOVE))
     {
@@ -587,14 +597,34 @@ int CALLBACK WinMain(HINSTANCE instance,
 
     if (RegisterClass(&wc))
     {
+        RECT windowSize;
+        windowSize.left = 0;
+        windowSize.right = 1280;
+        windowSize.top = 0;
+        windowSize.bottom = 720;
+#if 1
+        DWORD windowStyle = WS_OVERLAPPEDWINDOW;
+#else
+        DWORD windowStyle = WS_POPUP;
+#endif
+
+        if (!AdjustWindowRect(&windowSize, windowStyle, false))
+        {
+            Assert(!"Wut ?");
+        }
+
+        Log(Log_Debug, "%d %d %d %d", 
+            windowSize.left, windowSize.right,
+            windowSize.top, windowSize.bottom);
+
         HWND window = CreateWindowExA(0,
                                       wc.lpszClassName,
                                       "Relwarb",
-                                      WS_VISIBLE | WS_POPUP,
-                                      CW_USEDEFAULT,
-                                      CW_USEDEFAULT,
-                                      1280,
-                                      720,
+                                      WS_VISIBLE | windowStyle,
+                                      windowSize.left,
+                                      windowSize.top,
+                                      windowSize.right - windowSize.left,
+                                      windowSize.bottom - windowSize.top,
                                       0,
                                       0,
                                       instance,
