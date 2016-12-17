@@ -565,6 +565,14 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
                 gameState->controllers[controllerIndex + 1].moveRight = false;
             }
 
+			// TODO(Thomas): Generalize wrt binding between buttons and actions
+			gameState->controllers[controllerIndex + 1].jump = abutton;
+
+			if (start && back)
+			{
+				g_running = false;
+			}
+
             // Vibrate on edges
             if (gameState->onEdge)
             {
@@ -675,7 +683,7 @@ int CALLBACK WinMain(HINSTANCE instance,
             // TODO(Charly): Handle keyboard and xbox controller separatly
             //               For now xbox controller is commented out to avoid overriding keyboard state.
             win32_ProcessInputMessages(&gameState);
-            // win32_ProcessXBoxControllers(&inputState, &gameState);
+            win32_ProcessXBoxControllers(&gameState);
 
             UpdateGame(&gameState, dt);
             RenderGame(&gameState, dt);

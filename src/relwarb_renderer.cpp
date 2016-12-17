@@ -227,6 +227,8 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 siz
 	 	for (real32 j = -halfSizeY; j <= halfSizeY; j += 1, ++indexY)
 	 	{
 	 		Transform currentTransform = *transform;
+			// TODO(Thomas): Do properly.
+			currentTransform.scale = Vec2(1);
 	 		currentTransform.position += Vec2(i, j);
 	 		RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
 
@@ -268,6 +270,8 @@ void RenderBitmap(Bitmap* bitmap, Transform* transform)
     }
 
     Mat4 pos = Translation(transform->position.x, transform->position.y, 0);
+	pos[0][0] *= transform->scale.x;
+	pos[1][1] *= transform->scale.y;
 
     glUseProgram(g_bitmapProg);
     glBindTexture(GL_TEXTURE_2D, bitmap->texture);

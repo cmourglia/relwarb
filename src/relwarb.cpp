@@ -35,15 +35,19 @@ void InitGame(GameState* gameState)
 	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
 	LoadMapFile(gameState, "config/base_map.ini");
     
-    Bitmap* bitmap = CreateBitmap(gameState);
-    LoadBitmapData("assets/smiley.png", bitmap);
-
+    Bitmap* bitmap_p1 = CreateBitmap(gameState);
+    LoadBitmapData("assets/p1_stand.png", bitmap_p1);
+	Bitmap* bitmap_p2 = CreateBitmap(gameState);
+	LoadBitmapData("assets/p2_stand.png", bitmap_p2);
 	uint8 tiles_indices[] = { 1 };
 	
-	Shape* heroShape = CreateShape(gameState, Vec2(1, 1));
-	RenderingPattern* heroPattern = CreateRenderingPattern(gameState, Vec2(1.f, 1.f), tiles_indices, 1, &bitmap);
+	Shape* heroShape = CreateShape(gameState, Vec2(1.f, 1.5f));
 
-	CreatePlayerEntity(gameState, Vec2(0, 0), heroPattern, heroShape, &gameState->controllers[0]);
+	RenderingPattern* heroPattern1 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p1);
+	CreatePlayerEntity(gameState, Vec2(-2, 0), heroPattern1, heroShape, &gameState->controllers[0]);
+
+	RenderingPattern* heroPattern2 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p2);
+	CreatePlayerEntity(gameState, Vec2(2, 0), heroPattern2, heroShape, &gameState->controllers[1]);
 	
     LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
@@ -103,17 +107,19 @@ void RenderGame(GameState* gameState, real32 dt)
 					RenderingPattern* pattern = entity->pattern;
 					Vec2 pos(entity->p);
 
-					if (EntityHasFlag(entity, ComponentFlag_Movable))
-					{
-						// NOTE(Thomas): Do something maybe.
-					}
-
 					Transform transform;
-					transform.offset = Vec2(0, 0);
+					transform.offset = Vec2(0);
 					transform.position = pos;
 					transform.scale = Vec2(1);
 					transform.proj = gameState->projMatrix;
 					transform.world = gameState->worldMatrix;
+
+					// TODO(Thomas): Handle drawing size with a drawing size
+					if (EntityHasFlag(entity, ComponentFlag_Collidable))
+					{
+						transform.scale = entity->shape->size;
+						transform.offset = entity->shape->offset;
+					}
 
 					RenderPattern(pattern, &transform, entity->shape->size);
 				}
