@@ -25,6 +25,9 @@ struct Controller
     bool32 moveRight;
 
     bool32 jump;
+	bool32 b;
+	bool32 x;
+	bool32 y;
 };
 
 // TODO(Charly): This should go somewhere else

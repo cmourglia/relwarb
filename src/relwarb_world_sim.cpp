@@ -49,6 +49,21 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Vec2 acc = Vec2(0, entity->gravity);
 
+				if (controller->b)
+				{
+					TriggerSkill(entity, 0);
+				}
+
+				if (controller->x)
+				{
+					TriggerSkill(entity, 1);
+				}
+
+				if (controller->y)
+				{
+					TriggerSkill(entity, 2);
+				}
+
 #define MAX_JUMP_TIME   0.25f
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
@@ -88,50 +103,12 @@ void UpdateWorld(GameState* gameState, real32 dt)
 					}
 				}
 
+				for (uint32 i = 0; i < NB_SKILLS; ++i) {
+					entity->skills[i].applyHandle(&entity->skills[i], entity, dt);
+				}
+
 				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
 				entity->dp += dt * acc;
-
-				// HACK(Charly): Stupid hack to keep the entities inside the world
-				Shape* shape = entity->shape;
-
-				// World center in (0,0)
-				Vec2 minBound = entity->p - (shape->size / 2.f);
-				Vec2 maxBound = entity->p + (shape->size / 2.f);
-
-				Vec2 hs = gameState->worldSize / 2.f;
-
-				bool32 resetJumps = false;
-
-				if (minBound.x <= -hs.x)
-				{
-					entity->p.x = -hs.x + (shape->size.x / 2.f);
-					resetJumps = true;
-				}
-				else if (maxBound.x >= hs.x)
-				{
-					entity->p.x = hs.x - (shape->size.x / 2.f);
-					resetJumps = true;
-				}
-
-				if (minBound.y <= -hs.y)
-				{
-					entity->p.y = -hs.y + (shape->size.y / 2.f);
-					entity->dp.y = 0;
-
-					resetJumps = true;
-				}
-				else if (maxBound.y >= hs.y)
-				{
-					entity->p.y = hs.y - (shape->size.y / 2.f);
-					entity->dp.y = 0;
-
-					resetJumps = false;
-				}
-
-				if (resetJumps)
-				{
-					ResetJump(entity);
-				}
 			} break;
 
 			default:

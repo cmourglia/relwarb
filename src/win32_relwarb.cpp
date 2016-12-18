@@ -567,6 +567,9 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 
 			// TODO(Thomas): Generalize wrt binding between buttons and actions
 			gameState->controllers[controllerIndex + 1].jump = abutton;
+			gameState->controllers[controllerIndex + 1].b = bbutton;
+			gameState->controllers[controllerIndex + 1].x = xbutton;
+			gameState->controllers[controllerIndex + 1].y = ybutton;
 
 			if (start && back)
 			{

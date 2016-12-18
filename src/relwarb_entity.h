@@ -1,6 +1,7 @@
 #ifndef RELWARB_ENTITY_H
 #define RELWARB_ENTITY_H
 
+#include "relwarb_game.h"
 #include "relwarb_world_sim.h"
 
 typedef uint32 EntityID;
@@ -11,6 +12,7 @@ struct Shape;
 struct RenderingPattern;
 struct Controller;
 struct Bitmap;
+struct Skill;
 
 enum ComponentFlag
 {
@@ -53,9 +55,9 @@ struct Entity
 	//					2) flags are statically defined
 	//				 Use something like 'void addComponent(GameState gameState, ComponentType type, void * data, ComponentFlag flag)' ?
 
-    // NOTE(Charly): There are two different things that needs to be done here,
-    //                - Create a component and add it to the game state, those are defined by the systems.
-    //                - Add a component to an entity, just takes id and flag as input
+	// NOTE(Charly): There are two different things that needs to be done here,
+	//                - Create a component and add it to the game state, those are defined by the systems.
+	//                - Add a component to an entity, just takes id and flag as input
 
 	// TODO(Charly): Here are gameplay related stuff, tied to some particular
 	//				 entity types. Not sure how we want to handle this yet.
@@ -74,8 +76,11 @@ struct Entity
 
 	bool32 quickFall;
 	real32 quickFallTime;
-	
+
 	Controller* controller;
+
+#define NB_SKILLS 3
+	Skill skills[NB_SKILLS];
 
 	// HUD data
 	Bitmap* avatar;
@@ -114,6 +119,8 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Shape* shape);
 
 void ResetJump(Entity* player);
+
+void TriggerSkill(Entity* player, uint32 index);
 
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 
