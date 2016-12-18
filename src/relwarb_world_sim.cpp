@@ -36,12 +36,13 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Controller* controller = entity->controller;
 
+
 				entity->dp.x = 0.0;
 				if (controller->moveLeft)
 				{
 					entity->dp.x += -10.0;
 				}
-				
+
 				if (controller->moveRight)
 				{
 					entity->dp.x += 10.0;
@@ -52,7 +53,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 #define MAX_JUMP_TIME   0.25f
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
-
+				
 				if (controller->jump)
 				{
 					if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
@@ -62,6 +63,8 @@ void UpdateWorld(GameState* gameState, real32 dt)
 						entity->alreadyJumping = true;
 						entity->newJump = false;
 						++entity->nbJumps;
+						SetEntityStatusFlag(entity, EntityStatus_Airbone);
+						UnsetEntityStatusFlag(entity, EntityStatus_Landed);
 					}
 					else
 					{
@@ -88,12 +91,12 @@ void UpdateWorld(GameState* gameState, real32 dt)
 					}
 				}
 
-				// Resolve skills effects
-				for (uint32 i = 0; i < NB_SKILLS; ++i) {
-					if (entity->skills[i].applyHandle != nullptr)
-					{
-						entity->skills[i].applyHandle(&entity->skills[i], entity, dt);
-					}
+				// NOTE(Thomas): Not sure if rooted/stunned rules out only that or also the integration below
+				// TODO(Thomas): Clear this status check process
+
+				if ((entity->status & EntityStatus_Rooted) || (entity->status & EntityStatus_Stunned))
+				{
+					entity->dp = Vec2(0);
 				}
 
 				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
@@ -207,19 +210,23 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 {
 	// NOTE(Thomas): Only if Player against Wall or something, or always ?
 	// NOTE(Thomas): else if or just if ?
-	if (e1->entityType == EntityType_Player)
+	if (e1->entityType == EntityType_Player && e2->entityType == EntityType_Wall)
 	{
 		Vec2* overlap = static_cast<Vec2*>(userParam);
 		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
 		{
+			UnsetEntityStatusFlag(e1, EntityStatus_Airbone);
+			SetEntityStatusFlag(e1, EntityStatus_Landed);
 			ResetJump(e1);
 		}
 	}
-	else if (e2->entityType == EntityType_Player)
+	else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
 	{
 		Vec2* overlap = static_cast<Vec2*>(userParam);
 		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
 		{
+			UnsetEntityStatusFlag(e2, EntityStatus_Airbone);
+			SetEntityStatusFlag(e2, EntityStatus_Landed);
 			ResetJump(e2);
 		}
 	}

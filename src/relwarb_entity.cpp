@@ -49,6 +49,7 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 	result->playerJumpDist = 16.f;
 	result->initialJumpVelocity = (2 * result->playerJumpHeight * result->playerSpeed) / result->playerJumpDist;
 	result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) / (result->playerJumpDist * result->playerJumpDist);
+	result->status = 0;
 
 	CreateDashSkill(&result->skills[0], result);
 	CreateManaRecharge(&result->skills[1], result);

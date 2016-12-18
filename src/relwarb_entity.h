@@ -30,6 +30,15 @@ enum EntityType
 	// ...
 };
 
+enum EntityStatus
+{
+	EntityStatus_Landed			= 1 << 0,	// In contact with ground <=> horizontal wall
+	EntityStatus_Airbone		= 1 << 1,	// Not in contact with ground, incompatible with Landed
+	EntityStatus_Rooted			= 1 << 2,	// Unable to move
+	EntityStatus_Muted			= 1 << 3,	// Unable to cast spells (skills involving mana)
+	EntityStatus_Stunned		= 1 << 4,	// Unable to move and use skills
+};
+
 struct Entity
 {
 	EntityID id;
@@ -45,6 +54,7 @@ struct Entity
 	uint32 max_health;
 	uint32 mana;
 	uint32 max_mana;
+	uint32 status;
 
 	RigidBody* body;
 	Shape* shape;
@@ -102,6 +112,21 @@ inline void SetEntityFlag(Entity* entity, ComponentFlag flag)
 inline void ToggleEntityFlag(Entity* entity, ComponentFlag flag)
 {
     entity->flags ^= flag;
+}
+
+inline void SetEntityStatusFlag(Entity* entity, EntityStatus flag)
+{
+	entity->status |= flag;
+}
+
+inline void UnsetEntityStatusFlag(Entity* entity, EntityStatus flag)
+{
+	entity->status &= !flag;
+}
+
+inline void ToggleEntityFlag(Entity* entity, EntityStatus flag)
+{
+	entity->status ^= flag;
 }
 
 inline bool32 EntityHasFlag(Entity* entity, ComponentFlag flag)

@@ -55,11 +55,13 @@ void DashTrigger(Skill* skill, Entity* entity)
 
 void ManaTrigger(Skill* skill, Entity* entity)
 {
-	if (!skill->isActive)
+	if (!skill->isActive && (entity->status & EntityStatus_Landed))
 	{
 		skill->isActive = true;
 		skill->elapsed = 0.f;
 		skill->remainingSteps = skill->nbSteps;
+
+		SetEntityStatusFlag(entity, EntityStatus_Rooted);
 	}
 }
 
@@ -98,12 +100,11 @@ void ManaApply(Skill* skill, Entity* executive, real32 dt)
 			skill->remainingSteps -= 1;
 			if (skill->remainingSteps == 0)
 			{
+				UnsetEntityStatusFlag(executive, EntityStatus_Rooted);
 				skill->remainingCooldown = skill->cooldownDuration;
 				skill->isActive = false;
 			}
 		}
-
-		executive->dp.x = 0.f;
 	}
 }
 
@@ -124,20 +125,23 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
 			}
 		}
 
-		// Check for triggers
-		if (controller->dash && controller->newDash)
+		if (!(player->status & EntityStatus_Muted) && !(player->status & EntityStatus_Stunned))
 		{
-			if (player->skills[0].remainingCooldown <= 0.f)
+			// Check for triggers
+			if (controller->dash && controller->newDash)
 			{
-				player->skills[0].triggerHandle(&player->skills[0], player);
+				if (player->skills[0].remainingCooldown <= 0.f)
+				{
+					player->skills[0].triggerHandle(&player->skills[0], player);
+				}
 			}
-		}
 
-		if (controller->mana && controller->newMana)
-		{
-			if (player->skills[1].remainingCooldown <= 0.f)
+			if (controller->mana && controller->newMana)
 			{
-				player->skills[1].triggerHandle(&player->skills[1], player);
+				if (player->skills[1].remainingCooldown <= 0.f)
+				{
+					player->skills[1].triggerHandle(&player->skills[1], player);
+				}
 			}
 		}
 
