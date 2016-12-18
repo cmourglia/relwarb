@@ -18,7 +18,10 @@ struct Skill
 	// Active status
 	bool32 isActive;
 	real32 elapsed;
-	uint32 manaCost;
+
+	// Cooldown status
+	real32 cooldownDuration;
+	real32 remainingCooldown;
 
 	union
 	{
@@ -26,19 +29,32 @@ struct Skill
 		struct
 		{
 			real32	duration;
+			uint32	manaCost;
 			real32	horizDistance;
 
 			real32	direction; // Toward left (-1) or toward right (+1)
+		};
+		// ManaRecharge Data
+		struct
+		{
+			uint32	nbSteps;
+			uint32	manaRefundPerStep;
+			real32	stepDuration;
+
+			uint32	remainingSteps;
 		};
 		// ...
 	};
 };
 
 void CreateDashSkill(Skill* skill, Entity* executive);
-
 void DashTrigger(Skill* skill, Entity* entity);
 void DashApply(Skill* skill, Entity* executive, real32 dt);
 //void DashCollide(Entity* executive, Entity* victim, void* parameters);
+
+void CreateManaRecharge(Skill* skill, Entity* executive);
+void ManaTrigger(Skill* skill, Entity* entity);
+void ManaApply(Skill* skill, Entity* executive, real32 dt);
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 

@@ -86,6 +86,7 @@ void UpdateGame(GameState* gameState, real32 dt)
 	{
 		case GameMode_Game:
 		{
+			UpdateGameLogic(gameState, dt);
 			UpdateWorld(gameState, dt);
 		} break;
 

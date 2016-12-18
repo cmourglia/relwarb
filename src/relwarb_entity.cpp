@@ -51,8 +51,8 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 	result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) / (result->playerJumpDist * result->playerJumpDist);
 
 	CreateDashSkill(&result->skills[0], result);
-	CreateDashSkill(&result->skills[1], result);
-	CreateDashSkill(&result->skills[2], result);
+	CreateManaRecharge(&result->skills[1], result);
+	CreateManaRecharge(&result->skills[2], result);
 
 	result->controller = controller;
 
@@ -67,12 +67,6 @@ Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Sh
 	AddShapeToEntity(result, shape);
 
 	return result;
-}
-
-void TriggerSkill(Entity* player, uint32 index)
-{
-	Skill* skill = &player->skills[index];
-	skill->triggerHandle(skill, player);
 }
 
 void ResetJump(Entity* player)

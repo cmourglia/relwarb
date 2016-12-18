@@ -12,8 +12,23 @@ void CreateDashSkill(Skill* skill, Entity* entity)
 
 	skill->manaCost = 1;
 	// NOTE(Thomas): Magic numbers to tailor
-	skill->duration = 0.25f;
-	skill->horizDistance = entity->shape->size.y * 4.f;
+	skill->duration = 0.3f;
+	skill->horizDistance = entity->shape->size.x * 5.f;
+	skill->cooldownDuration = 0.1f;
+}
+
+void CreateManaRecharge(Skill* skill, Entity* executive)
+{
+	skill->isActive = false;
+	skill->triggerHandle = &ManaTrigger;
+	skill->applyHandle = &ManaApply;
+	skill->collideHandle = nullptr;
+
+	// NOTE(Thomas): Magic numbers to tailor
+	skill->nbSteps = 5;
+	skill->manaRefundPerStep = 1.f;
+	skill->stepDuration = 0.8f;
+	skill->cooldownDuration = 2.f;
 }
 
 void DashTrigger(Skill* skill, Entity* entity)
@@ -38,6 +53,16 @@ void DashTrigger(Skill* skill, Entity* entity)
 	}
 }
 
+void ManaTrigger(Skill* skill, Entity* entity)
+{
+	if (!skill->isActive)
+	{
+		skill->isActive = true;
+		skill->elapsed = 0.f;
+		skill->remainingSteps = skill->nbSteps;
+	}
+}
+
 void DashApply(Skill* skill, Entity* executive, real32 dt)
 {
 	if (skill->isActive)
@@ -45,6 +70,7 @@ void DashApply(Skill* skill, Entity* executive, real32 dt)
 		skill->elapsed += dt;
 		if (skill->elapsed >= skill->duration)
 		{
+			skill->remainingCooldown = skill->cooldownDuration;
 			skill->isActive = false;
 
 			dt -= skill->elapsed - skill->duration;
@@ -52,11 +78,75 @@ void DashApply(Skill* skill, Entity* executive, real32 dt)
 
 		real32 ratio = dt / skill->duration;
 		executive->p.x += skill->direction * ratio * skill->horizDistance;
-		executive->dp.y = 0.f;
+		executive->dp = Vec2(0);
 	}
 }
 
+void ManaApply(Skill* skill, Entity* executive, real32 dt)
+{
+	if (skill->isActive)
+	{
+		skill->elapsed += dt;
+		if (skill->elapsed >= skill->stepDuration)
+		{
+			executive->mana += skill->manaRefundPerStep;
+			if (executive->mana > executive->max_mana)
+			{
+				executive->mana = executive->max_mana;
+			}
+			skill->elapsed -= skill->stepDuration;
+			skill->remainingSteps -= 1;
+			if (skill->remainingSteps == 0)
+			{
+				skill->remainingCooldown = skill->cooldownDuration;
+				skill->isActive = false;
+			}
+		}
+
+		executive->dp.x = 0.f;
+	}
+}
+
+
 void UpdateGameLogic(GameState* gameState, real32 dt)
 {
+	for (uint32 playerIdx = 0; playerIdx < gameState->nbPlayers; ++playerIdx)
+	{
+		Entity* player = gameState->players[playerIdx];
+		Controller* controller = player->controller;
 
+		// Refresh cooldowns
+		for (uint32 i = 0; i < NB_SKILLS; ++i) {
+			player->skills[i].remainingCooldown -= dt;
+			if (player->skills[i].remainingCooldown <= 0.f)
+			{
+				player->skills[i].remainingCooldown = 0.f;
+			}
+		}
+
+		// Check for triggers
+		if (controller->dash && controller->newDash)
+		{
+			if (player->skills[0].remainingCooldown <= 0.f)
+			{
+				player->skills[0].triggerHandle(&player->skills[0], player);
+			}
+		}
+
+		if (controller->mana && controller->newMana)
+		{
+			if (player->skills[1].remainingCooldown <= 0.f)
+			{
+				player->skills[1].triggerHandle(&player->skills[1], player);
+			}
+		}
+
+		// Resolve skills
+		for (uint32 i = 0; i < NB_SKILLS; ++i) {
+			if (player->skills[i].applyHandle != nullptr)
+			{
+				player->skills[i].applyHandle(&player->skills[i], player, dt);
+			}
+		}
+	}
 }

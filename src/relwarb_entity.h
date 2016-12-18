@@ -120,8 +120,6 @@ Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Sh
 
 void ResetJump(Entity* player);
 
-void TriggerSkill(Entity* player, uint32 index);
-
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 
 // Returns the overlap w.r.t entity1 so that applying the opposite vector to entity1 would lead to shapes being just in contact.

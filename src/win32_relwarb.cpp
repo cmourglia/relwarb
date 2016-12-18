@@ -569,8 +569,15 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 			// TODO(Thomas): Generalize wrt binding between buttons and actions
 			gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
 			gameState->controllers[controllerIndex + 1].jump = abutton;
+			
 			gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
 			gameState->controllers[controllerIndex + 1].dash = bbutton;
+			
+			gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+			gameState->controllers[controllerIndex + 1].mana = xbutton;
+			
+			//gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+			//gameState->controllers[controllerIndex + 1].mana = ybutton;
 
 			if (start && back)
 			{
@@ -685,11 +692,9 @@ int CALLBACK WinMain(HINSTANCE instance,
 			t0 = t1;
 
             // TODO(Charly): Handle keyboard and xbox controller separatly
-            //               For now xbox controller is commented out to avoid overriding keyboard state.
             win32_ProcessInputMessages(&gameState);
             win32_ProcessXBoxControllers(&gameState);
 
-			UpdateGameLogic(&gameState, dt);
             UpdateGame(&gameState, dt);
             RenderGame(&gameState, dt);
 

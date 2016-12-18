@@ -30,6 +30,8 @@ struct Controller
 	bool32 newJump;
 	bool32 dash;
 	bool32 newDash;
+	bool32 mana;
+	bool32 newMana;
 };
 
 // TODO(Charly): This should go somewhere else

@@ -49,11 +49,6 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Vec2 acc = Vec2(0, entity->gravity);
 
-				if (controller->dash && controller->newDash)
-				{
-					TriggerSkill(entity, 0);
-				}
-
 #define MAX_JUMP_TIME   0.25f
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
@@ -93,6 +88,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 					}
 				}
 
+				// Resolve skills effects
 				for (uint32 i = 0; i < NB_SKILLS; ++i) {
 					if (entity->skills[i].applyHandle != nullptr)
 					{
