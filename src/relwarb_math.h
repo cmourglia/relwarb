@@ -199,6 +199,14 @@ struct Mat4
     }
 };
 
+inline Mat4 Identity()
+{
+	Mat4 result = { 0 };
+	result.data[0] = result.data[5] = result.data[10] = result.data[15] = 1.f;
+
+	return result;
+}
+
 inline Mat4 Ortho(real32 left, real32 right, real32 top, real32 bottom)
 {
     Mat4 result = {0};

@@ -7,12 +7,14 @@
 #include "relwarb_renderer.h"
 #include "relwarb_input.h"
 
-#define WORLD_SIZE	1024
+#define WORLD_SIZE		1024
 
 // NOTE(Charly): This is garbage code
 //               controller0 -> keyboard
 //               controller{1 - 4} -> xbox controllers 
-#define MAX_CONTROLLERS 5
+#define MAX_CONTROLLERS	5
+#define MAX_PLAYERS		4
+
 struct Controller
 {
 	uint32 controlledEntityID;
@@ -55,6 +57,9 @@ struct GameState
 
     bool32 onEdge;
 
+	Entity*				players[MAX_PLAYERS];
+	uint32				nbPlayers;
+
 	Entity				entities[WORLD_SIZE];
 	uint32				nbEntities;
 
@@ -72,6 +77,9 @@ struct GameState
 
     Controller          controllers[MAX_CONTROLLERS];
     uint32              nbControllers;
+
+	Bitmap				hudHealth[3];
+	Bitmap				hudMana[2];
 
     Vec2 gravity;
 
@@ -95,6 +103,9 @@ void UpdateGame(GameState* gameState, real32 dt);
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
 void RenderGame(GameState* gameState, real32 dt);
+
+// NOTE(Thomas): Render HUD (atm only in GameMode_Game)
+void RenderHUD(GameState* gameState);
 
 // TODO(Charly): This should go somewhere else
 // NOTE(Charly): bitmap must not be null, otherwise UB

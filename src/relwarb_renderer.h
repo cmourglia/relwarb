@@ -61,7 +61,7 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 siz
 
 // TODO(Charly): x and y are given in opengl coordinates for now,
 //               maybe this should change
-void RenderBitmap(Bitmap* bitmap, Transform* transform);
+void RenderBitmap(Bitmap* bitmap, const Transform* transform);
 
 
 // NOTE(Charly): Cleanup GPU memory

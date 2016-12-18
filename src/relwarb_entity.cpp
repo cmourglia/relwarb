@@ -11,16 +11,42 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 						   Controller* controller)
 {
 	Entity* result = CreateEntity(state, EntityType_Player, p);
+	state->players[state->nbPlayers++] = result;
 
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
 	SetEntityFlag(result, ComponentFlag_Movable);
 
-	// FIXME(Charly): Load this from files 
+	// FIXME(Charly): Load this from files
+	result->avatar = CreateBitmap(state);
+	switch (state->nbPlayers)
+	{
+		case 1:
+		{
+			LoadBitmapData("assets/p1_avatar.png", result->avatar);
+		} break;
+		case 2:
+		{
+			LoadBitmapData("assets/p2_avatar.png", result->avatar);
+		}break;
+		case 3:
+		{
+			//LoadBitmapData("assets/p3_avatar.png", result->avatar);
+		} break;
+		case 4:
+		{
+			//LoadBitmapData("assets/p4_avatar.png", result->avatar);
+		}break;
+		default:
+			Log(Log_Error, "Invalid number of players");
+	}
+	result->max_health = 10;
+	result->health = 7;
+	result->max_mana = 5;
+	result->mana = 2;
 	result->playerSpeed = 40.f; 
 	result->playerJumpHeight = 5.f;
 	result->playerJumpDist = 16.f;
-
 	result->initialJumpVelocity = (2 * result->playerJumpHeight * result->playerSpeed) / result->playerJumpDist;
 	result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) / (result->playerJumpDist * result->playerJumpDist);
 

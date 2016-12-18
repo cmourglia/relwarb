@@ -10,6 +10,7 @@ struct RigidBody;
 struct Shape;
 struct RenderingPattern;
 struct Controller;
+struct Bitmap;
 
 enum ComponentFlag
 {
@@ -36,6 +37,12 @@ struct Entity
 	Vec2 p;     // NOTE(Charly): Linear position
 	Vec2 dp;    // NOTE(Charly): Linear velocity
 	Vec2 ddp;   // NOTE(Charly): Linear acceleration
+
+	// NOTE(Thomas): Gonna go with integer values here, don't think there are real advantages with real numbers (*badam tss*)
+	uint32 health;
+	uint32 max_health;
+	uint32 mana;
+	uint32 max_mana;
 
 	RigidBody* body;
 	Shape* shape;
@@ -69,6 +76,9 @@ struct Entity
 	real32 quickFallTime;
 	
 	Controller* controller;
+
+	// HUD data
+	Bitmap* avatar;
 };
 
 // NOTE(Charly): Helps compressing a bit of code

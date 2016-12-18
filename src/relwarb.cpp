@@ -12,6 +12,12 @@
 
 void InitGame(GameState* gameState)
 {
+	LoadBitmapData("assets/health_full.png", &gameState->hudHealth[0]);
+	LoadBitmapData("assets/health_mid.png", &gameState->hudHealth[1]);
+	LoadBitmapData("assets/health_none.png", &gameState->hudHealth[2]);
+	LoadBitmapData("assets/mana_full.png", &gameState->hudMana[0]);
+	LoadBitmapData("assets/mana_none.png", &gameState->hudMana[1]);
+
     InitializeRenderer();
     gameState->projMatrix = Ortho(-gameState->viewportSize.x / 2, gameState->viewportSize.x / 2, 
                                   -gameState->viewportSize.y / 2, gameState->viewportSize.y / 2);
@@ -87,7 +93,7 @@ void UpdateGame(GameState* gameState, real32 dt)
 	}
 }
 
-// TODO(Charly): Move this in renderer ? 
+// TODO(Charly): Move this in renderer ?
 void RenderGame(GameState* gameState, real32 dt)
 {
 	switch (gameState->mode)
@@ -124,6 +130,8 @@ void RenderGame(GameState* gameState, real32 dt)
 					RenderPattern(pattern, &transform, entity->shape->size);
 				}
 			}
+
+			RenderHUD(gameState);
 		} break;
 
 		case GameMode_Editor:
@@ -135,6 +143,71 @@ void RenderGame(GameState* gameState, real32 dt)
 		{
 			Assert(!"Wrong code path");
 		}
+	}
+}
+
+void RenderHUD(GameState* gameState)
+{
+	real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
+
+	Transform transform;
+	transform.offset = Vec2(0);
+	transform.proj = Identity();
+	transform.world = Identity();
+
+	Vec2 onScreenPos = Vec2(-1.f + 0.08f, 0.92f);
+	for (uint32 i = 0; i < gameState->nbPlayers; ++i)
+	{
+		Entity* player = gameState->players[i];
+
+		transform.scale = Vec2(0.125f, 0.125f*ratio);
+
+		// Avatar
+		transform.position = onScreenPos + Times(transform.scale, Vec2(0.5f, -0.5f));
+		RenderBitmap(player->avatar, &transform);
+
+		// Health
+		transform.scale = Vec2(0.05f, 0.05f*ratio);
+		Vec2 healthPos = onScreenPos + Vec2(0.15f, 0.f) + Times(transform.scale, Vec2(0.5f, -0.5f));
+		for (uint32 hp = 0; hp < player->max_health; hp+=2)
+		{
+			transform.position = healthPos;
+			if (hp < player->health)
+			{
+				if (hp + 1 < player->health)
+				{
+					RenderBitmap(&gameState->hudHealth[0], &transform);
+				}
+				else
+				{
+					RenderBitmap(&gameState->hudHealth[1], &transform);
+				}
+			}
+			else
+			{
+				RenderBitmap(&gameState->hudHealth[2], &transform);
+			}
+
+			healthPos.x += 0.051f;
+		}
+
+		// Mana
+		Vec2 manaPos = onScreenPos + Vec2(0.15f, -0.075f*ratio) + Times(transform.scale, Vec2(0.5f, -0.5f));
+		for (uint32 mp = 0; mp < player->max_mana; ++mp)
+		{
+			transform.position = manaPos;
+			if (mp < player->mana)
+			{
+				RenderBitmap(&gameState->hudMana[0], &transform);
+			}
+			else
+			{
+				RenderBitmap(&gameState->hudMana[1], &transform);
+			}
+			manaPos.x += 0.051f;
+		}
+
+		onScreenPos.x += 0.48f;
 	}
 }
 

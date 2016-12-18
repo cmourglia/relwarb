@@ -247,7 +247,7 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 siz
 	}
 }
 
-void RenderBitmap(Bitmap* bitmap, Transform* transform)
+void RenderBitmap(Bitmap* bitmap, const Transform* transform)
 {
 	glDisable(GL_DEPTH_TEST);
 
