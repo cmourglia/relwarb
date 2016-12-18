@@ -32,6 +32,7 @@
 
 #define global_variable static
 #define internal static
+#define local_persist static
 
 typedef signed char int8;
 typedef int16_t int16;

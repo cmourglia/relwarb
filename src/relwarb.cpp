@@ -68,11 +68,19 @@ void InitGame(GameState* gameState)
 
 void UpdateGame(GameState* gameState, real32 dt)
 {
-	// NOTE(Charly): Toggle game mode on presses
-	if (gameState->keyStates[Key_F1].stateChange && gameState->keyStates[Key_F1].clicked)
-	{
-		gameState->mode = gameState->mode == GameMode_Game ? GameMode_Editor : GameMode_Game;
-	}
+    // NOTE(Charly): Toggle game mode on presses
+    if (gameState->keyStates[Key_F1].stateChange && gameState->keyStates[Key_F1].clicked)
+    {
+        gameState->mode = gameState->mode == GameMode_Game ? GameMode_Editor : GameMode_Game;
+    }
+
+    local_persist bool32 slowDownTime = false;
+    if (InputUpFront(&gameState->keyStates[Key_T]))
+    {
+        slowDownTime ^= true;
+    }
+
+    if (slowDownTime) dt *= 0.1f;
 
 	switch (gameState->mode)
 	{
