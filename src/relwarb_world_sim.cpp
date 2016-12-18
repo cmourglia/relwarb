@@ -49,19 +49,9 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Vec2 acc = Vec2(0, entity->gravity);
 
-				if (controller->b)
+				if (controller->dash && controller->newDash)
 				{
 					TriggerSkill(entity, 0);
-				}
-
-				if (controller->x)
-				{
-					TriggerSkill(entity, 1);
-				}
-
-				if (controller->y)
-				{
-					TriggerSkill(entity, 2);
 				}
 
 #define MAX_JUMP_TIME   0.25f
@@ -70,7 +60,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				if (controller->jump)
 				{
-					if (!entity->alreadyJumping || entity->newJump && entity->nbJumps < MAX_NB_JUMPS)
+					if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
 					{
 						// Start jumping
 						entity->dp.y = entity->initialJumpVelocity;
@@ -104,7 +94,10 @@ void UpdateWorld(GameState* gameState, real32 dt)
 				}
 
 				for (uint32 i = 0; i < NB_SKILLS; ++i) {
-					entity->skills[i].applyHandle(&entity->skills[i], entity, dt);
+					if (entity->skills[i].applyHandle != nullptr)
+					{
+						entity->skills[i].applyHandle(&entity->skills[i], entity, dt);
+					}
 				}
 
 				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);

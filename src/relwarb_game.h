@@ -5,13 +5,15 @@
 #include "relwarb_math.h"
 
 struct Entity;
+struct GameState;
 
 struct Skill
 {
 	// Parameters
+	// NOTE(Thomas): Trigger may not be null. Apply and collide can.
 	void (*triggerHandle)(Skill*, Entity*);
 	void (*applyHandle)(Skill*, Entity*, real32);
-	void (*collisionHandle)(Skill*, Entity*, Entity*, void*);
+	void (*collideHandle)(Skill*, Entity*, Entity*, void*);
 	
 	// Active status
 	bool32 isActive;
@@ -37,5 +39,7 @@ void CreateDashSkill(Skill* skill, Entity* executive);
 void DashTrigger(Skill* skill, Entity* entity);
 void DashApply(Skill* skill, Entity* executive, real32 dt);
 //void DashCollide(Entity* executive, Entity* victim, void* parameters);
+
+void UpdateGameLogic(GameState* gameState, real32 dt);
 
 #endif  RELWARB_GAME_H

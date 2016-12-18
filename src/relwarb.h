@@ -17,17 +17,19 @@
 
 struct Controller
 {
+	// TODO(Thomas): Use
 	uint32 controlledEntityID;
 
+	// TODO(Thomas): Use
 	bool32 enabled;
 
     bool32 moveLeft;
     bool32 moveRight;
 
     bool32 jump;
-	bool32 b;
-	bool32 x;
-	bool32 y;
+	bool32 newJump;
+	bool32 dash;
+	bool32 newDash;
 };
 
 // TODO(Charly): This should go somewhere else

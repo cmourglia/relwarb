@@ -43,7 +43,7 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 	result->max_health = 10;
 	result->health = 7;
 	result->max_mana = 5;
-	result->mana = 2;
+	result->mana = 5;
 	result->playerSpeed = 40.f; 
 	result->playerJumpHeight = 5.f;
 	result->playerJumpDist = 16.f;

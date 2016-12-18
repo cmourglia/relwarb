@@ -462,6 +462,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                     }
                     else if (vkCode == VK_UP || vkCode == VK_SPACE || vkCode == localUp)
                     {
+						gameState->controllers[0].newJump = !gameState->controllers[0].jump;
                         gameState->controllers[0].jump = isDown;
                     }
                 }
@@ -566,10 +567,10 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
             }
 
 			// TODO(Thomas): Generalize wrt binding between buttons and actions
+			gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
 			gameState->controllers[controllerIndex + 1].jump = abutton;
-			gameState->controllers[controllerIndex + 1].b = bbutton;
-			gameState->controllers[controllerIndex + 1].x = xbutton;
-			gameState->controllers[controllerIndex + 1].y = ybutton;
+			gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
+			gameState->controllers[controllerIndex + 1].dash = bbutton;
 
 			if (start && back)
 			{
@@ -688,6 +689,7 @@ int CALLBACK WinMain(HINSTANCE instance,
             win32_ProcessInputMessages(&gameState);
             win32_ProcessXBoxControllers(&gameState);
 
+			UpdateGameLogic(&gameState, dt);
             UpdateGame(&gameState, dt);
             RenderGame(&gameState, dt);
 
