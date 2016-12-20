@@ -36,67 +36,60 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				Controller* controller = entity->controller;
 
-
-				entity->dp.x = 0.0;
-				if (controller->moveLeft)
-				{
-					entity->dp.x += -10.0;
-				}
-
-				if (controller->moveRight)
-				{
-					entity->dp.x += 10.0;
-				}
-
-				Vec2 acc = Vec2(0, entity->gravity);
-
 #define MAX_JUMP_TIME   0.25f
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
-				
-				if (controller->jump)
+
+				Vec2 acc = Vec2(0, entity->gravity);
+				entity->dp.x = 0.0;
+
+				if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
 				{
-					if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
+					if (controller->moveLeft)
 					{
-						// Start jumping
-						entity->dp.y = entity->initialJumpVelocity;
-						entity->alreadyJumping = true;
-						entity->newJump = false;
-						++entity->nbJumps;
-						SetEntityStatusFlag(entity, EntityStatus_Airbone);
-						UnsetEntityStatusFlag(entity, EntityStatus_Landed);
+						entity->dp.x += -10.0;
+					}
+
+					if (controller->moveRight)
+					{
+						entity->dp.x += 10.0;
+					}
+
+					if (controller->jump)
+					{
+						if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
+						{
+							// Start jumping
+							entity->dp.y = entity->initialJumpVelocity;
+							entity->alreadyJumping = true;
+							entity->newJump = false;
+							++entity->nbJumps;
+							WentAirborne(entity);
+						}
+						else
+						{
+							entity->jumpTime += dt;
+						}
 					}
 					else
 					{
-						entity->jumpTime += dt;
-					}
-				}
-				else
-				{
-					entity->newJump = true;
+						entity->newJump = true;
 
-					if (entity->alreadyJumping)
-					{
-						if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
+						if (entity->alreadyJumping)
 						{
-							entity->quickFall = true;
-							entity->quickFallTime = 0;
-						}
+							if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
+							{
+								entity->quickFall = true;
+								entity->quickFallTime = 0;
+							}
 
-						if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
-						{
-							entity->quickFallTime += dt;
-							acc.y *= 5;
+							if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
+							{
+								entity->quickFallTime += dt;
+								acc.y *= 5;
+							}
 						}
 					}
-				}
-
-				// NOTE(Thomas): Not sure if rooted/stunned rules out only that or also the integration below
-				// TODO(Thomas): Clear this status check process
-
-				if ((entity->status & EntityStatus_Rooted) || (entity->status & EntityStatus_Stunned))
-				{
-					entity->dp = Vec2(0);
 				}
 
 				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
@@ -122,12 +115,12 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	for (uint32 firstIdx = 0; firstIdx < (gameState->nbEntities - 1); ++firstIdx)
 	{
 		Entity* firstEntity = &gameState->entities[firstIdx];
-        if (EntityHasFlag(firstEntity, ComponentFlag_Collidable))
+        if (EntityHasComponent(firstEntity, ComponentFlag_Collidable))
 		{
 			for (uint32 secondIdx = firstIdx + 1; secondIdx < gameState->nbEntities; ++secondIdx)
 			{
 				Entity* secondEntity = &gameState->entities[secondIdx];
-				if (EntityHasFlag(secondEntity, ComponentFlag_Collidable))
+				if (EntityHasComponent(secondEntity, ComponentFlag_Collidable))
 				{
 					if (Intersect(firstEntity, secondEntity))
 					{
@@ -172,9 +165,9 @@ void UpdateWorld(GameState* gameState, real32 dt)
 		Vec2 overlap = Overlap(it.first, it.second);
 	 	if (CollisionCallback(it.first, it.second, &overlap))
 	 	{
-	 		Assert(EntityHasFlag(it.first, ComponentFlag_Movable) || EntityHasFlag(it.second, ComponentFlag_Movable));
+	 		Assert(EntityHasComponent(it.first, ComponentFlag_Movable) || EntityHasComponent(it.second, ComponentFlag_Movable));
 
-	 		if (EntityHasFlag(it.first, ComponentFlag_Movable) && EntityHasFlag(it.second, ComponentFlag_Movable))
+	 		if (EntityHasComponent(it.first, ComponentFlag_Movable) && EntityHasComponent(it.second, ComponentFlag_Movable))
 	 		{
 				// TODO(Thomas): Handle collision w.r.t to respective weights
 	 		}
@@ -191,7 +184,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 					overlap = Times(overlap, Vec2(0.f, 1.f));
 					clampDp = Vec2(1.f, 0.f);
 				}
-	 			if (EntityHasFlag(it.first, ComponentFlag_Movable))
+	 			if (EntityHasComponent(it.first, ComponentFlag_Movable))
 	 			{
 	 				it.first->p -= overlap;
 					it.first->dp = Times(it.first->dp, clampDp);
@@ -215,9 +208,7 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 		Vec2* overlap = static_cast<Vec2*>(userParam);
 		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
 		{
-			UnsetEntityStatusFlag(e1, EntityStatus_Airbone);
-			SetEntityStatusFlag(e1, EntityStatus_Landed);
-			ResetJump(e1);
+			Landed(e1);
 		}
 	}
 	else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
@@ -225,9 +216,7 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 		Vec2* overlap = static_cast<Vec2*>(userParam);
 		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
 		{
-			UnsetEntityStatusFlag(e2, EntityStatus_Airbone);
-			SetEntityStatusFlag(e2, EntityStatus_Landed);
-			ResetJump(e2);
+			Landed(e2);
 		}
 	}
 
@@ -260,11 +249,11 @@ Shape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
 void AddRigidBodyToEntity(Entity* entity, RigidBody* body)
 {
 	entity->body = body;
-	SetEntityFlag(entity, ComponentFlag_Movable);
+	SetEntityComponent(entity, ComponentFlag_Movable);
 }
 
 void AddShapeToEntity(Entity* entity, Shape* shape)
 {
     entity->shape = shape;
-    SetEntityFlag(entity, ComponentFlag_Collidable);
+	SetEntityComponent(entity, ComponentFlag_Collidable);
 }

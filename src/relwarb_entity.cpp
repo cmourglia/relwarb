@@ -15,7 +15,7 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
-	SetEntityFlag(result, ComponentFlag_Movable);
+	SetEntityComponent(result, ComponentFlag_Movable);
 
 	// FIXME(Charly): Load this from files
 	result->avatar = CreateBitmap(state);
@@ -68,15 +68,6 @@ Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Sh
 	AddShapeToEntity(result, shape);
 
 	return result;
-}
-
-void ResetJump(Entity* player)
-{
-	player->alreadyJumping = false;
-	player->quickFall = false;
-	player->jumpTime = 0.f;
-	player->quickFallTime = 0.f;
-	player->nbJumps = 0;
 }
 
 // cf. http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=3

@@ -4,6 +4,8 @@
 #include "relwarb_game.h"
 #include "relwarb_world_sim.h"
 
+#include "relwarb_debug.h"
+
 typedef uint32 EntityID;
 typedef uint32 ComponentID;
 
@@ -104,35 +106,57 @@ struct Component
     ComponentID id;
 };
 
-inline void SetEntityFlag(Entity* entity, ComponentFlag flag)
+inline void SetEntityComponent(Entity* entity, ComponentFlag flag)
 {
     entity->flags |= flag;
 }
 
-inline void ToggleEntityFlag(Entity* entity, ComponentFlag flag)
+inline void ToggleEntityComponent(Entity* entity, ComponentFlag flag)
 {
     entity->flags ^= flag;
 }
 
-inline void SetEntityStatusFlag(Entity* entity, EntityStatus flag)
+inline bool32 EntityHasComponent(Entity* entity, ComponentFlag flag)
+{
+	bool32 result = entity->flags & flag;
+	return result;
+}
+
+inline void SetEntityStatus(Entity* entity, EntityStatus flag)
 {
 	entity->status |= flag;
 }
 
-inline void UnsetEntityStatusFlag(Entity* entity, EntityStatus flag)
+inline void UnsetEntityStatus(Entity* entity, EntityStatus flag)
 {
-	entity->status &= !flag;
+	entity->status &= ~flag;
 }
 
-inline void ToggleEntityFlag(Entity* entity, EntityStatus flag)
+inline void ToggleEntityStatus(Entity* entity, EntityStatus flag)
 {
 	entity->status ^= flag;
 }
 
-inline bool32 EntityHasFlag(Entity* entity, ComponentFlag flag)
+inline void ResetJump(Entity* player)
 {
-    bool32 result = entity->flags & flag;
-    return result;
+	player->alreadyJumping = false;
+	player->quickFall = false;
+	player->jumpTime = 0.f;
+	player->quickFallTime = 0.f;
+	player->nbJumps = 0;
+}
+
+inline void WentAirborne(Entity* entity)
+{
+	UnsetEntityStatus(entity, EntityStatus_Landed);
+	SetEntityStatus(entity, EntityStatus_Airbone);
+}
+
+inline void Landed(Entity* entity)
+{
+	UnsetEntityStatus(entity, EntityStatus_Airbone);
+	SetEntityStatus(entity, EntityStatus_Landed);
+	ResetJump(entity);
 }
 
 // TODO(Charly): Add CreateXEntityFromData stuff
@@ -142,8 +166,6 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 						   Controller* controller);
 
 Entity* CreateWallEntity(GameState* state, Vec2 p, RenderingPattern* pattern, Shape* shape);
-
-void ResetJump(Entity* player);
 
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 

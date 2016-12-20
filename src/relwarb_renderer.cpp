@@ -122,7 +122,7 @@ RenderingPattern* CreateRenderingPattern(GameState* gameState,
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
 {
 	entity->pattern = pattern;
-	SetEntityFlag(entity, ComponentFlag_Renderable);
+	SetEntityComponent(entity, ComponentFlag_Renderable);
 }
 
 void InitializeRenderer()

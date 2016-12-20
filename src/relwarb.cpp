@@ -50,11 +50,12 @@ void InitGame(GameState* gameState)
 	Shape* heroShape = CreateShape(gameState, Vec2(1.f, 1.5f));
 
 	RenderingPattern* heroPattern1 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p1);
-	CreatePlayerEntity(gameState, Vec2(-2, 0), heroPattern1, heroShape, &gameState->controllers[0]);
+	CreatePlayerEntity(gameState, Vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[1]);
 
+	/*
 	RenderingPattern* heroPattern2 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p2);
-	CreatePlayerEntity(gameState, Vec2(2, 0), heroPattern2, heroShape, &gameState->controllers[1]);
-	
+	CreatePlayerEntity(gameState, Vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
+	*/
     LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
     LoadBitmapData("assets/corner_topright.png", CreateBitmap(gameState));
@@ -117,7 +118,7 @@ void RenderGame(GameState* gameState, real32 dt)
 			for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
 			{
 				Entity* entity = &gameState->entities[elementIdx];
-				if (EntityHasFlag(entity, ComponentFlag_Renderable))
+				if (EntityHasComponent(entity, ComponentFlag_Renderable))
 				{
 					RenderingPattern* pattern = entity->pattern;
 					Vec2 pos(entity->p);
@@ -130,7 +131,7 @@ void RenderGame(GameState* gameState, real32 dt)
 					transform.world = gameState->worldMatrix;
 
 					// TODO(Thomas): Handle drawing size with a drawing size
-					if (EntityHasFlag(entity, ComponentFlag_Collidable))
+					if (EntityHasComponent(entity, ComponentFlag_Collidable))
 					{
 						transform.scale = entity->shape->size;
 						transform.offset = entity->shape->offset;

@@ -3,6 +3,8 @@
 #include "relwarb_entity.h"
 #include "relwarb.h"
 
+#include "relwarb_debug.h"
+
 void CreateDashSkill(Skill* skill, Entity* entity)
 {
 	skill->isActive = false;
@@ -12,7 +14,7 @@ void CreateDashSkill(Skill* skill, Entity* entity)
 
 	skill->manaCost = 1;
 	// NOTE(Thomas): Magic numbers to tailor
-	skill->duration = 0.3f;
+	skill->duration = 0.2f;
 	skill->horizDistance = entity->shape->size.x * 5.f;
 	skill->cooldownDuration = 0.1f;
 }
@@ -33,7 +35,7 @@ void CreateManaRecharge(Skill* skill, Entity* executive)
 
 void DashTrigger(Skill* skill, Entity* entity)
 {
-	if (!skill->isActive && entity->mana >= skill->manaCost)
+	if (!skill->isActive && entity->mana >= skill->manaCost && !(entity->status & EntityStatus_Rooted))
 	{
 		if (entity->controller->moveLeft || entity->controller->moveRight)
 		{
@@ -50,6 +52,7 @@ void DashTrigger(Skill* skill, Entity* entity)
 				skill->direction = 1.f;
 			}
 		}
+		SetEntityStatus(entity, EntityStatus_Rooted);
 	}
 }
 
@@ -60,8 +63,7 @@ void ManaTrigger(Skill* skill, Entity* entity)
 		skill->isActive = true;
 		skill->elapsed = 0.f;
 		skill->remainingSteps = skill->nbSteps;
-
-		SetEntityStatusFlag(entity, EntityStatus_Rooted);
+		SetEntityStatus(entity, EntityStatus_Rooted);
 	}
 }
 
@@ -74,6 +76,7 @@ void DashApply(Skill* skill, Entity* executive, real32 dt)
 		{
 			skill->remainingCooldown = skill->cooldownDuration;
 			skill->isActive = false;
+			UnsetEntityStatus(executive, EntityStatus_Rooted);
 
 			dt -= skill->elapsed - skill->duration;
 		}
@@ -100,7 +103,7 @@ void ManaApply(Skill* skill, Entity* executive, real32 dt)
 			skill->remainingSteps -= 1;
 			if (skill->remainingSteps == 0)
 			{
-				UnsetEntityStatusFlag(executive, EntityStatus_Rooted);
+				UnsetEntityStatus(executive, EntityStatus_Rooted);
 				skill->remainingCooldown = skill->cooldownDuration;
 				skill->isActive = false;
 			}
