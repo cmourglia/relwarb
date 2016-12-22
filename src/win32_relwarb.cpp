@@ -610,6 +610,10 @@ int CALLBACK WinMain(HINSTANCE instance,
                      LPSTR     cmdLine,
                      int       cmdShow)
 {
+
+	uint32 worldWindowWidth = 1440;
+	uint32 worldWindowHeight = 720;
+
     WNDCLASS wc = {0};
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     wc.lpfnWndProc = win32_MainWindowCallback;
@@ -623,17 +627,17 @@ int CALLBACK WinMain(HINSTANCE instance,
     {
         RECT windowSize;
         windowSize.left = 0;
-        windowSize.right = 1280;
+        windowSize.right = worldWindowWidth;
         windowSize.top = 0;
-        windowSize.bottom = 720;
+        windowSize.bottom = worldWindowHeight;
 
         AdjustWindowRect(&windowSize, WS_OVERLAPPEDWINDOW, false);
         HWND window = CreateWindowExA(0,
                                       wc.lpszClassName,
                                       "Relwarb",
                                       WS_VISIBLE | WS_OVERLAPPED,
-                                      0,
-                                      0,
+                                      128,
+                                      128,
                                       windowSize.right - windowSize.left,
                                       windowSize.bottom - windowSize.top,
                                       0,
@@ -675,7 +679,7 @@ int CALLBACK WinMain(HINSTANCE instance,
 
         GameState gameState;
 		gameState = {0};
-		gameState.viewportSize = Vec2(1280, 720);
+		gameState.viewportSize = Vec2(worldWindowWidth, worldWindowHeight);
 
         InitGame(&gameState);
 

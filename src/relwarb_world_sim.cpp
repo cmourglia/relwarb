@@ -40,6 +40,8 @@ void UpdateWorld(GameState* gameState, real32 dt)
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS	2
 
+				real32 oldX = entity->p.x;
+
 				Vec2 acc = Vec2(0, entity->gravity);
 				entity->dp.x = 0.0;
 
@@ -94,6 +96,12 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
 				entity->dp += dt * acc;
+
+				// NOTE(Thomas): I don't like that it's handle in a physic resolution function while it's "game logic" related (or graphic related)
+				if (!SameSign(entity->p.x - oldX, entity->orientation))
+				{
+					entity->orientation *= -1.f;
+				}
 			} break;
 
 			default:

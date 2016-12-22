@@ -24,7 +24,7 @@ void InitGame(GameState* gameState)
     real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
 	// NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport size are computed accordingly.
-    gameState->worldSize = Vec2(32, 18);
+    gameState->worldSize = Vec2(48, 24);
 
     Mat4 worldMat = {0};
     worldMat[0][0] = (gameState->viewportSize.x / 2.f) / (gameState->worldSize.x / 2.f);
@@ -147,6 +147,14 @@ void RenderGame(GameState* gameState, real32 dt)
 					{
 						transform.scale = entity->shape->size;
 						transform.offset = entity->shape->offset;
+					}
+
+					if (entity->entityType == EntityType_Player)
+					{
+						if (entity->orientation < 0.f)
+						{
+							transform.scale.x *= -1.f;
+						}
 					}
 
 					RenderPattern(pattern, &transform, entity->shape->size);

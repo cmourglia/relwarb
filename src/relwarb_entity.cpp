@@ -16,6 +16,7 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
 	SetEntityComponent(result, ComponentFlag_Movable);
+	SetEntityComponent(result, ComponentFlag_Orientable);
 
 	// FIXME(Charly): Load this from files
 	result->avatar = CreateBitmap(state);
@@ -50,6 +51,7 @@ Entity* CreatePlayerEntity(GameState* state, Vec2 p,
 	result->initialJumpVelocity = (2 * result->playerJumpHeight * result->playerSpeed) / result->playerJumpDist;
 	result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) / (result->playerJumpDist * result->playerJumpDist);
 	result->status = 0;
+	result->orientation = 1.f;
 
 	CreateDashSkill(&result->skills[0], result);
 	CreateManaRecharge(&result->skills[1], result);

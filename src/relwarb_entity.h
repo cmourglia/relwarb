@@ -22,6 +22,7 @@ enum ComponentFlag
 	ComponentFlag_Movable       = 1 << 0,
 	ComponentFlag_Collidable    = 1 << 1,
 	ComponentFlag_Renderable    = 1 << 2,
+	ComponentFlag_Orientable	= 1 << 3,
 };
 
 enum EntityType
@@ -50,6 +51,8 @@ struct Entity
 	Vec2 p;     // NOTE(Charly): Linear position
 	Vec2 dp;    // NOTE(Charly): Linear velocity
 	Vec2 ddp;   // NOTE(Charly): Linear acceleration
+
+	int32 orientation;
 
 	// NOTE(Thomas): Gonna go with integer values here, don't think there are real advantages with real numbers (*badam tss*)
 	uint32 health;

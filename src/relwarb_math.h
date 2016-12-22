@@ -75,6 +75,11 @@ inline real32 Max(real32 x, real32 y)
     return x > y ? x : y;
 }
 
+inline bool32 SameSign(real32 x, real32 y)
+{
+	return ((x >= 0.f && y >= 0.f) || (x <= 0.f && y <= 0.f));
+}
+
 inline real32 Clamp(real32 x, real32 vmin, real32 vmax)
 {
     return Min(vmax, Max(x, vmin));
