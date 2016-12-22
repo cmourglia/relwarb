@@ -49,13 +49,13 @@ void InitGame(GameState* gameState)
 	
 	Shape* heroShape = CreateShape(gameState, Vec2(1.f, 1.5f));
 
-	RenderingPattern* heroPattern1 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p1);
-	CreatePlayerEntity(gameState, Vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[1]);
+	RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, bitmap_p1);
+	CreatePlayerEntity(gameState, Vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[0]);
 
-	/*
-	RenderingPattern* heroPattern2 = CreateRenderingPattern(gameState, Vec2(1, 1), tiles_indices, 1, &bitmap_p2);
+	
+	RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, bitmap_p2);
 	CreatePlayerEntity(gameState, Vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
-	*/
+	
     LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
     LoadBitmapData("assets/corner_topright.png", CreateBitmap(gameState));

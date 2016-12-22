@@ -97,24 +97,35 @@ internal GLuint CompileShader(const char* src, GLenum type)
     return shader;
 }
 
-RenderingPattern* CreateRenderingPattern(GameState* gameState, 
-                                         Vec2 size, 
-                                         uint8* pattern,
-										 uint8 nbBitmaps,
-                                         Bitmap** bitmaps,
-                                         RenderingPatternType type)
+RenderingPattern* CreateUniqueRenderingPattern(	GameState* gameState,
+												Bitmap* bitmap)
 {
 	ComponentID id = gameState->nbPatterns++;
 	Assert(id < WORLD_SIZE);
+
+	RenderingPattern* result = &gameState->patterns[id];
+	result->patternType = RenderingPattern_Unique;
+	result->unique = bitmap;
+
+	return result;
+}
+
+RenderingPattern* CreateFillRenderingPattern(GameState* gameState, 
+                                         Vec2 size, 
+                                         uint8* pattern,
+										 uint8 nbBitmaps,
+                                         Bitmap** bitmaps)
+{
+	ComponentID id = gameState->nbPatterns++;
+	Assert(id < WORLD_SIZE);
+
 	RenderingPattern* result = &gameState->patterns[id];
 	result->size = size;
-    result->patternType = type;
-
+    result->patternType = RenderingPattern_Fill;
 	result->pattern = new uint8[size.x * size.y];
 	memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
-
-	result->bitmaps = new Bitmap*[nbBitmaps];
-	memcpy(result->bitmaps, bitmaps, nbBitmaps * sizeof(Bitmap *));
+	result->tiles = new Bitmap*[nbBitmaps];
+	memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap *));
 
 	return result;
 }
@@ -196,7 +207,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
     {
         case RenderingPattern_Unique:
         {
-            RenderBitmap(pattern->bitmaps[0], transform);
+            RenderBitmap(pattern->unique, transform);
         } break;
 		case RenderingPattern_Fill:
 		{
@@ -230,7 +241,7 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 siz
 			// TODO(Thomas): Do properly.
 			currentTransform.scale = Vec2(1);
 	 		currentTransform.position += Vec2(i, j);
-	 		RenderBitmap(pattern->bitmaps[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
+	 		RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
 
 			if (indexY == middleTileY && deltaY > 0)
 			{

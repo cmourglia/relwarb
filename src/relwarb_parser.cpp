@@ -143,7 +143,9 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
 						{
 							ExtractUint8(currentLine, type);
 						}
-						CreateRenderingPattern(gameState, size, pattern, nbBitmaps, bitmaps, RenderingPatternType(type));
+						// TODO(Thomas): Handle non fill pattern loading
+						//				 Pass the type of the pattern first
+						CreateFillRenderingPattern(gameState, size, pattern, nbBitmaps, bitmaps);
 
 						delete pattern;
 						delete bitmaps;

@@ -11,23 +11,42 @@ struct Entity;
 enum RenderingPatternType
 {
 	RenderingPattern_Unique = 0,
+	RenderingPattern_Multi,
 	RenderingPattern_Fill
 };
 
 struct RenderingPattern
 {
-	Vec2 size;
-	// NOTE(Thomas): Pattern to be rendered.
-	//					For a start, I am thinking of storing something like 3x3, so that corners are fixed and middle values are repeated.
-	//					It's not generic but it's the basic use, to be extended later on.
-	//	e.g. :	7 8 9		7 8 8 8 9
-	//			4 5 6	=>	4 5 5 5 6
-	//			1 2 3		1 2 2 2 3
-	uint8* pattern;
-	// NOTE(Thomas): Arrays of tiles needed for the pattern
-	Bitmap** bitmaps;
 
 	RenderingPatternType patternType;
+
+	union {
+		// Unique pattern
+		struct {
+			Bitmap* unique;
+		};
+
+		// Multiple state pattern
+		struct {
+			Bitmap** bitmaps;
+		};
+
+		// Fill pattern
+		struct {
+			Vec2 size;
+			// NOTE(Thomas): Pattern to be rendered.
+			//					For a start, I am thinking of storing something like 3x3, so that corners are fixed and middle values are repeated.
+			//					It's not generic but it's the basic use, to be extended later on.
+			//	e.g. :	7 8 9		7 8 8 8 9
+			//			4 5 6	=>	4 5 5 5 6
+			//			1 2 3		1 2 2 2 3
+			uint8* pattern;
+			// NOTE(Thomas): Arrays of tiles needed for the pattern
+			Bitmap** tiles;
+		};
+	};
+
+	RenderingPattern() {}
 };
 
 struct Transform
@@ -45,12 +64,14 @@ struct Transform
 void InitializeRenderer();
 void ResizeRenderer(GameState* gameState);
 
-RenderingPattern* CreateRenderingPattern(GameState* gameState, 
-										 Vec2 size,
-										 uint8* pattern,
-										 uint8 nbBitmaps,
-										 Bitmap** bitmaps, 
-										 RenderingPatternType type = RenderingPattern_Unique);
+RenderingPattern* CreateUniqueRenderingPattern(	GameState* gameState,
+												Bitmap* bitmap);
+
+RenderingPattern* CreateFillRenderingPattern(	GameState* gameState,
+												Vec2 size,
+												uint8* pattern,
+												uint8 nbBitmaps,
+												Bitmap** bitmaps);
 
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
 
