@@ -51,8 +51,8 @@ void DashTrigger(Skill* skill, Entity* entity)
 			{
 				skill->direction = 1.f;
 			}
+			SetEntityStatus(entity, EntityStatus_Rooted);
 		}
-		SetEntityStatus(entity, EntityStatus_Rooted);
 	}
 }
 
