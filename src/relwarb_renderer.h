@@ -8,40 +8,58 @@ struct Bitmap;
 struct GameState;
 struct Entity;
 
+enum SpriteType
+{
+	SpriteType_Still = 0,
+	SpriteType_Timed,
+};
+
+struct Sprite
+{
+	SpriteType spriteType;
+	union {
+		Bitmap* stillSprite;
+		// Time based sprite
+		struct {
+			uint32 nbSteps;
+			Bitmap** steps;
+			uint32 currentStep;
+			real32 stepTime;
+
+			bool32 active;
+			real32 elapsed;
+		};
+	};
+};
+
 enum RenderingPatternType
 {
 	RenderingPattern_Unique = 0,
 	RenderingPattern_Multi,
-	RenderingPattern_Fill
+	RenderingPattern_Fill,
 };
 
 struct RenderingPattern
 {
-
 	RenderingPatternType patternType;
 
 	union {
 		// Unique pattern
 		struct {
-			Bitmap* unique;
+			Sprite* unique;
 		};
 
 		// Multiple state pattern
 		struct {
-			Bitmap** bitmaps;
+			uint32 current;
+			Sprite** bitmaps;
 		};
 
 		// Fill pattern
+		// TODO(Thomas): Handle fill pattern evolving through time or something
 		struct {
 			Vec2 size;
-			// NOTE(Thomas): Pattern to be rendered.
-			//					For a start, I am thinking of storing something like 3x3, so that corners are fixed and middle values are repeated.
-			//					It's not generic but it's the basic use, to be extended later on.
-			//	e.g. :	7 8 9		7 8 8 8 9
-			//			4 5 6	=>	4 5 5 5 6
-			//			1 2 3		1 2 2 2 3
 			uint8* pattern;
-			// NOTE(Thomas): Arrays of tiles needed for the pattern
 			Bitmap** tiles;
 		};
 	};
@@ -64,8 +82,20 @@ struct Transform
 void InitializeRenderer();
 void ResizeRenderer(GameState* gameState);
 
+Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap);
+
+Sprite* CreateTimeSprite(GameState* gameState, uint32 nbBitmaps, Bitmap** bitmaps, real32 stepTime, bool32 active = true);
+
+Bitmap* GetSpriteBitmap(const Sprite* sprite);
+
+// NOTE(Thomas): Maybe just merge into render function or something ?
+void UpdateSpriteTime(Sprite* sprite, real32 dt);
+
 RenderingPattern* CreateUniqueRenderingPattern(	GameState* gameState,
-												Bitmap* bitmap);
+												Sprite* sprite);
+
+RenderingPattern* CreateHeroRenderingPattern(	GameState* gameState,
+												Sprite** sprites);
 
 RenderingPattern* CreateFillRenderingPattern(	GameState* gameState,
 												Vec2 size,
@@ -84,11 +114,8 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 siz
 //               maybe this should change
 void RenderBitmap(Bitmap* bitmap, const Transform* transform);
 
-
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseBitmap(Bitmap* bitmap);
-
-void AddBitmapToEntity(Entity* entity, Bitmap* bitmap);
 
 void RenderGrid(Vec2 resolution = Vec2(10, 10), Vec2 center = Vec2(0));
 

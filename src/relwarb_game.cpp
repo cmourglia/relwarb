@@ -156,4 +156,9 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
 			}
 		}
 	}
+
+	for (uint32 spriteIdx = 0; spriteIdx < gameState->nbSprites; ++spriteIdx)
+	{
+		UpdateSpriteTime(&gameState->sprites[spriteIdx], dt);
+	}
 }

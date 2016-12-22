@@ -76,8 +76,12 @@ struct GameState
 	Shape	            shapes[WORLD_SIZE];
     uint32              nbShapes;
 
+	// TODO(Thomas): Use different size for following, as number of Bitmap/Sprite/Pattern are different from number of entities
 	Bitmap				bitmaps[WORLD_SIZE];
     uint32              nbBitmaps;
+
+	Sprite				sprites[WORLD_SIZE];
+	uint32				nbSprites;
 
 	RenderingPattern	patterns[WORLD_SIZE];
 	uint32				nbPatterns;

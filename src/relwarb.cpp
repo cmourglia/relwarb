@@ -41,19 +41,31 @@ void InitGame(GameState* gameState)
 	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
 	LoadMapFile(gameState, "config/base_map.ini");
     
-    Bitmap* bitmap_p1 = CreateBitmap(gameState);
-    LoadBitmapData("assets/p1_stand.png", bitmap_p1);
-	Bitmap* bitmap_p2 = CreateBitmap(gameState);
-	LoadBitmapData("assets/p2_stand.png", bitmap_p2);
+	Bitmap* bitmap_p1[2];
+	bitmap_p1[0] = CreateBitmap(gameState);
+    LoadBitmapData("assets/p1_stand.png", bitmap_p1[0]);
+	bitmap_p1[1] = CreateBitmap(gameState);
+	LoadBitmapData("assets/p1_duck.png", bitmap_p1[1]);
+
+	Sprite* sprite_p1 = CreateTimeSprite(gameState, 2, bitmap_p1, 0.5f);
+
+	Bitmap* bitmap_p2[2];
+	bitmap_p2[0] = CreateBitmap(gameState);
+	LoadBitmapData("assets/p2_stand.png", bitmap_p2[0]);
+	bitmap_p2[1] = CreateBitmap(gameState);
+	LoadBitmapData("assets/p2_duck.png", bitmap_p2[1]);
+
+	Sprite* sprite_p2 = CreateTimeSprite(gameState, 2, bitmap_p2, 0.5f);
+
 	uint8 tiles_indices[] = { 1 };
 	
 	Shape* heroShape = CreateShape(gameState, Vec2(1.f, 1.5f));
 
-	RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, bitmap_p1);
+	RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, sprite_p1);
 	CreatePlayerEntity(gameState, Vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[0]);
 
 	
-	RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, bitmap_p2);
+	RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, sprite_p2);
 	CreatePlayerEntity(gameState, Vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
 	
     LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));

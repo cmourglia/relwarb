@@ -97,17 +97,82 @@ internal GLuint CompileShader(const char* src, GLenum type)
     return shader;
 }
 
+
+Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap)
+{
+	ComponentID id = gameState->nbSprites++;
+	Assert(id < WORLD_SIZE);
+
+	Sprite* result = &gameState->sprites[id];
+	result->spriteType = SpriteType_Still;
+	result->stillSprite = bitmap;
+
+	return result;
+}
+
+Sprite* CreateTimeSprite(GameState* gameState, uint32 nbBitmaps, Bitmap** bitmaps, real32 stepTime, bool32 active)
+{
+	ComponentID id = gameState->nbSprites++;
+	Assert(id < WORLD_SIZE);
+
+	Sprite* result = &gameState->sprites[id];
+	result->spriteType = SpriteType_Timed;
+	result->nbSteps = nbBitmaps;
+	result->steps = new Bitmap*[nbBitmaps];
+	memcpy(result->steps, bitmaps, nbBitmaps * sizeof(Bitmap*));
+	result->currentStep = 0;
+	result->stepTime = stepTime;
+	result->active = active;
+
+	return result;
+}
+
+Bitmap* GetSpriteBitmap(const Sprite* sprite)
+{
+	switch (sprite->spriteType)
+	{
+		case SpriteType_Still:
+		{
+			return sprite->stillSprite;
+		} break;
+		case SpriteType_Timed:
+		{
+			return sprite->steps[sprite->currentStep];
+		} break;
+		default:
+			Assert(false);
+			return nullptr;
+	}
+}
+
 RenderingPattern* CreateUniqueRenderingPattern(	GameState* gameState,
-												Bitmap* bitmap)
+												Sprite* sprite)
 {
 	ComponentID id = gameState->nbPatterns++;
 	Assert(id < WORLD_SIZE);
 
 	RenderingPattern* result = &gameState->patterns[id];
 	result->patternType = RenderingPattern_Unique;
-	result->unique = bitmap;
+	result->unique = sprite;
 
 	return result;
+}
+
+void UpdateSpriteTime(Sprite* sprite, real32 dt)
+{
+	if (sprite->spriteType == SpriteType_Timed && sprite->active)
+	{
+		sprite->elapsed += dt;
+		if (sprite->elapsed > sprite->stepTime)
+		{
+			sprite->currentStep++;
+			sprite->elapsed -= sprite->stepTime;
+			if (sprite->currentStep >= sprite->nbSteps)
+			{
+				sprite->currentStep = 0;
+			}
+		}
+	}
 }
 
 RenderingPattern* CreateFillRenderingPattern(GameState* gameState, 
@@ -125,7 +190,7 @@ RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
 	result->pattern = new uint8[size.x * size.y];
 	memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
 	result->tiles = new Bitmap*[nbBitmaps];
-	memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap *));
+	memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
 
 	return result;
 }
@@ -207,7 +272,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
     {
         case RenderingPattern_Unique:
         {
-            RenderBitmap(pattern->unique, transform);
+            RenderBitmap(GetSpriteBitmap(pattern->unique), transform);
         } break;
 		case RenderingPattern_Fill:
 		{
