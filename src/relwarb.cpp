@@ -45,7 +45,7 @@ void InitGame(GameState* gameState)
 	bitmap_p1[0] = CreateBitmap(gameState);
     LoadBitmapData("assets/p1_stand.png", bitmap_p1[0]);
 	bitmap_p1[1] = CreateBitmap(gameState);
-	LoadBitmapData("assets/p1_duck.png", bitmap_p1[1]);
+	LoadBitmapData("assets/p1_stand2.png", bitmap_p1[1]);
 
 	Sprite* sprite_p1 = CreateTimeSprite(gameState, 2, bitmap_p1, 0.5f);
 
@@ -53,7 +53,7 @@ void InitGame(GameState* gameState)
 	bitmap_p2[0] = CreateBitmap(gameState);
 	LoadBitmapData("assets/p2_stand.png", bitmap_p2[0]);
 	bitmap_p2[1] = CreateBitmap(gameState);
-	LoadBitmapData("assets/p2_duck.png", bitmap_p2[1]);
+	LoadBitmapData("assets/p2_stand2.png", bitmap_p2[1]);
 
 	Sprite* sprite_p2 = CreateTimeSprite(gameState, 2, bitmap_p2, 0.5f);
 
