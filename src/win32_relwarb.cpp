@@ -267,8 +267,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             // TODO(Charly): Toggle this flag depending on the build type
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-            //WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0,
         };
 
