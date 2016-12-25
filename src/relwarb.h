@@ -2,36 +2,35 @@
 #define RELWARB_H
 
 #include "relwarb_defines.h"
-#include "relwarb_math.h"
 #include "relwarb_world_sim.h"
 #include "relwarb_renderer.h"
 #include "relwarb_input.h"
 
-#define WORLD_SIZE		1024
+#define WORLD_SIZE      1024
 
 // NOTE(Charly): This is garbage code
 //               controller0 -> keyboard
-//               controller{1 - 4} -> xbox controllers 
-#define MAX_CONTROLLERS	5
-#define MAX_PLAYERS		4
+//               controller{1 - 4} -> xbox controllers
+#define MAX_CONTROLLERS 5
+#define MAX_PLAYERS     4
 
 struct Controller
 {
-	// TODO(Thomas): Use
-	uint32 controlledEntityID;
+    // TODO(Thomas): Use
+    uint32 controlledEntityID;
 
-	// TODO(Thomas): Use
-	bool32 enabled;
+    // TODO(Thomas): Use
+    bool32 enabled;
 
     bool32 moveLeft;
     bool32 moveRight;
 
     bool32 jump;
-	bool32 newJump;
-	bool32 dash;
-	bool32 newDash;
-	bool32 mana;
-	bool32 newMana;
+    bool32 newJump;
+    bool32 dash;
+    bool32 newDash;
+    bool32 mana;
+    bool32 newMana;
 };
 
 // TODO(Charly): This should go somewhere else
@@ -46,8 +45,8 @@ struct Bitmap
 
 enum GameMode
 {
-	GameMode_Game = 0,
-	GameMode_Editor,
+    GameMode_Game = 0,
+    GameMode_Editor,
 };
 
 // NOTE(Charly): Store the current state of the game
@@ -56,50 +55,50 @@ struct GameState
     // TODO(Charly): View / Proj matrices
     // TODO(Charly): Do we want orthographic or perspective projection ?
 
-    Vec2 viewportSize;
-    Vec2 worldSize;
+    z::vec2 viewportSize;
+    z::vec2 worldSize;
 
-    Mat4 projMatrix;
-    Mat4 worldMatrix;
+    z::mat4 projMatrix;
+    z::mat4 worldMatrix;
 
-    bool32 onEdge;
+    bool32 onEdge = false;
 
-	Entity*				players[MAX_PLAYERS];
-	uint32				nbPlayers;
+    Entity*             players[MAX_PLAYERS];
+    uint32              nbPlayers = 0;
 
-	Entity				entities[WORLD_SIZE];
-	uint32				nbEntities;
+    Entity              entities[WORLD_SIZE];
+    uint32              nbEntities = 0;
 
-	RigidBody			rigidBodies[WORLD_SIZE];
-    uint32              nbRigidBodies;
+    RigidBody           rigidBodies[WORLD_SIZE];
+    uint32              nbRigidBodies = 0;
 
-	Shape	            shapes[WORLD_SIZE];
-    uint32              nbShapes;
+    Shape               shapes[WORLD_SIZE];
+    uint32              nbShapes = 0;
 
-	// TODO(Thomas): Use different size for following, as number of Bitmap/Sprite/Pattern are different from number of entities
-	Bitmap				bitmaps[WORLD_SIZE];
-    uint32              nbBitmaps;
+    // TODO(Thomas): Use different size for following, as number of Bitmap/Sprite/Pattern are different from number of entities
+    Bitmap              bitmaps[WORLD_SIZE];
+    uint32              nbBitmaps = 0;
 
-	Sprite				sprites[WORLD_SIZE];
-	uint32				nbSprites;
+    Sprite              sprites[WORLD_SIZE];
+    uint32              nbSprites = 0;
 
-	RenderingPattern	patterns[WORLD_SIZE];
-	uint32				nbPatterns;
+    RenderingPattern    patterns[WORLD_SIZE];
+    uint32              nbPatterns = 0;
 
     Controller          controllers[MAX_CONTROLLERS];
-    uint32              nbControllers;
+    uint32              nbControllers = 0;
 
-	Bitmap				hudHealth[3];
-	Bitmap				hudMana[2];
+    Bitmap              hudHealth[3];
+    Bitmap              hudMana[2];
 
-    Vec2 gravity;
+    z::vec2 gravity;
 
-	GameMode mode;
+    GameMode mode = GameMode_Game;
 
-	// NOTE(Charly): Windows coordinates
-	Vec2 cursor;
-	InputState keyStates[Key_Count];
-	InputState buttonStates[Button_Count];
+    // NOTE(Charly): Windows coordinates
+    z::vec2 cursor;
+    InputState keyStates[Key_Count];
+    InputState buttonStates[Button_Count];
 };
 
 // NOTE(Charly): Initialize all the game logic related stuff here
@@ -123,11 +122,15 @@ void RenderHUD(GameState* gameState);
 void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
-Entity* CreateEntity(GameState* gameState, EntityType type, Vec2 p, Vec2 dp = Vec2(0), Vec2 ddp = Vec2(0));
+Entity* CreateEntity(GameState* gameState,
+                     EntityType type,
+                     z::vec2 p,
+                     z::vec2 dp = z::vec2(0),
+                     z::vec2 ddp = z::vec2(0));
 
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);
 
-Vec2 ViewportToWorld(GameState* state, Vec2 in);
+z::vec2 ViewportToWorld(GameState* state, z::vec2 in);
 
 #endif // RELWARB_H

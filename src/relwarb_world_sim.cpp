@@ -11,105 +11,105 @@
 
 void UpdateWorld(GameState* gameState, real32 dt)
 {
-	// NOTE(Charly): I have removed generic integration stuff for now.
-	//				 This function might actually be scripted, or call 
-	//				 scripted entity update functions.
+    // NOTE(Charly): I have removed generic integration stuff for now.
+    //               This function might actually be scripted, or call
+    //               scripted entity update functions.
     for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
     {
         Entity* entity = &gameState->entities[entityIdx];
 
-		switch (entity->entityType)
-		{
-			case EntityType_Player:
-			{
-				// NOTE(Charly): We are updating a player, so we need to :
-				//	- Change x velocity based on left / right inputs
-				//	- If jump is pressed:
-				//		- Is it the start of a new jump ? 
-				//			- Y: start jumping, compute gravity and velocity
-				//			based on current state and wished jump height,
-				//			keep track of the number of total jumps (gd related)
-				//			- N: update jumping elapsed time
-				//	- Else:
-				//		- Did we begin a jump and stopped early ? 
-				//			- Change the gravity momentarily and track time
+        switch (entity->entityType)
+        {
+            case EntityType_Player:
+            {
+                // NOTE(Charly): We are updating a player, so we need to :
+                //  - Change x velocity based on left / right inputs
+                //  - If jump is pressed:
+                //      - Is it the start of a new jump ?
+                //          - Y: start jumping, compute gravity and velocity
+                //          based on current state and wished jump height,
+                //          keep track of the number of total jumps (gd related)
+                //          - N: update jumping elapsed time
+                //  - Else:
+                //      - Did we begin a jump and stopped early ?
+                //          - Change the gravity momentarily and track time
 
-				Controller* controller = entity->controller;
+                Controller* controller = entity->controller;
 
 #define MAX_JUMP_TIME   0.25f
 #define MAX_STOP_TIME   0.05f
-#define MAX_NB_JUMPS	2
+#define MAX_NB_JUMPS    2
 
-				real32 oldX = entity->p.x;
+                real32 oldX = entity->p.x();
 
-				Vec2 acc = Vec2(0, entity->gravity);
-				entity->dp.x = 0.0;
+                z::vec2 acc = z::vec2(0, entity->gravity);
+                entity->dp.x() = 0.0;
 
-				if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
-				{
-					if (controller->moveLeft)
-					{
-						entity->dp.x += -10.0;
-					}
+                if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
+                {
+                    if (controller->moveLeft)
+                    {
+                        entity->dp.x() += -10.0;
+                    }
 
-					if (controller->moveRight)
-					{
-						entity->dp.x += 10.0;
-					}
+                    if (controller->moveRight)
+                    {
+                        entity->dp.x() += 10.0;
+                    }
 
-					if (controller->jump)
-					{
-						if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
-						{
-							// Start jumping
-							entity->dp.y = entity->initialJumpVelocity;
-							entity->alreadyJumping = true;
-							entity->newJump = false;
-							++entity->nbJumps;
-							WentAirborne(entity);
-						}
-						else
-						{
-							entity->jumpTime += dt;
-						}
-					}
-					else
-					{
-						entity->newJump = true;
+                    if (controller->jump)
+                    {
+                        if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
+                        {
+                            // Start jumping
+                            entity->dp.y() = entity->initialJumpVelocity;
+                            entity->alreadyJumping = true;
+                            entity->newJump = false;
+                            ++entity->nbJumps;
+                            WentAirborne(entity);
+                        }
+                        else
+                        {
+                            entity->jumpTime += dt;
+                        }
+                    }
+                    else
+                    {
+                        entity->newJump = true;
 
-						if (entity->alreadyJumping)
-						{
-							if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
-							{
-								entity->quickFall = true;
-								entity->quickFallTime = 0;
-							}
+                        if (entity->alreadyJumping)
+                        {
+                            if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
+                            {
+                                entity->quickFall = true;
+                                entity->quickFallTime = 0;
+                            }
 
-							if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
-							{
-								entity->quickFallTime += dt;
-								acc.y *= 5;
-							}
-						}
-					}
-				}
+                            if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
+                            {
+                                entity->quickFallTime += dt;
+                                acc.y() *= 5;
+                            }
+                        }
+                    }
+                }
 
-				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
-				entity->dp += dt * acc;
+                entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
+                entity->dp += dt * acc;
 
-				// NOTE(Thomas): I don't like that it's handle in a physic resolution function while it's "game logic" related (or graphic related)
-				if (!SameSign(entity->p.x - oldX, entity->orientation))
-				{
-					entity->orientation *= -1.f;
-				}
-			} break;
+                // NOTE(Thomas): I don't like that it's handle in a physic resolution function while it's "game logic" related (or graphic related)
+                if (!z::SameSign(entity->p.x() - oldX, entity->orientation))
+                {
+                    entity->orientation *= -1.f;
+                }
+            } break;
 
-			default:
-			{
-			}
-		}
+            default:
+            {
+            }
+        }
     }
-	
+
     // 2. Collision detection
     // Depending on the types of shapes we want collision for (I think I won't
     // be wrong if I say that we want other stuff than AABBs), we might need
@@ -117,27 +117,27 @@ void UpdateWorld(GameState* gameState, real32 dt)
     // Then, for each potentially colliding pair of entities, perform the test
     // (Depending on the shapes, GJK might be the best tool)
 
-	// TODO(Thomas): Do something smart.
-	std::vector<std::pair <Entity *, Entity *>> collisions;
+    // TODO(Thomas): Do something smart.
+    std::vector<std::pair <Entity *, Entity *>> collisions;
 
-	for (uint32 firstIdx = 0; firstIdx < (gameState->nbEntities - 1); ++firstIdx)
-	{
-		Entity* firstEntity = &gameState->entities[firstIdx];
+    for (uint32 firstIdx = 0; firstIdx < (gameState->nbEntities - 1); ++firstIdx)
+    {
+        Entity* firstEntity = &gameState->entities[firstIdx];
         if (EntityHasComponent(firstEntity, ComponentFlag_Collidable))
-		{
-			for (uint32 secondIdx = firstIdx + 1; secondIdx < gameState->nbEntities; ++secondIdx)
-			{
-				Entity* secondEntity = &gameState->entities[secondIdx];
-				if (EntityHasComponent(secondEntity, ComponentFlag_Collidable))
-				{
-					if (Intersect(firstEntity, secondEntity))
-					{
-						collisions.push_back(std::pair<Entity *, Entity *>(firstEntity, secondEntity));
-					}
-				}
-			}
-		}
-	}
+        {
+            for (uint32 secondIdx = firstIdx + 1; secondIdx < gameState->nbEntities; ++secondIdx)
+            {
+                Entity* secondEntity = &gameState->entities[secondIdx];
+                if (EntityHasComponent(secondEntity, ComponentFlag_Collidable))
+                {
+                    if (Intersect(firstEntity, secondEntity))
+                    {
+                        collisions.push_back(std::pair<Entity *, Entity *>(firstEntity, secondEntity));
+                    }
+                }
+            }
+        }
+    }
 
     //
     // 3. Collision solving
@@ -168,67 +168,67 @@ void UpdateWorld(GameState* gameState, real32 dt)
     //          have an infinite mass / null inverse mass)
     //      }
 
-	 for (auto it : collisions)
-	 {
-		Vec2 overlap = Overlap(it.first, it.second);
-	 	if (CollisionCallback(it.first, it.second, &overlap))
-	 	{
-	 		Assert(EntityHasComponent(it.first, ComponentFlag_Movable) || EntityHasComponent(it.second, ComponentFlag_Movable));
+     for (auto it : collisions)
+     {
+        z::vec2 overlap = Overlap(it.first, it.second);
+        if (CollisionCallback(it.first, it.second, &overlap))
+        {
+            Assert(EntityHasComponent(it.first, ComponentFlag_Movable) || EntityHasComponent(it.second, ComponentFlag_Movable));
 
-	 		if (EntityHasComponent(it.first, ComponentFlag_Movable) && EntityHasComponent(it.second, ComponentFlag_Movable))
-	 		{
-				// TODO(Thomas): Handle collision w.r.t to respective weights
-	 		}
-	 		else
-	 		{
-				Vec2 clampDp;
-				if (Abs(overlap.x) < Abs(overlap.y))
-				{
-					overlap = Times(overlap, Vec2(1.f, 0.f));
-					clampDp = Vec2(0.f, 1.f);
-				}
-				else
-				{
-					overlap = Times(overlap, Vec2(0.f, 1.f));
-					clampDp = Vec2(1.f, 0.f);
-				}
-	 			if (EntityHasComponent(it.first, ComponentFlag_Movable))
-	 			{
-	 				it.first->p -= overlap;
-					it.first->dp = Times(it.first->dp, clampDp);
-	 			}
-	 			else // (EntityHasFlag(it.second, ComponentFlag_Movable))
-	 			{
-					it.second->p += overlap;
-					it.second->dp = Times(it.second->dp, clampDp);
-	 			}
-			}
-		}
-	}
+            if (EntityHasComponent(it.first, ComponentFlag_Movable) && EntityHasComponent(it.second, ComponentFlag_Movable))
+            {
+                // TODO(Thomas): Handle collision w.r.t to respective weights
+            }
+            else
+            {
+                z::vec2 clampDp;
+                if (z::Abs(overlap.x()) < z::Abs(overlap.y()))
+                {
+                    overlap = overlap * z::vec2(1.f, 0.f);
+                    clampDp = z::vec2(0.f, 1.f);
+                }
+                else
+                {
+                    overlap = overlap * z::vec2(0.f, 1.f);
+                    clampDp = z::vec2(1.f, 0.f);
+                }
+                if (EntityHasComponent(it.first, ComponentFlag_Movable))
+                {
+                    it.first->p -= overlap;
+                    it.first->dp = it.first->dp * clampDp;
+                }
+                else // (EntityHasFlag(it.second, ComponentFlag_Movable))
+                {
+                    it.second->p += overlap;
+                    it.second->dp = it.second->dp * clampDp;
+                }
+            }
+        }
+    }
 }
 
 bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
 {
-	// NOTE(Thomas): Only if Player against Wall or something, or always ?
-	// NOTE(Thomas): else if or just if ?
-	if (e1->entityType == EntityType_Player && e2->entityType == EntityType_Wall)
-	{
-		Vec2* overlap = static_cast<Vec2*>(userParam);
-		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
-		{
-			Landed(e1);
-		}
-	}
-	else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
-	{
-		Vec2* overlap = static_cast<Vec2*>(userParam);
-		if (Abs(overlap->y) < Abs(overlap->x) && overlap->y > 0)
-		{
-			Landed(e2);
-		}
-	}
+    // NOTE(Thomas): Only if Player against Wall or something, or always ?
+    // NOTE(Thomas): else if or just if ?
+    if (e1->entityType == EntityType_Player && e2->entityType == EntityType_Wall)
+    {
+        z::vec2* overlap = static_cast<z::vec2*>(userParam);
+        if (z::Abs(overlap->y()) < z::Abs(overlap->x()) && overlap->y() > 0)
+        {
+            Landed(e1);
+        }
+    }
+    else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
+    {
+        z::vec2* overlap = static_cast<z::vec2*>(userParam);
+        if (z::Abs(overlap->y()) < z::Abs(overlap->x()) && overlap->y() > 0)
+        {
+            Landed(e2);
+        }
+    }
 
-	return true;
+    return true;
 }
 
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
@@ -237,31 +237,31 @@ RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
     Assert(id < WORLD_SIZE);
     RigidBody* result = &gameState->rigidBodies[id];
 
-    result->invMass = (mass == 0.f ? 0.f : 1.f / mass);  
+    result->invMass = (mass == 0.f ? 0.f : 1.f / mass);
 
     return result;
 }
 
-Shape* CreateShape(GameState* gameState, Vec2 size_, Vec2 offset_)
+Shape* CreateShape(GameState* gameState, z::vec2 size_, z::vec2 offset_)
 {
-	ComponentID id = gameState->nbShapes++;
-	Assert(id < WORLD_SIZE);
-	Shape* result = &gameState->shapes[id];
+    ComponentID id = gameState->nbShapes++;
+    Assert(id < WORLD_SIZE);
+    Shape* result = &gameState->shapes[id];
 
-	result->size = size_;
-	result->offset = offset_;
+    result->size = size_;
+    result->offset = offset_;
 
-	return result;
+    return result;
 }
 
 void AddRigidBodyToEntity(Entity* entity, RigidBody* body)
 {
-	entity->body = body;
-	SetEntityComponent(entity, ComponentFlag_Movable);
+    entity->body = body;
+    SetEntityComponent(entity, ComponentFlag_Movable);
 }
 
 void AddShapeToEntity(Entity* entity, Shape* shape)
 {
     entity->shape = shape;
-	SetEntityComponent(entity, ComponentFlag_Collidable);
+    SetEntityComponent(entity, ComponentFlag_Collidable);
 }
