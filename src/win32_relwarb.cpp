@@ -566,7 +566,6 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
                 gameState->controllers[controllerIndex + 1].moveRight = false;
             }
 
-<<<<<<< HEAD
 			// TODO(Thomas): Generalize wrt binding between buttons and actions
 			gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
 			gameState->controllers[controllerIndex + 1].jump = abutton;
@@ -584,25 +583,6 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 			{
 				g_running = false;
 			}
-=======
-            // TODO(Thomas): Generalize wrt binding between buttons and actions
-            gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
-            gameState->controllers[controllerIndex + 1].jump = abutton;
-
-            gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
-            gameState->controllers[controllerIndex + 1].dash = bbutton;
-
-            gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-            gameState->controllers[controllerIndex + 1].mana = xbutton;
-
-            //gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-            //gameState->controllers[controllerIndex + 1].mana = ybutton;
-
-            if (start && back)
-            {
-                g_running = false;
-            }
->>>>>>> origin/master
 
             // Vibrate on edges
             if (gameState->onEdge)
