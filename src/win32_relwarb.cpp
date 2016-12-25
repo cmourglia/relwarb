@@ -573,11 +573,11 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 			gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
 			gameState->controllers[controllerIndex + 1].dash = bbutton;
 			
-			gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-			gameState->controllers[controllerIndex + 1].mana = xbutton;
-			
 			//gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-			//gameState->controllers[controllerIndex + 1].mana = ybutton;
+			//gameState->controllers[controllerIndex + 1].mana = xbutton;
+			
+			gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+			gameState->controllers[controllerIndex + 1].mana = ybutton;
 
 			if (start && back)
 			{
