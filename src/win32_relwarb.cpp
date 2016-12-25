@@ -18,16 +18,16 @@ global_variable uint32 localRight;
 global_variable uint32 localUp;
 
 #define WGL_GET_AND_CHECK(name, type)                                   \
-do {                                                                    \
-    name = (type)wglGetProcAddress(STRINGIFY(name));                    \
-    if (name == 0 ||                                                    \
-        (name == (void*)0x1) || (name == (void*)0x2) ||                 \
-        (name == (void*)0x3) || (name == (void*)-1)) {                  \
-        HMODULE module = LoadLibraryA("opengl32.dll");                  \
-        name = (type)GetProcAddress(module, STRINGIFY(name));           \
-    }                                                                   \
-    Assert(name);                                                       \
-} while (false)
+    do {                                                                    \
+        name = (type)wglGetProcAddress(STRINGIFY(name));                    \
+        if (name == 0 ||                                                    \
+            (name == (void*)0x1) || (name == (void*)0x2) ||                 \
+            (name == (void*)0x3) || (name == (void*)-1)) {                  \
+            HMODULE module = LoadLibraryA("opengl32.dll");                  \
+            name = (type)GetProcAddress(module, STRINGIFY(name));           \
+        }                                                                   \
+        Assert(name);                                                       \
+    } while (false)
 
 #define WGL_DRAW_TO_WINDOW_ARB                      0x2001
 #define WGL_ACCELERATION_ARB                        0x2003
@@ -293,8 +293,8 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                 if (StrEqual(extensionName, "GL_ARB_debug_output", StrLength("GL_ARB_debug_output")))
                 {
                     // WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
-                     glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
-                     glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+                    glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
+                    glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
                 }
             }
         }
@@ -580,11 +580,11 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
             gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
             gameState->controllers[controllerIndex + 1].dash = bbutton;
 
-            gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-            gameState->controllers[controllerIndex + 1].mana = xbutton;
-
             //gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
-            //gameState->controllers[controllerIndex + 1].mana = ybutton;
+            //gameState->controllers[controllerIndex + 1].mana = xbutton;
+
+            gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+            gameState->controllers[controllerIndex + 1].mana = ybutton;
 
             if (start && back)
             {
