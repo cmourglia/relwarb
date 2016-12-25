@@ -167,7 +167,7 @@ internal void win32_LoadWGLFunctions()
             WGL_GET_AND_CHECK(wglChoosePixelFormatARB, def_wglChoosePixelFormatARB);
             WGL_GET_AND_CHECK(wglCreateContextAttribsARB, def_wglCreateContextAttribsARB);
             WGL_GET_AND_CHECK(wglGetExtensionsStringARB, def_wglGetExtensionsStringARB);
-			WGL_GET_AND_CHECK(wglSwapIntervalEXT, def_wglSwapIntervalEXT);
+            WGL_GET_AND_CHECK(wglSwapIntervalEXT, def_wglSwapIntervalEXT);
 
             wglMakeCurrent(nullptr, nullptr);
         }
@@ -302,95 +302,95 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
 
 internal Key win32_ConvertKey(uint32 vkCode)
 {
-	switch (vkCode)
-	{
-		case 'A' : return Key_A;
-		case 'B' : return Key_B;
-		case 'C' : return Key_C;
-		case 'D' : return Key_D;
-		case 'E' : return Key_E;
-		case 'F' : return Key_F;
-		case 'G' : return Key_G;
-		case 'H' : return Key_H;
-		case 'I' : return Key_I;
-		case 'J' : return Key_J;
-		case 'K' : return Key_K;
-		case 'L' : return Key_L;
-		case 'M' : return Key_M;
-		case 'N' : return Key_N;
-		case 'O' : return Key_O;
-		case 'P' : return Key_P;
-		case 'Q' : return Key_Q;
-		case 'R' : return Key_R;
-		case 'S' : return Key_S;
-		case 'T' : return Key_T;
-		case 'U' : return Key_U;
-		case 'V' : return Key_V;
-		case 'W' : return Key_W;
-		case 'X' : return Key_X;
-		case 'Y' : return Key_Y;
-		case 'Z' : return Key_Z;
-		case '0' : return Key_0;
-		case '1' : return Key_1;
-		case '2' : return Key_2;
-		case '3' : return Key_3;
-		case '4' : return Key_4;
-		case '5' : return Key_5;
-		case '6' : return Key_6;
-		case '7' : return Key_7;
-		case '8' : return Key_8;
-		case '9' : return Key_9;
-		case VK_F1 : return Key_F1;
-		case VK_F2 : return Key_F2;
-		case VK_F3 : return Key_F3;
-		case VK_F4 : return Key_F4;
-		case VK_F5 : return Key_F5;
-		case VK_F6 : return Key_F6;
-		case VK_F7 : return Key_F7;
-		case VK_F8 : return Key_F8;
-		case VK_F9 : return Key_F9;
-		case VK_F10 : return Key_F10;
-		case VK_F11 : return Key_F11;
-		case VK_F12 : return Key_F12;
-		case VK_ESCAPE : return Key_Esc;
-		case VK_SPACE : return Key_Space;
-		case VK_RETURN : return Key_Enter;
-		case VK_CONTROL : return Key_Ctrl;
-		case VK_SHIFT : return Key_Shift;
-		case VK_MENU : return Key_Alt;
-		case VK_TAB: return Key_Tab;
-		case VK_LEFT: return Key_Left;
-		case VK_RIGHT: return Key_Right;
-		case VK_UP: return Key_Up;
-		case VK_DOWN: return Key_Down;
-		default: return Key_Unknown;
-	}
+    switch (vkCode)
+    {
+        case 'A' : return Key_A;
+        case 'B' : return Key_B;
+        case 'C' : return Key_C;
+        case 'D' : return Key_D;
+        case 'E' : return Key_E;
+        case 'F' : return Key_F;
+        case 'G' : return Key_G;
+        case 'H' : return Key_H;
+        case 'I' : return Key_I;
+        case 'J' : return Key_J;
+        case 'K' : return Key_K;
+        case 'L' : return Key_L;
+        case 'M' : return Key_M;
+        case 'N' : return Key_N;
+        case 'O' : return Key_O;
+        case 'P' : return Key_P;
+        case 'Q' : return Key_Q;
+        case 'R' : return Key_R;
+        case 'S' : return Key_S;
+        case 'T' : return Key_T;
+        case 'U' : return Key_U;
+        case 'V' : return Key_V;
+        case 'W' : return Key_W;
+        case 'X' : return Key_X;
+        case 'Y' : return Key_Y;
+        case 'Z' : return Key_Z;
+        case '0' : return Key_0;
+        case '1' : return Key_1;
+        case '2' : return Key_2;
+        case '3' : return Key_3;
+        case '4' : return Key_4;
+        case '5' : return Key_5;
+        case '6' : return Key_6;
+        case '7' : return Key_7;
+        case '8' : return Key_8;
+        case '9' : return Key_9;
+        case VK_F1 : return Key_F1;
+        case VK_F2 : return Key_F2;
+        case VK_F3 : return Key_F3;
+        case VK_F4 : return Key_F4;
+        case VK_F5 : return Key_F5;
+        case VK_F6 : return Key_F6;
+        case VK_F7 : return Key_F7;
+        case VK_F8 : return Key_F8;
+        case VK_F9 : return Key_F9;
+        case VK_F10 : return Key_F10;
+        case VK_F11 : return Key_F11;
+        case VK_F12 : return Key_F12;
+        case VK_ESCAPE : return Key_Esc;
+        case VK_SPACE : return Key_Space;
+        case VK_RETURN : return Key_Enter;
+        case VK_CONTROL : return Key_Ctrl;
+        case VK_SHIFT : return Key_Shift;
+        case VK_MENU : return Key_Alt;
+        case VK_TAB: return Key_Tab;
+        case VK_LEFT: return Key_Left;
+        case VK_RIGHT: return Key_Right;
+        case VK_UP: return Key_Up;
+        case VK_DOWN: return Key_Down;
+        default: return Key_Unknown;
+    }
 }
 
-internal Vec2 win32_GetCursorPos()
+internal z::vec2 win32_GetCursorPos()
 {
     POINT cursor;
     GetCursorPos(&cursor);
     ScreenToClient(GetActiveWindow(), &cursor);
 
-    Vec2 result = Vec2(cursor.x, cursor.y);
+    z::vec2 result(cursor.x, cursor.y);
     return result;
 }
 
 internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clicked)
 {
-	if (bt != Button_Unknown)
-	{
-		InputState state;
-		state.clicked = clicked;
-		state.stateChange = true;
+    if (bt != Button_Unknown)
+    {
+        InputState state;
+        state.clicked = clicked;
+        state.stateChange = true;
 
-        Vec2 cursor = win32_GetCursorPos();
-        state.cursorX = cursor.x;
-        state.cursorY = cursor.y;
+        z::vec2 cursor = win32_GetCursorPos();
+        state.cursorX = cursor.x();
+        state.cursorY = cursor.y();
 
-		gameState->buttonStates[bt] = state;
-	}
+        gameState->buttonStates[bt] = state;
+    }
 }
 
 internal void win32_ProcessInputMessages(GameState* gameState)
@@ -415,10 +415,10 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                 g_running = false;
             } break;
 
-			case WM_SIZE:
-			{
-				gameState->viewportSize = Vec2(LOWORD(message.lParam), HIWORD(message.lParam));
-			} break;
+            case WM_SIZE:
+            {
+                gameState->viewportSize = z::vec2(LOWORD(message.lParam), HIWORD(message.lParam));
+            } break;
 
             case WM_KEYUP:
             case WM_KEYDOWN:
@@ -431,22 +431,22 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                 bool32 wasDown = ((message.lParam & (1 << 30)) != 0);
                 bool32 isDown = ((message.lParam & (1 << 31)) == 0);
 
-				if (isDown != wasDown)
-				{
-					Key key = win32_ConvertKey(vkCode);
-					if (key != Key_Unknown)
-					{
-						InputState state;
+                if (isDown != wasDown)
+                {
+                    Key key = win32_ConvertKey(vkCode);
+                    if (key != Key_Unknown)
+                    {
+                        InputState state;
 
-						state.clicked = isDown;
-						state.stateChange = true;
-						
-                        Vec2 cursor = win32_GetCursorPos();
-						state.cursorX = cursor.x;
-						state.cursorY = cursor.y;
+                        state.clicked = isDown;
+                        state.stateChange = true;
 
-						gameState->keyStates[key] = state;
-					}
+                        z::vec2 cursor = win32_GetCursorPos();
+                        state.cursorX = cursor.x();
+                        state.cursorY = cursor.y();
+
+                        gameState->keyStates[key] = state;
+                    }
 
                     if (vkCode == VK_ESCAPE)
                     {
@@ -462,41 +462,41 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                     }
                     else if (vkCode == VK_UP || vkCode == VK_SPACE || vkCode == localUp)
                     {
-						gameState->controllers[0].newJump = !gameState->controllers[0].jump;
+                        gameState->controllers[0].newJump = !gameState->controllers[0].jump;
                         gameState->controllers[0].jump = isDown;
                     }
                 }
             } break;
 
-			case WM_LBUTTONDOWN:
-			{
-				win32_FillButtonState(gameState, Button_Left, true);
-			} break;
+            case WM_LBUTTONDOWN:
+            {
+                win32_FillButtonState(gameState, Button_Left, true);
+            } break;
 
-			case WM_RBUTTONDOWN:
-			{
-				win32_FillButtonState(gameState, Button_Right, true);
-			} break;
+            case WM_RBUTTONDOWN:
+            {
+                win32_FillButtonState(gameState, Button_Right, true);
+            } break;
 
-			case WM_MBUTTONDOWN:
-			{
-				win32_FillButtonState(gameState, Button_Middle, true);
-			} break;
+            case WM_MBUTTONDOWN:
+            {
+                win32_FillButtonState(gameState, Button_Middle, true);
+            } break;
 
-			case WM_LBUTTONUP:
-			{
-				win32_FillButtonState(gameState, Button_Left, false);
-			} break;
+            case WM_LBUTTONUP:
+            {
+                win32_FillButtonState(gameState, Button_Left, false);
+            } break;
 
-			case WM_RBUTTONUP:
-			{
-				win32_FillButtonState(gameState, Button_Right, false);
-			} break;
+            case WM_RBUTTONUP:
+            {
+                win32_FillButtonState(gameState, Button_Right, false);
+            } break;
 
-			case WM_MBUTTONUP:
-			{
-				win32_FillButtonState(gameState, Button_Middle, false);
-			} break;
+            case WM_MBUTTONUP:
+            {
+                win32_FillButtonState(gameState, Button_Middle, false);
+            } break;
 
             default:
             {
@@ -566,6 +566,7 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
                 gameState->controllers[controllerIndex + 1].moveRight = false;
             }
 
+<<<<<<< HEAD
 			// TODO(Thomas): Generalize wrt binding between buttons and actions
 			gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
 			gameState->controllers[controllerIndex + 1].jump = abutton;
@@ -583,6 +584,25 @@ internal void win32_ProcessXBoxControllers(GameState* gameState)
 			{
 				g_running = false;
 			}
+=======
+            // TODO(Thomas): Generalize wrt binding between buttons and actions
+            gameState->controllers[controllerIndex + 1].newJump = !gameState->controllers[controllerIndex + 1].jump;
+            gameState->controllers[controllerIndex + 1].jump = abutton;
+
+            gameState->controllers[controllerIndex + 1].newDash = !gameState->controllers[controllerIndex + 1].dash;
+            gameState->controllers[controllerIndex + 1].dash = bbutton;
+
+            gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+            gameState->controllers[controllerIndex + 1].mana = xbutton;
+
+            //gameState->controllers[controllerIndex + 1].newMana = !gameState->controllers[controllerIndex + 1].mana;
+            //gameState->controllers[controllerIndex + 1].mana = ybutton;
+
+            if (start && back)
+            {
+                g_running = false;
+            }
+>>>>>>> origin/master
 
             // Vibrate on edges
             if (gameState->onEdge)
@@ -611,8 +631,8 @@ int CALLBACK WinMain(HINSTANCE instance,
                      int       cmdShow)
 {
 
-	uint32 worldWindowWidth = 1440;
-	uint32 worldWindowHeight = 720;
+    uint32 worldWindowWidth = 1440;
+    uint32 worldWindowHeight = 720;
 
     WNDCLASS wc = {0};
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -649,7 +669,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         HGLRC openglRC = win32_InitOpenGL(openglDC);
 
         wglMakeCurrent(openglDC, openglRC);
-		wglSwapIntervalEXT(1);
+        wglSwapIntervalEXT(1);
 
         g_running = true;
 
@@ -678,22 +698,21 @@ int CALLBACK WinMain(HINSTANCE instance,
         }
 
         GameState gameState;
-		gameState = {0};
-		gameState.viewportSize = Vec2(worldWindowWidth, worldWindowHeight);
+        gameState.viewportSize = z::vec2(worldWindowWidth, worldWindowHeight);
 
         InitGame(&gameState);
 
-		LARGE_INTEGER timerFreq;
-		QueryPerformanceFrequency(&timerFreq);
-		LARGE_INTEGER t0, t1;
-		QueryPerformanceCounter(&t0);
+        LARGE_INTEGER timerFreq;
+        QueryPerformanceFrequency(&timerFreq);
+        LARGE_INTEGER t0, t1;
+        QueryPerformanceCounter(&t0);
 
         while (g_running)
         {
-			QueryPerformanceCounter(&t1);
+            QueryPerformanceCounter(&t1);
             // HACK(Charly): Prevent dt from being stupidly large.
-			real32 dt = Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 1.f / 60.f);
-			t0 = t1;
+            real32 dt = z::Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 1.f / 60.f);
+            t0 = t1;
 
             // TODO(Charly): Handle keyboard and xbox controller separatly
             win32_ProcessInputMessages(&gameState);

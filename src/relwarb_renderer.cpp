@@ -57,15 +57,15 @@ void main()
 }
 )";
 
-global_variable GLfloat vertices[] = 
+global_variable GLfloat vertices[] =
 {
-    -.5f, -.5f, 0.f, 0.f, 
+    -.5f, -.5f, 0.f, 0.f,
      .5f, -.5f, 1.f, 0.f,
      .5f,  .5f, 1.f, 1.f,
-    -.5f,  .5f, 0.f, 1.f, 
+    -.5f,  .5f, 0.f, 1.f,
 };
 
-global_variable GLuint indices[] = 
+global_variable GLuint indices[] =
 {
     0, 1, 2,
     0, 2, 3,
@@ -100,105 +100,105 @@ internal GLuint CompileShader(const char* src, GLenum type)
 
 Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap)
 {
-	ComponentID id = gameState->nbSprites++;
-	Assert(id < WORLD_SIZE);
+    ComponentID id = gameState->nbSprites++;
+    Assert(id < WORLD_SIZE);
 
-	Sprite* result = &gameState->sprites[id];
-	result->spriteType = SpriteType_Still;
-	result->stillSprite = bitmap;
+    Sprite* result = &gameState->sprites[id];
+    result->spriteType = SpriteType_Still;
+    result->stillSprite = bitmap;
 
-	return result;
+    return result;
 }
 
 Sprite* CreateTimeSprite(GameState* gameState, uint32 nbBitmaps, Bitmap** bitmaps, real32 stepTime, bool32 active)
 {
-	ComponentID id = gameState->nbSprites++;
-	Assert(id < WORLD_SIZE);
+    ComponentID id = gameState->nbSprites++;
+    Assert(id < WORLD_SIZE);
 
-	Sprite* result = &gameState->sprites[id];
-	result->spriteType = SpriteType_Timed;
-	result->nbSteps = nbBitmaps;
-	result->steps = new Bitmap*[nbBitmaps];
-	memcpy(result->steps, bitmaps, nbBitmaps * sizeof(Bitmap*));
-	result->currentStep = 0;
-	result->stepTime = stepTime;
-	result->active = active;
+    Sprite* result = &gameState->sprites[id];
+    result->spriteType = SpriteType_Timed;
+    result->nbSteps = nbBitmaps;
+    result->steps = new Bitmap*[nbBitmaps];
+    memcpy(result->steps, bitmaps, nbBitmaps * sizeof(Bitmap*));
+    result->currentStep = 0;
+    result->stepTime = stepTime;
+    result->active = active;
 
-	return result;
+    return result;
 }
 
 Bitmap* GetSpriteBitmap(const Sprite* sprite)
 {
-	switch (sprite->spriteType)
-	{
-		case SpriteType_Still:
-		{
-			return sprite->stillSprite;
-		} break;
-		case SpriteType_Timed:
-		{
-			return sprite->steps[sprite->currentStep];
-		} break;
-		default:
-			Assert(false);
-			return nullptr;
-	}
+    switch (sprite->spriteType)
+    {
+        case SpriteType_Still:
+        {
+            return sprite->stillSprite;
+        } break;
+        case SpriteType_Timed:
+        {
+            return sprite->steps[sprite->currentStep];
+        } break;
+        default:
+            Assert(false);
+            return nullptr;
+    }
 }
 
-RenderingPattern* CreateUniqueRenderingPattern(	GameState* gameState,
-												Sprite* sprite)
+RenderingPattern* CreateUniqueRenderingPattern( GameState* gameState,
+                                                Sprite* sprite)
 {
-	ComponentID id = gameState->nbPatterns++;
-	Assert(id < WORLD_SIZE);
+    ComponentID id = gameState->nbPatterns++;
+    Assert(id < WORLD_SIZE);
 
-	RenderingPattern* result = &gameState->patterns[id];
-	result->patternType = RenderingPattern_Unique;
-	result->unique = sprite;
+    RenderingPattern* result = &gameState->patterns[id];
+    result->patternType = RenderingPattern_Unique;
+    result->unique = sprite;
 
-	return result;
+    return result;
 }
 
 void UpdateSpriteTime(Sprite* sprite, real32 dt)
 {
-	if (sprite->spriteType == SpriteType_Timed && sprite->active)
-	{
-		sprite->elapsed += dt;
-		if (sprite->elapsed > sprite->stepTime)
-		{
-			sprite->currentStep++;
-			sprite->elapsed -= sprite->stepTime;
-			if (sprite->currentStep >= sprite->nbSteps)
-			{
-				sprite->currentStep = 0;
-			}
-		}
-	}
+    if (sprite->spriteType == SpriteType_Timed && sprite->active)
+    {
+        sprite->elapsed += dt;
+        if (sprite->elapsed > sprite->stepTime)
+        {
+            sprite->currentStep++;
+            sprite->elapsed -= sprite->stepTime;
+            if (sprite->currentStep >= sprite->nbSteps)
+            {
+                sprite->currentStep = 0;
+            }
+        }
+    }
 }
 
-RenderingPattern* CreateFillRenderingPattern(GameState* gameState, 
-                                         Vec2 size, 
+RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
+                                         z::vec2 size,
                                          uint8* pattern,
-										 uint8 nbBitmaps,
+                                         uint8 nbBitmaps,
                                          Bitmap** bitmaps)
 {
-	ComponentID id = gameState->nbPatterns++;
-	Assert(id < WORLD_SIZE);
+    ComponentID id = gameState->nbPatterns++;
+    Assert(id < WORLD_SIZE);
 
-	RenderingPattern* result = &gameState->patterns[id];
-	result->size = size;
+    RenderingPattern* result = &gameState->patterns[id];
+    result->size = size;
     result->patternType = RenderingPattern_Fill;
-	result->pattern = new uint8[size.x * size.y];
-	memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
-	result->tiles = new Bitmap*[nbBitmaps];
-	memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
+    result->pattern = new uint8[size.x() * size.y()];
+    memcpy(result->pattern, pattern, size.x() * size.y() * sizeof(uint8));
+    result->tiles = new Bitmap*[nbBitmaps];
+    memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
 
-	return result;
+    return result;
 }
 
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
 {
-	entity->pattern = pattern;
-	SetEntityComponent(entity, ComponentFlag_Renderable);
+    entity->pattern = pattern;
+    SetEntityComponent(entity, ComponentFlag_Renderable);
 }
 
 void InitializeRenderer()
@@ -218,7 +218,7 @@ void InitializeRenderer()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
+
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
 
@@ -266,7 +266,7 @@ void InitializeRenderer()
     }
 }
 
-void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
+void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
     switch (pattern->patternType)
     {
@@ -274,58 +274,58 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
         {
             RenderBitmap(GetSpriteBitmap(pattern->unique), transform);
         } break;
-		case RenderingPattern_Fill:
-		{
-			RenderFillPattern(pattern, transform, size);
-		} break;
+        case RenderingPattern_Fill:
+        {
+            RenderFillPattern(pattern, transform, size);
+        } break;
 
         default:
         {
             // Unknown render pattern type
-        }; 
+        };
     }
 }
 
-void RenderFillPattern(RenderingPattern* pattern, Transform* transform, Vec2 size)
+void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
-	uint32 middleTileX = pattern->size.x * 0.5f;
-	uint32 middleTileY = pattern->size.y * 0.5f;
-	uint32 deltaX = size.x - pattern->size.x;
-	uint32 deltaY = size.y - pattern->size.y;
-	real32 halfSizeX = size.x * 0.5f - 0.5f;
-	real32 halfSizeY = size.y * 0.5f - 0.5f;
-	Assert(deltaX >= 0 && deltaY >= 0);
+    uint32 middleTileX = pattern->size.x() * 0.5f;
+    uint32 middleTileY = pattern->size.y() * 0.5f;
+    uint32 deltaX = size.x() - pattern->size.x();
+    uint32 deltaY = size.y() - pattern->size.y();
+    real32 halfSizeX = size.x() * 0.5f - 0.5f;
+    real32 halfSizeY = size.y() * 0.5f - 0.5f;
+    Assert(deltaX >= 0 && deltaY >= 0);
 
-	uint32 indexX = 0, indexY;
-	for (real32 i = -halfSizeX; i <= halfSizeX; i += 1, ++indexX)
-	{
-		indexY = 0;
-	 	for (real32 j = -halfSizeY; j <= halfSizeY; j += 1, ++indexY)
-	 	{
-	 		Transform currentTransform = *transform;
-			// TODO(Thomas): Do properly.
-			currentTransform.scale = Vec2(1);
-	 		currentTransform.position += Vec2(i, j);
-	 		RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x) + indexX], &currentTransform);
+    uint32 indexX = 0, indexY;
+    for (real32 i = -halfSizeX; i <= halfSizeX; i += 1, ++indexX)
+    {
+        indexY = 0;
+        for (real32 j = -halfSizeY; j <= halfSizeY; j += 1, ++indexY)
+        {
+            Transform currentTransform = *transform;
+            // TODO(Thomas): Do properly.
+            currentTransform.scale = z::vec2(1);
+            currentTransform.position += z::vec2(i, j);
+            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX], &currentTransform);
 
-			if (indexY == middleTileY && deltaY > 0)
-			{
-				--indexY;
-				--deltaY;
-			}
-	 	}
+            if (indexY == middleTileY && deltaY > 0)
+            {
+                --indexY;
+                --deltaY;
+            }
+        }
 
-		if (indexX == middleTileX && deltaX > 0)
-		{
-			--indexX;
-			--deltaX;
-		}
-	}
+        if (indexX == middleTileX && deltaX > 0)
+        {
+            --indexX;
+            --deltaX;
+        }
+    }
 }
 
 void RenderBitmap(Bitmap* bitmap, const Transform* transform)
 {
-	glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
 
     // TODO(Charly): Should this be done in an Init step ?
     if (!glIsTexture(bitmap->texture))
@@ -345,9 +345,9 @@ void RenderBitmap(Bitmap* bitmap, const Transform* transform)
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    Mat4 pos = Translation(transform->position.x, transform->position.y, 0);
-	pos[0][0] *= transform->scale.x;
-	pos[1][1] *= transform->scale.y;
+    z::mat4 T = z::Translation(transform->position.x(), transform->position.y(), 0);
+    z::mat4 S = z::Scale(transform->scale.x(), transform->scale.y(), 0);
+    z::mat4 model = S * T;
 
     glUseProgram(g_bitmapProg);
     glBindTexture(GL_TEXTURE_2D, bitmap->texture);
@@ -356,26 +356,26 @@ void RenderBitmap(Bitmap* bitmap, const Transform* transform)
     glUniform1i(glGetUniformLocation(g_bitmapProg, "u_tex"), 0);
     glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_proj"), 1, GL_FALSE, transform->proj.data);
     glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_world"), 1, GL_FALSE, transform->world.data);
-    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_model"), 1, GL_FALSE, pos.data);
+    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_model"), 1, GL_FALSE, model.data);
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1.f);
-	glEnable(GL_POLYGON_OFFSET_LINE);
-	glPolygonOffset(-1.f, -1.1f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(1.f);
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonOffset(-1.f, -1.1f);
 
-	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void ReleaseBitmap(Bitmap* bitmap)
