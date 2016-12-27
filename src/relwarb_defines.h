@@ -27,6 +27,7 @@
 #pragma warning(disable : 4201) // Nameless struct / unions
 #pragma warning(disable : 4244) // Conversion from double to float
 #pragma warning(disable : 4505) // Function not used
+#pragma warning(disable : 4305) // Truncation from double to float
 
 #endif
 

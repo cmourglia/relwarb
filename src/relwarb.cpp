@@ -19,7 +19,7 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/mana_full.png", &gameState->hudMana[0]);
     LoadBitmapData("assets/mana_none.png", &gameState->hudMana[1]);
 
-    InitializeRenderer();
+    InitializeRenderer(gameState);
     gameState->projMatrix = z::Ortho(-gameState->viewportSize.x() / 2, gameState->viewportSize.x() / 2,
                                      -gameState->viewportSize.y() / 2, gameState->viewportSize.y() / 2);
     real32 ratio = gameState->viewportSize.x() / gameState->viewportSize.y();
@@ -134,26 +134,18 @@ void RenderGame(GameState* gameState, real32 dt)
                     RenderingPattern* pattern = entity->pattern;
                     z::vec2 pos(entity->p);
 
-                    Transform transform;
-                    transform.offset = z::vec2(0);
-                    transform.position = pos;
-                    transform.scale = z::vec2(1);
-                    transform.proj = gameState->projMatrix;
-                    transform.world = gameState->worldMatrix;
+                    Transform transform = GetWorldTransform(entity->p);
 
                     // TODO(Thomas): Handle drawing size with a drawing size
                     if (EntityHasComponent(entity, ComponentFlag_Collidable))
                     {
-                        transform.scale = entity->shape->size;
-                        transform.offset = entity->shape->offset;
+                        transform.size = entity->shape->size;
+                        transform.origin += entity->shape->offset;
                     }
 
                     if (entity->entityType == EntityType_Player)
                     {
-                        if (entity->orientation < 0.f)
-                        {
-                            transform.scale.x() *= -1.f;
-                        }
+                        transform.orientation = entity->orientation < 0.f ? -1 : 1;
                     }
 
                     RenderPattern(pattern, &transform, entity->shape->size);
@@ -161,6 +153,11 @@ void RenderGame(GameState* gameState, real32 dt)
             }
 
             RenderHUD(gameState);
+            RenderText("Hello, World", z::vec2(0.0, 0.0), gameState);
+            RenderText("I am another test text !", z::vec2(0.0, 0.1), gameState);
+            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), gameState);
+
+            FlushRenderQueue(gameState);
         } break;
 
         case GameMode_Editor:
@@ -180,24 +177,23 @@ void RenderHUD(GameState* gameState)
     real32 ratio = gameState->viewportSize.x() / gameState->viewportSize.y();
 
     Transform transform;
-    transform.offset = z::vec2(0);
-    transform.proj = z::mat4::Identity();
-    transform.world = z::mat4::Identity();
 
-    z::vec2 onScreenPos = z::vec2(-1.f + 0.08f, 0.92f);
+    //z::vec2 onScreenPos = z::vec2(0.08f, 0.08f);
+    z::vec2 onScreenPos = z::vec2(500, 50);
     for (uint32 i = 0; i < gameState->nbPlayers; ++i)
     {
         Entity* player = gameState->players[i];
 
-        transform.scale = z::vec2(0.125f, 0.125f*ratio);
+        //transform.size = z::vec2(0.125f, 0.125f);
+        transform.size = z::vec2(100, 100);
 
         // Avatar
-        transform.position = onScreenPos + transform.scale * z::vec2(0.5f, -0.5f);
-        RenderBitmap(player->avatar, &transform);
+        transform.position = onScreenPos;// + transform.size * z::vec2(0.5f, -0.5f);
+        RenderBitmap(player->avatar, RenderMode_ScreenAbsolute, &transform);
 
         // Health
-        transform.scale = z::vec2(0.05f, 0.05f*ratio);
-        z::vec2 healthPos = onScreenPos + z::vec2(0.15f, 0.f) + transform.scale * z::vec2(0.5f, -0.5f);
+        transform.size = z::vec2(0.05f, 0.05f*ratio);
+        z::vec2 healthPos = onScreenPos + z::vec2(0.15f, 0.f) + transform.size * z::vec2(0.5f, -0.5f);
         for (uint32 hp = 0; hp < player->max_health; hp+=2)
         {
             transform.position = healthPos;
@@ -205,38 +201,38 @@ void RenderHUD(GameState* gameState)
             {
                 if (hp + 1 < player->health)
                 {
-                    RenderBitmap(&gameState->hudHealth[0], &transform);
+                    //RenderBitmap(&gameState->hudHealth[0], &transform);
                 }
                 else
                 {
-                    RenderBitmap(&gameState->hudHealth[1], &transform);
+                    //RenderBitmap(&gameState->hudHealth[1], &transform);
                 }
             }
             else
             {
-                RenderBitmap(&gameState->hudHealth[2], &transform);
+                //RenderBitmap(&gameState->hudHealth[2], &transform);
             }
 
             healthPos.x() += 0.051f;
         }
 
         // Mana
-        z::vec2 manaPos = onScreenPos + z::vec2(0.15f, -0.075f*ratio) + transform.scale * z::vec2(0.5f, -0.5f);
+        z::vec2 manaPos = onScreenPos + z::vec2(0.15f, -0.075f*ratio) + transform.size * z::vec2(0.5f, -0.5f);
         for (uint32 mp = 0; mp < player->max_mana; ++mp)
         {
             transform.position = manaPos;
             if (mp < player->mana)
             {
-                RenderBitmap(&gameState->hudMana[0], &transform);
+                //RenderBitmap(&gameState->hudMana[0], &transform);
             }
             else
             {
-                RenderBitmap(&gameState->hudMana[1], &transform);
+                //RenderBitmap(&gameState->hudMana[1], &transform);
             }
             manaPos.x() += 0.051f;
         }
 
-        onScreenPos.x() += 0.48f;
+        onScreenPos.x() += 100;
     }
 }
 
@@ -247,11 +243,13 @@ void LoadBitmapData(const char* filename, Bitmap* bitmap)
     int n;
     bitmap->data = stbi_load(filename, &bitmap->width, &bitmap->height, &n, 4);
     Assert(bitmap->data);
+
+    LoadTexture(bitmap);
 }
 
 void ReleaseBitmapData(Bitmap* bitmap)
 {
-    ReleaseBitmap(bitmap);
+    ReleaseTexture(bitmap);
     stbi_image_free(bitmap->data);
 }
 
@@ -293,6 +291,15 @@ z::vec2 ViewportToWorld(GameState* state, z::vec2 in)
     result = result - z::vec2(0.5);
     // [-0.5, 0.5] -> [-world / 2, world / 2]
     result = result * state->worldSize;
+
+    return result;
+}
+
+Transform GetWorldTransform(z::vec2 pos)
+{
+    Transform result;
+    result.position = pos;
+    result.origin = z::vec2(0.5);
 
     return result;
 }

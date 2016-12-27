@@ -101,6 +101,7 @@ struct GameState
     InputState buttonStates[Button_Count];
 };
 
+
 // NOTE(Charly): Initialize all the game logic related stuff here
 // TODO(Charly): This should probably be exposed to the scripting
 void InitGame(GameState* gameState);
@@ -132,5 +133,8 @@ Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);
 
 z::vec2 ViewportToWorld(GameState* state, z::vec2 in);
+
+// NOTE(Charly): Initialize a transform with origin at (0.5, 0.5) instead of (0, 0)
+Transform GetWorldTransform(z::vec2 position);
 
 #endif // RELWARB_H

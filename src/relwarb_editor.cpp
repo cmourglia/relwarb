@@ -99,10 +99,7 @@ void RenderEditor(GameState* gameState)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Transform t;
-    t.offset = z::vec2(0, 0);
-    t.scale = z::vec2(1);
-    t.proj = gameState->projMatrix;
-    t.world = gameState->worldMatrix;
+    t.origin = z::vec2(0.5, 0.5);
 
     for (int i = 0; i < width; ++i)
     {
@@ -112,7 +109,7 @@ void RenderEditor(GameState* gameState)
             if (tile != -1)
             {
                 t.position = z::vec2((i - width / 2) + 0.5, (j - height / 2) + 0.5);
-                RenderBitmap(&gameState->bitmaps[tile], &t);
+                RenderBitmap(&gameState->bitmaps[tile], RenderMode_World, &t);
             }
             ++tile;
         }
@@ -122,7 +119,7 @@ void RenderEditor(GameState* gameState)
     {
         z::vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
         t.position = z::vec2(z::Floor(cursor.x()) + 0.5, z::Floor(cursor.y()) + 0.5);
-        RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
+        RenderBitmap(&gameState->bitmaps[selectedBitmap], RenderMode_World, &t);
     }
 /*
     {

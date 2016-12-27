@@ -3,6 +3,10 @@
 
 #include "zmath.hpp"
 #include "relwarb_entity.h"
+#include "relwarb_opengl.h"
+
+// TODO(Charly): Remove this
+#include <vector>
 
 struct Bitmap;
 struct GameState;
@@ -70,17 +74,42 @@ struct RenderingPattern
 struct Transform
 {
     z::vec2 position;
-    z::vec2 offset;
-    z::vec2 scale;
+    z::vec2 size = z::vec2(1);
+    z::vec2 origin = z::vec2(0);
 
-    z::mat4 proj;
-    z::mat4 world;
-
-    // TODO(Charly). Orientation ?
+    real32 rotation = 0;
+    int orientation = 1;    // NOTE(Charly): Negative value if looking left,
+                            //               Positive value otherwise.
 };
 
-void InitializeRenderer();
+enum RenderMode
+{
+    RenderMode_World,
+    RenderMode_ScreenAbsolute,
+    RenderMode_ScreenRelative,
+};
+
+struct Vertex
+{
+    z::vec2 position;
+    z::vec2 texcoord;
+};
+
+struct Mesh
+{
+    RenderMode renderMode;
+    GLuint program;
+    GLuint texture;
+
+    std::vector<Vertex> vertices;
+    std::vector<GLuint> indices;
+
+    z::mat3 worldTransform;
+};
+
+void InitializeRenderer(GameState* gameState);
 void ResizeRenderer(GameState* gameState);
+void FlushRenderQueue(GameState* gameState);
 
 Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap);
 
@@ -110,13 +139,15 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
 // Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
 
-// TODO(Charly): x and y are given in opengl coordinates for now,
-//               maybe this should change
-void RenderBitmap(Bitmap* bitmap, const Transform* transform);
+void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform);
 
+void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory
-void ReleaseBitmap(Bitmap* bitmap);
+void ReleaseTexture(Bitmap* bitmap);
 
-void RenderGrid(z::vec2 resolution = z::vec2(10, 10), z::vec2 center = z::vec2(0));
+void RenderText(char* text, z::vec2 pos, GameState* state);
+void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
+z::mat3 GetTransformMatrix(Transform* transform);
+z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState);
 #endif // RELWARB_RENDERER_H

@@ -4,6 +4,15 @@
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
+#include <stdio.h>
+#include <vector> // TODO(Charly): Remove this
+#include <algorithm>
+
+global_variable std::vector<Mesh> g_renderQueue;
+
 global_variable GLuint g_bitmapProg;
 global_variable GLuint g_colorProg;
 
@@ -13,22 +22,24 @@ global_variable const char* bitmapVert = R"(
 layout (location = 0) in vec2 in_pos;
 layout (location = 1) in vec2 in_uv;
 
-uniform mat4 u_proj;
-uniform mat4 u_world;
-uniform mat4 u_model;
+uniform mat3 u_proj;
 
 out vec2 uv;
+out vec2 pos;
 
 void main()
 {
-    gl_Position = u_proj * u_world * u_model * vec4(in_pos, 0, 1);
+    //vec3 p = u_proj * vec3(in_pos, 1);
+    gl_Position = vec4(in_pos, 0, 1);
     uv = in_uv;
+    pos = gl_Position.xy;
 }
 )";
 
 global_variable const char* bitmapFrag = R"(
 #version 330
 
+in vec2 pos;
 in vec2 uv;
 out vec4 color;
 
@@ -56,22 +67,6 @@ void main()
     color.a = 1.0;
 }
 )";
-
-global_variable GLfloat vertices[] =
-{
-    -.5f, -.5f, 0.f, 0.f,
-     .5f, -.5f, 1.f, 0.f,
-     .5f,  .5f, 1.f, 1.f,
-    -.5f,  .5f, 0.f, 1.f,
-};
-
-global_variable GLuint indices[] =
-{
-    0, 1, 2,
-    0, 2, 3,
-};
-
-global_variable GLuint vao, vbo, ibo;
 
 internal GLuint CompileShader(const char* src, GLenum type)
 {
@@ -201,32 +196,8 @@ void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
     SetEntityComponent(entity, ComponentFlag_Renderable);
 }
 
-void InitializeRenderer()
+void InitializeRenderer(GameState* gameState)
 {
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ibo);
-
-    Assert(vao);
-    Assert(vbo);
-    Assert(ibo);
-
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
     GLuint vshader = CompileShader(bitmapVert, GL_VERTEX_SHADER);
     GLuint fshader = CompileShader(bitmapFrag, GL_FRAGMENT_SHADER);
 
@@ -266,13 +237,89 @@ void InitializeRenderer()
     }
 }
 
+void FlushRenderQueue(GameState* gameState)
+{
+    // Avoid state changes as much as possible
+    std::sort(g_renderQueue.begin(), g_renderQueue.end(),
+              [](const Mesh& a, const Mesh& b)
+              {
+                  bool result =
+                      a.program < b.program ? true
+                      : a.program > b.program ? false
+                      : a.renderMode < b.renderMode ? true
+                      : a.renderMode > b.renderMode ? false
+                      : a.texture < b.texture ? true : false;
+
+                  return result;
+              });
+
+    int start = 0;
+
+#if 1
+    while (start < g_renderQueue.size())
+    {
+        int end = start + 1;
+        RenderMode currMode = g_renderQueue[start].renderMode;
+        GLuint currTexture = g_renderQueue[start].texture;
+
+        // NOTE(Charly): Find all meshes that share a texture
+        while (end < g_renderQueue.size() &&
+               g_renderQueue[end].renderMode == currMode &&
+               g_renderQueue[end].texture == currTexture)
+        {
+            ++end;
+        }
+
+        Mesh mesh;
+        mesh.program = g_renderQueue[start].program;
+        mesh.texture = currTexture;
+
+        z::mat3 projMatrix = GetProjectionMatrix(currMode, gameState);
+
+        GLuint startIdx = 0;
+        for (int i = start; i < end; ++i)
+        {
+            Mesh* currMesh = &g_renderQueue[i];
+            for (const auto& vert : currMesh->vertices)
+            {
+                z::vec2 p = projMatrix * currMesh->worldTransform * vert.position;
+                Vertex v = {p, vert.texcoord};
+                mesh.vertices.push_back(v);
+            }
+
+            for (const auto& idx : currMesh->indices)
+            {
+                mesh.indices.push_back(startIdx + idx);
+            }
+            startIdx += (GLuint)currMesh->vertices.size();
+        }
+
+        RenderMesh(&mesh, projMatrix);
+
+        start = end;
+    }
+#else
+    for (auto& mesh : g_renderQueue)
+    {
+        z::mat3 projMatrix = GetProjectionMatrix(mesh.renderMode, gameState);
+        for (auto& vert : mesh.vertices)
+        {
+            vert.position = projMatrix * mesh.worldTransform * vert.position;
+        }
+        RenderMesh(&mesh, projMatrix);
+    }
+#endif
+
+    g_renderQueue.clear();
+}
+
 void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
     switch (pattern->patternType)
     {
         case RenderingPattern_Unique:
         {
-            RenderBitmap(GetSpriteBitmap(pattern->unique), transform);
+            RenderBitmap(GetSpriteBitmap(pattern->unique), RenderMode_World, transform);
         } break;
         case RenderingPattern_Fill:
         {
@@ -282,6 +329,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
         default:
         {
             // Unknown render pattern type
+            Assert(!"Wrong code path");
         };
     }
 }
@@ -304,9 +352,10 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
         {
             Transform currentTransform = *transform;
             // TODO(Thomas): Do properly.
-            currentTransform.scale = z::vec2(1);
+            currentTransform.size = z::vec2(1);
             currentTransform.position += z::vec2(i, j);
-            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX], &currentTransform);
+            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
+                         RenderMode_World, &currentTransform);
 
             if (indexY == middleTileY && deltaY > 0)
             {
@@ -323,11 +372,28 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
     }
 }
 
-void RenderBitmap(Bitmap* bitmap, const Transform* transform)
+void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform)
 {
     glDisable(GL_DEPTH_TEST);
 
-    // TODO(Charly): Should this be done in an Init step ?
+    Mesh mesh;
+    mesh.renderMode = mode;
+    mesh.program = g_bitmapProg;
+    mesh.texture = bitmap->texture;
+    mesh.worldTransform = GetTransformMatrix(transform);
+
+    mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 0)});
+    mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 0)});
+    mesh.vertices.push_back({z::vec2(1, 1), z::vec2(1, 1)});
+    mesh.vertices.push_back({z::vec2(0, 1), z::vec2(0, 1)});
+
+    mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
+
+    g_renderQueue.push_back(mesh);
+}
+
+void LoadTexture(Bitmap* bitmap)
+{
     if (!glIsTexture(bitmap->texture))
     {
         glGenTextures(1, &bitmap->texture);
@@ -344,22 +410,140 @@ void RenderBitmap(Bitmap* bitmap, const Transform* transform)
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+}
 
-    z::mat4 T = z::Translation(transform->position.x(), transform->position.y(), 0);
-    z::mat4 S = z::Scale(transform->scale.x(), transform->scale.y(), 0);
-    z::mat4 model = S * T;
+void ReleaseTexture(Bitmap* bitmap)
+{
+    if (glIsTexture(bitmap->texture))
+    {
+        glDeleteTextures(1, &bitmap->texture);
+    }
+}
 
-    glUseProgram(g_bitmapProg);
-    glBindTexture(GL_TEXTURE_2D, bitmap->texture);
-    glActiveTexture(GL_TEXTURE0);
+static stbtt_bakedchar cdata[96]; // NOTE(Charly): ASCII 32..126
+static GLuint fontTexture;
 
-    glUniform1i(glGetUniformLocation(g_bitmapProg, "u_tex"), 0);
-    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_proj"), 1, GL_FALSE, transform->proj.data);
-    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_world"), 1, GL_FALSE, transform->world.data);
-    glUniformMatrix4fv(glGetUniformLocation(g_bitmapProg, "u_model"), 1, GL_FALSE, model.data);
+void LoadFont(const char* font)
+{
+    FILE* fontFile;
+    fopen_s(&fontFile, font, "rb");
+    if (fontFile != nullptr)
+    {
+        unsigned char* ttfBuffer = new unsigned char[1 << 20];
+        unsigned char* tmpBitmap = new unsigned char[512 * 512];
+
+        fread(ttfBuffer, 1, 1 << 20, fontFile);
+        // NOTE(Charly): No guarantee this fits !
+        stbtt_BakeFontBitmap(ttfBuffer, 0, 32.0, tmpBitmap, 512, 512, 32, 96, cdata);
+
+        glGenTextures(1, &fontTexture);
+        glBindTexture(GL_TEXTURE_2D, fontTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512, 512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tmpBitmap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        delete[] tmpBitmap;
+        delete[] ttfBuffer;
+    }
+    else
+    {
+        Log(Log_Error, "Could not find font %s\n", font);
+    }
+}
+
+void RenderText(char* text, z::vec2 pos, GameState* state)
+{
+    // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
+    if (fontTexture == 0)
+    {
+        LoadFont("c:/windows/fonts/times.ttf");
+    }
+
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+
+    GLuint idx = 0;
+    Mesh mesh;
+
+    real32 x = 0, y = 0;
+    real miny = 0;
+
+    while (*text)
+    {
+        if (*text >= 32 && *text < 128)
+        {
+            stbtt_aligned_quad q;
+            stbtt_GetBakedQuad(cdata, 512, 512, *text - 32, &x, &y, &q, 1);
+
+            miny = z::Min(q.y0, miny);
+
+            mesh.vertices.push_back({z::vec2(q.x0, q.y0), z::vec2(q.s0, q.t0)});
+            mesh.vertices.push_back({z::vec2(q.x1, q.y0), z::vec2(q.s1, q.t0)});
+            mesh.vertices.push_back({z::vec2(q.x1, q.y1), z::vec2(q.s1, q.t1)});
+            mesh.vertices.push_back({z::vec2(q.x0, q.y1), z::vec2(q.s0, q.t1)});
+
+            mesh.indices.push_back(idx + 0);
+            mesh.indices.push_back(idx + 1);
+            mesh.indices.push_back(idx + 2);
+
+            mesh.indices.push_back(idx + 0);
+            mesh.indices.push_back(idx + 2);
+            mesh.indices.push_back(idx + 3);
+
+            idx += 4;
+        }
+        ++text;
+    }
+
+    for (auto& v : mesh.vertices)
+    {
+        v.position.y() -= miny;
+        v.position /= state->viewportSize;
+    }
+
+    Transform t;
+    t.position = pos;
+    mesh.worldTransform = GetTransformMatrix(&t);
+    mesh.renderMode = RenderMode_ScreenRelative;
+    mesh.program = g_bitmapProg;
+    mesh.texture = fontTexture;
+
+    g_renderQueue.push_back(mesh);
+}
+
+void RenderMesh(const Mesh* mesh, z::mat3 proj)
+{
+    GLuint vao = 0, vbo = 0, ibo = 0;
+    glGenVertexArrays(1, &vao);
 
     glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex),
+                 mesh->vertices.data(), GL_STATIC_DRAW);
+
+    GLint64 ptr = 0;
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)ptr);
+    glEnableVertexAttribArray(0);
+    ptr += 2 * sizeof(GLfloat);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)ptr);
+    glEnableVertexAttribArray(1);
+
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indices.size() * sizeof(GLuint),
+                 mesh->indices.data(), GL_STATIC_DRAW);
+
+    glDisable(GL_DEPTH_TEST);
+
+    glUseProgram(mesh->program);
+    glBindTexture(GL_TEXTURE_2D, mesh->texture);
+    glActiveTexture(GL_TEXTURE0);
+
+    glUniform1i(glGetUniformLocation(mesh->program, "u_tex"), 0);
+
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -370,18 +554,69 @@ void RenderBitmap(Bitmap* bitmap, const Transform* transform)
     glPolygonOffset(-1.f, -1.1f);
 
     glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size() , GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_DEPTH_TEST);
+
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ibo);
+    glDeleteVertexArrays(1, &vao);
 }
 
-void ReleaseBitmap(Bitmap* bitmap)
+z::mat3 GetTransformMatrix(Transform* transform)
 {
-    if (glIsTexture(bitmap->texture))
+    // TODO(Charly): origin or -origin ?
+    z::mat3 O = z::Translation(-transform->origin);
+    z::mat3 S = z::Scale(transform->size);
+    z::mat3 R = z::Rotation(transform->rotation);
+    z::mat3 T = z::Translation(transform->position);
+
+    if (transform->orientation < 0)
     {
-        glDeleteTextures(1, &bitmap->texture);
+        S[0][0] *= -1;
     }
+
+    // TODO(Charly): Check multiplication order
+    z::mat3 result = T * R * S * O;
+    return result;
+}
+
+z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState)
+{
+    z::mat3 result(1);
+
+    switch (renderMode)
+    {
+        case RenderMode_ScreenAbsolute:
+        {
+            result[0][0] = 2 / gameState->viewportSize.x();
+            result[0][2] = -1;
+            result[1][1] = -2 / gameState->viewportSize.y();
+            result[1][2] = 1;
+        } break;
+
+        case RenderMode_ScreenRelative:
+        {
+            result[0][0] = 2;
+            result[0][2] = -1;
+            result[1][1] = -2;
+            result[1][2] = 1;
+        } break;
+
+        case RenderMode_World:
+        {
+            result[0][0] = 2 / gameState->worldSize.x();
+            result[1][1] = 2 / gameState->worldSize.y();
+        } break;
+
+        default:
+        {
+            Assert(!"Wrong code path");
+        }
+    }
+
+    return result;
 }

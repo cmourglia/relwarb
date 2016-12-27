@@ -143,6 +143,9 @@ namespace z
     template <int Size> inline mat<Size> Inverse(const mat<Size>& m);
     template <int Size> inline mat<Size> Cofactor(const mat<Size>& m);
 
+    template <int Size> inline vec<Size-1> operator*(const mat<Size>& m, const vec<Size-1>& v);
+    template <int Size> inline vec<Size-1> operator*(const vec<Size-1>& v, const mat<Size>& m);
+
     typedef vec<2> vec2;
     typedef vec<3> vec3;
     typedef vec<4> vec4;
@@ -151,7 +154,16 @@ namespace z
     typedef mat<3> mat3;
     typedef mat<4> mat4;
 
+    inline mat4 LookAt(const vec3& eye, const vec3& target, const vec3& up);
     inline mat4 Ortho(real left, real right, real top, real bottom);
+
+    inline mat3 Translation(real tx, real ty);
+    inline mat3 Translation(const vec2& t);
+    // NOTE(Charly): Rotation around "z"-axis
+    inline mat3 Rotation(real r);
+    inline mat3 Scale(real sx, real sy);
+    inline mat3 Scale(const vec2& s);
+
     inline mat4 Translation(real tx, real ty, real tz);
     inline mat4 Translation(const vec3& t);
     inline mat4 Rotation(real rx, real ry, real rz);
@@ -982,6 +994,48 @@ namespace z
         return result;
     }
 
+    template <int Size> inline vec<Size-1> operator*(const mat<Size>& m, const vec<Size-1>& v)
+    {
+        vec<Size> v1;
+        for (int i = 0; i < Size-1; ++i)
+        {
+            v1[i] = v[i];
+        }
+        v1[Size-1] = real(1);
+
+        v1 = m * v1;
+        v1 /= v1[Size - 1];
+
+        vec<Size-1> result;
+        for (int i = 0; i < Size - 1; ++i)
+        {
+            result[i] = v1[i];
+        }
+
+        return result;
+    }
+
+    template <int Size> inline vec<Size-1> operator*(const vec<Size-1>& v, const mat<Size>& m)
+    {
+        vec<Size> v1;
+        for (int i = 0; i < Size-1; ++i)
+        {
+            v1[i] = v[i];
+        }
+        v1[Size-1] = real(1);
+
+        v1 = v1 * m;
+        v1 /= v1[Size - 1];
+
+        vec<Size-1> result;
+        for (int i = 0; i < Size - 1; ++i)
+        {
+            result[i] = v1[i];
+        }
+
+        return result;
+    }
+
     inline mat3 CrossMatrix(const vec3& u)
     {
         mat3 result(0);
@@ -1011,15 +1065,88 @@ namespace z
         return result;
     }
 
+    inline mat4 LookAt(const vec3& eye, const vec3& target, const vec3& up)
+    {
+        vec3 f = Normalize(target - eye);
+        vec3 u = Normalize(up);
+        vec3 s = Normalize(Cross(f, u));
+        u = Cross(s, f);
+        f = -f;
+
+        mat4 m(1);
+        m[0][0] = s.x();
+        m[0][1] = s.y();
+        m[0][2] = s.z();
+        m[1][0] = u.x();
+        m[1][1] = u.y();
+        m[1][2] = u.z();
+        m[2][0] = f.x();
+        m[2][1] = f.y();
+        m[2][2] = f.z();
+
+        mat4 t(1);
+        t[0][3] = -eye.x();
+        t[1][3] = -eye.y();
+        t[2][3] = -eye.z();
+
+        mat4 result = m * t;
+        return result;
+    }
+
     inline mat4 Ortho(real left, real right, real top, real bottom)
     {
         mat4 result(1);
 
         result[0][0] = real(2) / (right - left);
         result[1][1] = real(2) / (bottom - top);
-        result[3][0] = -(right + left) / (right - left);
-        result[3][1] = -(top + bottom) / (top - bottom);
+        result[0][3] = -(right + left) / (right - left);
+        result[1][3] = -(top + bottom) / (top - bottom);
 
+        return result;
+    }
+
+    inline mat3 Translation(real tx, real ty)
+    {
+        mat3 result(1);
+        result[0][2] = tx;
+        result[1][2] = ty;
+
+        return result;
+    }
+
+    inline mat3 Translation(const vec2& t)
+    {
+        mat3 result = Translation(t.x(), t.y());
+        return result;
+    }
+
+    inline mat3 Rotation(real r)
+    {
+        mat3 result(1);
+
+        const real c = Cos(r);
+        const real s = Sin(r);
+
+        result[0][0] = c;
+        result[0][1] = -s;
+        result[1][0] = s;
+        result[1][1] = c;
+
+        return result;
+    }
+
+    inline mat3 Scale(real sx, real sy)
+    {
+        mat3 result(1);
+        result[0][0] = sx;
+        result[1][1] = sy;
+
+        return result;
+    }
+
+    inline mat3 Scale(const vec2& s)
+    {
+        mat3 result = Scale(s.x(), s.y());
         return result;
     }
 

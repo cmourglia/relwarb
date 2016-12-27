@@ -237,6 +237,11 @@ internal void win32_GLDebugOutput(GLenum source,
             OutputDebugString("(LOW): ");
         } break;
 
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+        {
+            OutputDebugString("(NOTIF): ");
+        }
+
         default: {}
     }
 
@@ -262,7 +267,8 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
             // TODO(Charly): Toggle this flag depending on the build type
             WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
             // TODO(Charly): Swap to WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            //WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
             0,
         };
 
@@ -288,6 +294,7 @@ internal HGLRC win32_InitOpenGL(HDC hdc)
                 {
                     // WGL_GET_AND_CHECK(glDebugMessageCallbackARB, def_glDebugMessageCallbackARB*);
                      glDebugMessageCallbackARB(win32_GLDebugOutput, nullptr);
+                     glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
                 }
             }
         }
