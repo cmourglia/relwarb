@@ -178,22 +178,20 @@ void RenderHUD(GameState* gameState)
 
     Transform transform;
 
-    //z::vec2 onScreenPos = z::vec2(0.08f, 0.08f);
-    z::vec2 onScreenPos = z::vec2(500, 50);
+    z::vec2 onScreenPos = z::vec2(0.04, 0.04);
     for (uint32 i = 0; i < gameState->nbPlayers; ++i)
     {
         Entity* player = gameState->players[i];
 
-        //transform.size = z::vec2(0.125f, 0.125f);
-        transform.size = z::vec2(100, 100);
+        transform.size = z::vec2(0.0625, 0.0625 * ratio);
 
         // Avatar
-        transform.position = onScreenPos;// + transform.size * z::vec2(0.5f, -0.5f);
-        RenderBitmap(player->avatar, RenderMode_ScreenAbsolute, &transform);
+        transform.position = onScreenPos;
+        RenderBitmap(player->avatar, RenderMode_ScreenRelative, &transform);
 
         // Health
-        transform.size = z::vec2(0.05f, 0.05f*ratio);
-        z::vec2 healthPos = onScreenPos + z::vec2(0.15f, 0.f) + transform.size * z::vec2(0.5f, -0.5f);
+        transform.size = z::vec2(0.025f, 0.025f*ratio);
+        z::vec2 healthPos = onScreenPos + z::vec2(0.075f, 0.f);
         for (uint32 hp = 0; hp < player->max_health; hp+=2)
         {
             transform.position = healthPos;
@@ -201,38 +199,38 @@ void RenderHUD(GameState* gameState)
             {
                 if (hp + 1 < player->health)
                 {
-                    //RenderBitmap(&gameState->hudHealth[0], &transform);
+                    RenderBitmap(&gameState->hudHealth[0], RenderMode_ScreenRelative, &transform);
                 }
                 else
                 {
-                    //RenderBitmap(&gameState->hudHealth[1], &transform);
+                    RenderBitmap(&gameState->hudHealth[1], RenderMode_ScreenRelative, &transform);
                 }
             }
             else
             {
-                //RenderBitmap(&gameState->hudHealth[2], &transform);
+                RenderBitmap(&gameState->hudHealth[2], RenderMode_ScreenRelative, &transform);
             }
 
-            healthPos.x() += 0.051f;
+            healthPos.x() += 0.0255f;
         }
 
         // Mana
-        z::vec2 manaPos = onScreenPos + z::vec2(0.15f, -0.075f*ratio) + transform.size * z::vec2(0.5f, -0.5f);
+        z::vec2 manaPos = onScreenPos + z::vec2(0.075f, 0.0375f*ratio);
         for (uint32 mp = 0; mp < player->max_mana; ++mp)
         {
             transform.position = manaPos;
             if (mp < player->mana)
             {
-                //RenderBitmap(&gameState->hudMana[0], &transform);
+                RenderBitmap(&gameState->hudMana[0], RenderMode_ScreenRelative, &transform);
             }
             else
             {
-                //RenderBitmap(&gameState->hudMana[1], &transform);
+                RenderBitmap(&gameState->hudMana[1], RenderMode_ScreenRelative, &transform);
             }
-            manaPos.x() += 0.051f;
+            manaPos.x() += 0.0255f;
         }
 
-        onScreenPos.x() += 100;
+        onScreenPos.x() += 0.24;
     }
 }
 

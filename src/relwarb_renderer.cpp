@@ -380,12 +380,12 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform)
     mesh.renderMode = mode;
     mesh.program = g_bitmapProg;
     mesh.texture = bitmap->texture;
-    mesh.worldTransform = GetTransformMatrix(transform);
+    mesh.worldTransform = GetTransformMatrix(mode, transform);
 
-    mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 0)});
-    mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 0)});
-    mesh.vertices.push_back({z::vec2(1, 1), z::vec2(1, 1)});
-    mesh.vertices.push_back({z::vec2(0, 1), z::vec2(0, 1)});
+    mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 1)});
+    mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 1)});
+    mesh.vertices.push_back({z::vec2(1, 1), z::vec2(1, 0)});
+    mesh.vertices.push_back({z::vec2(0, 1), z::vec2(0, 0)});
 
     mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
 
@@ -503,7 +503,7 @@ void RenderText(char* text, z::vec2 pos, GameState* state)
 
     Transform t;
     t.position = pos;
-    mesh.worldTransform = GetTransformMatrix(&t);
+    mesh.worldTransform = GetTransformMatrix(RenderMode_ScreenRelative,Back to a stable state &t);
     mesh.renderMode = RenderMode_ScreenRelative;
     mesh.program = g_bitmapProg;
     mesh.texture = fontTexture;
@@ -566,8 +566,9 @@ void RenderMesh(const Mesh* mesh, z::mat3 proj)
     glDeleteVertexArrays(1, &vao);
 }
 
-z::mat3 GetTransformMatrix(Transform* transform)
+z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform)
 {
+#if 1
     // TODO(Charly): origin or -origin ?
     z::mat3 O = z::Translation(-transform->origin);
     z::mat3 S = z::Scale(transform->size);
@@ -579,8 +580,37 @@ z::mat3 GetTransformMatrix(Transform* transform)
         S[0][0] *= -1;
     }
 
+    // NOTE(Charly): Not sure if this is a hack or not ...
+    if (renderMode == RenderMode_World)
+    {
+        S[1][1] *= -1;
+    }
+
     // TODO(Charly): Check multiplication order
     z::mat3 result = T * R * S * O;
+#else
+    z::mat3 result;
+    real32 angle = -transform->rotation;
+    real32 cosine = z::Cos(angle);
+    real32 sine = z::Sin(angle);
+    real32 sxc = transform->size.x() * cosine;
+    real32 syc = transform->size.y() * cosine;
+    real32 sxs = transform->size.x() * sine;
+    real32 sys = transform->size.y() * sine;
+    real32 tx = -transform->origin.x() * sxc - transform->origin.y() * sys + transform->position.x();
+    real32 ty = transform->origin.x() * sxs - transform->origin.y() * syc + transform->position.y();
+
+    result[0][0] = sxc;
+    result[0][1] = sys;
+    result[0][2] = tx;
+    result[1][0] = -sxs;
+    result[1][1] = syc;
+    result[1][2] = ty;
+    result[2][0] = 0;
+    result[2][1] = 0;
+    result[2][2] = 1;
+
+#endif
     return result;
 }
 

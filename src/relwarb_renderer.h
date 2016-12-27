@@ -148,6 +148,6 @@ void ReleaseTexture(Bitmap* bitmap);
 void RenderText(char* text, z::vec2 pos, GameState* state);
 void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
-z::mat3 GetTransformMatrix(Transform* transform);
+z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform);
 z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState);
 #endif // RELWARB_RENDERER_H

@@ -2,6 +2,7 @@
 #define ZMATH_HPP
 
 #include <cmath>
+#include <limits>
 
 #ifndef ZMATH_NO_SSE
 #include <immintrin.h>
@@ -28,6 +29,7 @@ namespace z
     inline real Floor(real x);
     inline real Clamp(real x, real a, real b);
     inline bool SameSign(real x, real y);
+    inline bool OppositeSign(real x, real y);
     inline real Abs(real x);
 
     inline real Cos(real x);
@@ -242,7 +244,17 @@ namespace z
 
     inline bool SameSign(real x, real y)
     {
-        bool result = ((x >= real(0) && y >= real(0)) || (x < real(0) && y < real(0)));
+        bool result = ((Abs(x) < std::numeric_limits<real>::epsilon()) ||
+                       (Abs(y) < std::numeric_limits<real>::epsilon()) ||
+                       (x > real(0) && y > real(0)) ||
+                       (x < real(0) && y < real(0)));
+        return result;
+    }
+
+    inline bool OppositeSign(real x, real y)
+    {
+        bool result = ((x > real(0) && y < real(0)) ||
+                       (x < real(0) && y > real(0)));
         return result;
     }
 

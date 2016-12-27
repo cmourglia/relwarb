@@ -98,7 +98,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
                 entity->dp += dt * acc;
 
                 // NOTE(Thomas): I don't like that it's handle in a physic resolution function while it's "game logic" related (or graphic related)
-                if (!z::SameSign(entity->p.x() - oldX, entity->orientation))
+                if (z::OppositeSign(entity->p.x() - oldX, entity->orientation))
                 {
                     entity->orientation *= -1.f;
                 }
