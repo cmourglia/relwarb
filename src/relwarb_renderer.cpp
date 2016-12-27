@@ -503,7 +503,7 @@ void RenderText(char* text, z::vec2 pos, GameState* state)
 
     Transform t;
     t.position = pos;
-    mesh.worldTransform = GetTransformMatrix(RenderMode_ScreenRelative,Back to a stable state &t);
+    mesh.worldTransform = GetTransformMatrix(RenderMode_ScreenRelative, &t);
     mesh.renderMode = RenderMode_ScreenRelative;
     mesh.program = g_bitmapProg;
     mesh.texture = fontTexture;
