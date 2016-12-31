@@ -24,19 +24,19 @@ Entity* CreatePlayerEntity(GameState* state, z::vec2 p,
     {
         case 1:
         {
-            LoadBitmapData("assets/p1_avatar.png", result->avatar);
+            LoadBitmapData("assets/sprites/p1_avatar.png", result->avatar);
         } break;
         case 2:
-        {
-            LoadBitmapData("assets/p2_avatar.png", result->avatar);
+        {   
+            LoadBitmapData("assets/sprites/p2_avatar.png", result->avatar);
         }break;
         case 3:
         {
-            //LoadBitmapData("assets/p3_avatar.png", result->avatar);
+            //LoadBitmapData("assets/sprites/p3_avatar.png", result->avatar);
         } break;
         case 4:
         {
-            //LoadBitmapData("assets/p4_avatar.png", result->avatar);
+            //LoadBitmapData("assets/sprites/p4_avatar.png", result->avatar);
         }break;
         default:
             Log(Log_Error, "Invalid number of players");

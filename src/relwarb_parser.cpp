@@ -44,6 +44,8 @@ void ExtractString(std::string& line, std::string& extract)
     size_t separator = line.find_first_of(SEPARATOR);
     extract = line.substr(0, separator);
 
+    Log(Log_Info, "%i", separator);
+
     if (separator != std::string::npos)
         line = line.substr(separator + 1);
     else
@@ -97,6 +99,14 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
             {
                 std::string header;
                 ExtractString(currentLine, header);
+
+                // NOTE(Charly): If there are multiple whitespaces, currentLine will
+                //               lead to loading some garbage, we avoid that by cleaning
+                //               up all whitespaces at the begining of the string
+                while (currentLine[0] == ' ' || currentLine[0] == '\t')
+                {
+                    currentLine = currentLine.substr(1);
+                }
 
                 switch (SwitchParseObject(header))
                 {
@@ -185,7 +195,7 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                         break;
                     }
                     default:
-                        return false;
+                    return false;
                 }
             }
         }

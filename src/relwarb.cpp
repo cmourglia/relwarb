@@ -13,11 +13,11 @@
 
 void InitGame(GameState* gameState)
 {
-    LoadBitmapData("assets/health_full.png", &gameState->hudHealth[0]);
-    LoadBitmapData("assets/health_mid.png", &gameState->hudHealth[1]);
-    LoadBitmapData("assets/health_none.png", &gameState->hudHealth[2]);
-    LoadBitmapData("assets/mana_full.png", &gameState->hudMana[0]);
-    LoadBitmapData("assets/mana_none.png", &gameState->hudMana[1]);
+    LoadBitmapData("assets/sprites/health_full.png", &gameState->hudHealth[0]);
+    LoadBitmapData("assets/sprites/health_mid.png", &gameState->hudHealth[1]);
+    LoadBitmapData("assets/sprites/health_none.png", &gameState->hudHealth[2]);
+    LoadBitmapData("assets/sprites/mana_full.png", &gameState->hudMana[0]);
+    LoadBitmapData("assets/sprites/mana_none.png", &gameState->hudMana[1]);
 
     InitializeRenderer(gameState);
     gameState->projMatrix = z::Ortho(-gameState->viewportSize.x() / 2, gameState->viewportSize.x() / 2,
@@ -41,17 +41,17 @@ void InitGame(GameState* gameState)
 
     Bitmap* bitmap_p1[2];
     bitmap_p1[0] = CreateBitmap(gameState);
-    LoadBitmapData("assets/p1_stand.png", bitmap_p1[0]);
+    LoadBitmapData("assets/sprites/p1_stand.png", bitmap_p1[0]);
     bitmap_p1[1] = CreateBitmap(gameState);
-    LoadBitmapData("assets/p1_stand2.png", bitmap_p1[1]);
+    LoadBitmapData("assets/sprites/p1_stand2.png", bitmap_p1[1]);
 
     Sprite* sprite_p1 = CreateTimeSprite(gameState, 2, bitmap_p1, 0.5f);
 
     Bitmap* bitmap_p2[2];
     bitmap_p2[0] = CreateBitmap(gameState);
-    LoadBitmapData("assets/p2_stand.png", bitmap_p2[0]);
+    LoadBitmapData("assets/sprites/p2_stand.png", bitmap_p2[0]);
     bitmap_p2[1] = CreateBitmap(gameState);
-    LoadBitmapData("assets/p2_stand2.png", bitmap_p2[1]);
+    LoadBitmapData("assets/sprites/p2_stand2.png", bitmap_p2[1]);
 
     Sprite* sprite_p2 = CreateTimeSprite(gameState, 2, bitmap_p2, 0.5f);
 
@@ -66,15 +66,15 @@ void InitGame(GameState* gameState)
     RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, sprite_p2);
     CreatePlayerEntity(gameState, z::vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
 
-    LoadBitmapData("assets/corner_topleft.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/corner_topright.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/vertical_left.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/vertical_right.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/corner_bottomleft.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/horizontal_down.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/corner_bottomright.png", CreateBitmap(gameState));
-    LoadBitmapData("assets/horizontal_up.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/corner_topleft.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/corner_topright.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/vertical_left.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/vertical_right.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/corner_bottomleft.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/horizontal_down.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/corner_bottomright.png", CreateBitmap(gameState));
+    LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap(gameState));
 }
 
 void UpdateGame(GameState* gameState, real32 dt)
