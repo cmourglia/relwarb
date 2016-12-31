@@ -531,7 +531,7 @@ void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, Object
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)
     {
-        LoadFont("c:/windows/fonts/times.ttf");
+        LoadFont("assets/fonts/Righteous-Regular.ttf");
     }
 
     glBindTexture(GL_TEXTURE_2D, fontTexture);
