@@ -25,7 +25,11 @@
 #define GLAssert(x) x
 #endif
 
-global_variable std::vector<Mesh> g_renderQueue;
+typedef std::vector<Mesh> RenderQueue;
+
+global_variable RenderQueue g_defaultRenderQueue;
+global_variable RenderQueue g_debugRenderQueue;
+global_variable RenderQueue g_uiRenderQueue;
 
 global_variable GLuint g_bitmapProg;
 global_variable GLuint g_colorProg;
@@ -56,17 +60,15 @@ global_variable const char* bitmapFrag = R"(
 
 in vec2 pos;
 in vec2 uv;
+
 out vec4 color;
 
+uniform vec4 u_color;
 uniform sampler2D u_tex;
 
 void main()
 {
-    color = texture(u_tex, uv);
-    if (color.a < 0.1)
-    {
-        discard;
-    }
+    color = u_color * texture(u_tex, uv);
 }
 )";
 
@@ -74,12 +76,11 @@ global_variable const char* colorFrag = R"(
 #version 330
 
 out vec4 color;
-uniform vec3 u_color;
+uniform vec4 u_color;
 
 void main()
 {
-    color.rgb = u_color;
-    color.a = 1.0;
+    color = u_color;
 }
 )";
 
@@ -90,17 +91,14 @@ in vec2 uv;
 out vec4 color;
 
 uniform sampler2D u_tex;
-uniform vec3 u_color;
+uniform vec4 u_color;
 
 void main()
 {
     float r = texture(u_tex, uv).r;
-    if (r < 0.1)
-    {
-        discard;
-    }
 
-    color.rgb = u_color;
+    color = u_color;
+    color.a *= r;
 }
 )";
 
@@ -276,10 +274,10 @@ void InitializeRenderer(GameState* gameState)
     Assert(glIsProgram(g_textProg));
 }
 
-void FlushRenderQueue(GameState* gameState)
+internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
 {
     // Avoid state changes as much as possible
-    std::sort(g_renderQueue.begin(), g_renderQueue.end(),
+    std::sort(renderQueue->begin(), renderQueue->end(),
               [](const Mesh& a, const Mesh& b)
               {
                   bool result =
@@ -287,37 +285,32 @@ void FlushRenderQueue(GameState* gameState)
                       : a.program > b.program ? false
                       : a.renderMode < b.renderMode ? true
                       : a.renderMode > b.renderMode ? false
-                      : a.texture < b.texture ? true
-                      : a.hasColor < b.hasColor ? true : false;
+                      : a.texture < b.texture ? true : false;
 
                   return result;
               });
 
     int start = 0;
 
-#if 1
-    while (start < g_renderQueue.size())
+    while (start < renderQueue->size())
     {
         int end = start + 1;
-        RenderMode currMode = g_renderQueue[start].renderMode;
-        GLuint currTexture = g_renderQueue[start].texture;
-        bool currHasColor = g_renderQueue[start].hasColor;
-        z::vec3 currColor = g_renderQueue[start].color;
+        RenderMode currMode = (*renderQueue)[start].renderMode;
+        GLuint currTexture = (*renderQueue)[start].texture;
+        z::vec4 currColor = (*renderQueue)[start].color;
 
         // NOTE(Charly): Find all meshes that share a texture
-        while (end < g_renderQueue.size() &&
-               g_renderQueue[end].renderMode == currMode &&
-               g_renderQueue[end].texture == currTexture &&
-               g_renderQueue[end].hasColor == currHasColor &&
-               g_renderQueue[end].color == currColor)
+        while (end < renderQueue->size() &&
+               (*renderQueue)[end].renderMode == currMode &&
+               (*renderQueue)[end].texture == currTexture &&
+               (*renderQueue)[end].color == currColor)
         {
             ++end;
         }
 
         Mesh mesh;
-        mesh.program = g_renderQueue[start].program;
+        mesh.program = (*renderQueue)[start].program;
         mesh.texture = currTexture;
-        mesh.hasColor = currHasColor;
         mesh.color = currColor;
 
         z::mat3 projMatrix = GetProjectionMatrix(currMode, gameState);
@@ -325,7 +318,7 @@ void FlushRenderQueue(GameState* gameState)
         GLuint startIdx = 0;
         for (int i = start; i < end; ++i)
         {
-            Mesh* currMesh = &g_renderQueue[i];
+            Mesh* currMesh = &(*renderQueue)[i];
             for (const auto& vert : currMesh->vertices)
             {
                 z::vec2 p = projMatrix * currMesh->worldTransform * vert.position;
@@ -344,19 +337,26 @@ void FlushRenderQueue(GameState* gameState)
 
         start = end;
     }
-#else
-    for (auto& mesh : g_renderQueue)
-    {
-        z::mat3 projMatrix = GetProjectionMatrix(mesh.renderMode, gameState);
-        for (auto& vert : mesh.vertices)
-        {
-            vert.position = projMatrix * mesh.worldTransform * vert.position;
-        }
-        RenderMesh(&mesh, projMatrix);
-    }
-#endif
 
-    g_renderQueue.clear();
+    renderQueue->clear();
+}
+
+void FlushRenderQueue(GameState* gameState)
+{
+    glViewport(0, 0, gameState->viewportSize.x(), gameState->viewportSize.y());
+    glClearColor(0.3f, 0.8f, 0.7f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    FlushRenderQueue(&g_defaultRenderQueue, gameState);
+
+    glDisable(GL_DEPTH_TEST);
+
+    FlushRenderQueue(&g_uiRenderQueue, gameState);
+    FlushRenderQueue(&g_debugRenderQueue, gameState);
 }
 
 void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
@@ -418,7 +418,34 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
     }
 }
 
-void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform)
+void InsertMesh(const Mesh& mesh, ObjectType type)
+{
+    switch (type)
+    {
+        case ObjectType_Default:
+        {
+            g_defaultRenderQueue.push_back(mesh);
+        } break;
+
+        case ObjectType_UI:
+        {
+            g_uiRenderQueue.push_back(mesh);
+        } break;
+
+        case ObjectType_Debug:
+        {
+            g_debugRenderQueue.push_back(mesh);
+        } break;
+
+        default:
+        {
+            Assert(!"Wrong code path");
+        }
+    }
+}
+
+
+void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color)
 {
     glDisable(GL_DEPTH_TEST);
 
@@ -427,6 +454,7 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform)
     mesh.program = g_bitmapProg;
     mesh.texture = bitmap->texture;
     mesh.worldTransform = GetTransformMatrix(mode, transform);
+    mesh.color = color;
 
     mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 1)});
     mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 1)});
@@ -435,7 +463,7 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform)
 
     mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
 
-    g_renderQueue.push_back(mesh);
+    g_defaultRenderQueue.push_back(mesh);
 }
 
 void LoadTexture(Bitmap* bitmap)
@@ -498,7 +526,7 @@ void LoadFont(const char* font)
     }
 }
 
-void RenderText(char* text, z::vec2 pos, z::vec3 color, GameState* state)
+void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
 {
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)
@@ -554,9 +582,8 @@ void RenderText(char* text, z::vec2 pos, z::vec3 color, GameState* state)
     mesh.program = g_textProg;
     mesh.texture = fontTexture;
     mesh.color = color;
-    mesh.hasColor = true;
 
-    g_renderQueue.push_back(mesh);
+    InsertMesh(mesh, type);
 }
 
 void RenderMesh(const Mesh* mesh, z::mat3 proj)
@@ -589,10 +616,7 @@ void RenderMesh(const Mesh* mesh, z::mat3 proj)
     glActiveTexture(GL_TEXTURE0);
 
     glUniform1i(glGetUniformLocation(mesh->program, "u_tex"), 0);
-    if (mesh->hasColor)
-    {
-        glUniform3fv(glGetUniformLocation(mesh->program, "u_color"), 1, mesh->color.data);
-    }
+    glUniform4fv(glGetUniformLocation(mesh->program, "u_color"), 1, mesh->color.data);
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size(), GL_UNSIGNED_INT, 0);

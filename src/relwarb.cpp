@@ -120,11 +120,6 @@ void RenderGame(GameState* gameState, real32 dt)
     {
         case GameMode_Game:
         {
-            glViewport(0, 0, gameState->viewportSize.x(), gameState->viewportSize.y());
-
-            glClearColor(0.3f, 0.8f, 0.7f, 0.f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
             for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
             {
                 Entity* entity = &gameState->entities[elementIdx];
@@ -152,9 +147,9 @@ void RenderGame(GameState* gameState, real32 dt)
             }
 
             RenderHUD(gameState);
-            RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec3(1, 0, 0), gameState);
-            RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec3(0, 1, 0), gameState);
-            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec3(0, 0, 1), gameState);
+            RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec4(1, 0, 0, 1), gameState, ObjectType_Debug);
+            RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec4(0, 1, 0, 1), gameState, ObjectType_Debug);
+            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec4(0, 0, 1, 1), gameState, ObjectType_Debug);
 
             FlushRenderQueue(gameState);
         } break;

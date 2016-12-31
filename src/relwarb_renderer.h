@@ -82,11 +82,20 @@ struct Transform
                             //               Positive value otherwise.
 };
 
+// FIXME(Charly): Not sure about the name ...
 enum RenderMode
 {
     RenderMode_World,
     RenderMode_ScreenAbsolute,
     RenderMode_ScreenRelative,
+};
+
+// FIXME(Charly): Not sure about the name ...
+enum ObjectType
+{
+    ObjectType_Default,
+    ObjectType_Debug,
+    ObjectType_UI,
 };
 
 struct Vertex
@@ -105,8 +114,7 @@ struct Mesh
     std::vector<GLuint> indices;
 
     z::mat3 worldTransform;
-    z::vec3 color;
-    bool hasColor = false;
+    z::vec4 color;
 };
 
 void InitializeRenderer(GameState* gameState);
@@ -141,13 +149,13 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
 // Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
 
-void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform);
+void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::vec4(1));
 
 void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseTexture(Bitmap* bitmap);
 
-void RenderText(char* text, z::vec2 pos, z::vec3 color, GameState* state);
+void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type);
 void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
 z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform);
