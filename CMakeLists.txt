@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.9)
 project(relwarb)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
 if (UNIX)
     set(platform_sources src/linux_relwarb.cpp)
