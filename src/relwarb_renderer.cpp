@@ -11,10 +11,25 @@
 #include <vector> // TODO(Charly): Remove this
 #include <algorithm>
 
+#if defined(RELWARB_DEBUG)
+#define GLAssert(x)                                 \
+    do {                                            \
+        x;                                          \
+        GLenum err;                                 \
+        while ((err = glGetError()) != GL_NO_ERROR) \
+        {                                           \
+            Assert(!"OpenGL Error");                \
+        }                                           \
+    } while(0)
+#else
+#define GLAssert(x) x
+#endif
+
 global_variable std::vector<Mesh> g_renderQueue;
 
 global_variable GLuint g_bitmapProg;
 global_variable GLuint g_colorProg;
+global_variable GLuint g_textProg;
 
 global_variable const char* bitmapVert = R"(
 #version 330
@@ -65,6 +80,27 @@ void main()
 {
     color.rgb = u_color;
     color.a = 1.0;
+}
+)";
+
+global_variable const char* textFrag = R"(
+#version 330
+
+in vec2 uv;
+out vec4 color;
+
+uniform sampler2D u_tex;
+uniform vec3 u_color;
+
+void main()
+{
+    float r = texture(u_tex, uv).r;
+    if (r < 0.1)
+    {
+        discard;
+    }
+
+    color.rgb = u_color;
 }
 )";
 
@@ -163,6 +199,7 @@ void UpdateSpriteTime(Sprite* sprite, real32 dt)
             sprite->currentStep++;
             sprite->elapsed -= sprite->stepTime;
             if (sprite->currentStep >= sprite->nbSteps)
+
             {
                 sprite->currentStep = 0;
             }
@@ -196,45 +233,47 @@ void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
     SetEntityComponent(entity, ComponentFlag_Renderable);
 }
 
-void InitializeRenderer(GameState* gameState)
+GLuint LoadProgram(const char* vertShader, const char* fragShader)
 {
-    GLuint vshader = CompileShader(bitmapVert, GL_VERTEX_SHADER);
-    GLuint fshader = CompileShader(bitmapFrag, GL_FRAGMENT_SHADER);
+    GLuint vshader = CompileShader(vertShader, GL_VERTEX_SHADER);
+    GLuint fshader = CompileShader(fragShader, GL_FRAGMENT_SHADER);
 
-    Assert(vshader);
-    Assert(fshader);
+    Assert(glIsShader(vshader));
+    Assert(glIsShader(fshader));
 
-    g_bitmapProg = glCreateProgram();
-    glAttachShader(g_bitmapProg, vshader);
-    glAttachShader(g_bitmapProg, fshader);
-    glLinkProgram(g_bitmapProg);
+    GLuint result = glCreateProgram();
+    glAttachShader(result, vshader);
+    glAttachShader(result, fshader);
+    glLinkProgram(result);
 
     GLint linked;
-    glGetProgramiv(g_bitmapProg, GL_LINK_STATUS, &linked);
+    glGetProgramiv(result, GL_LINK_STATUS, &linked);
     if (linked != GL_TRUE)
     {
         GLsizei length;
         GLchar message[1024];
-        glGetProgramInfoLog(g_bitmapProg, 1024, &length, message);
+        glGetProgramInfoLog(result, 1024, &length, message);
         Log(Log_Error, "Program not linked : %s", message);
     }
 
-    fshader = CompileShader(colorFrag, GL_FRAGMENT_SHADER);
-    Assert(fshader);
+    glDetachShader(result, vshader);
+    glDetachShader(result, fshader);
 
-    g_colorProg = glCreateProgram();
-    glAttachShader(g_colorProg, vshader);
-    glAttachShader(g_colorProg, fshader);
-    glLinkProgram(g_colorProg);
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
 
-    glGetProgramiv(g_colorProg, GL_LINK_STATUS, &linked);
-    if (linked != GL_TRUE)
-    {
-        GLsizei length;
-        GLchar message[1024];
-        glGetProgramInfoLog(g_colorProg, 1024, &length, message);
-        Log(Log_Error, "Program not linked : %s", message);
-    }
+    return result;
+}
+
+void InitializeRenderer(GameState* gameState)
+{
+    g_bitmapProg = LoadProgram(bitmapVert, bitmapFrag);
+    g_colorProg = LoadProgram(bitmapVert, colorFrag);
+    g_textProg = LoadProgram(bitmapVert, textFrag);
+
+    Assert(glIsProgram(g_bitmapProg));
+    Assert(glIsProgram(g_colorProg));
+    Assert(glIsProgram(g_textProg));
 }
 
 void FlushRenderQueue(GameState* gameState)
@@ -248,7 +287,8 @@ void FlushRenderQueue(GameState* gameState)
                       : a.program > b.program ? false
                       : a.renderMode < b.renderMode ? true
                       : a.renderMode > b.renderMode ? false
-                      : a.texture < b.texture ? true : false;
+                      : a.texture < b.texture ? true
+                      : a.hasColor < b.hasColor ? true : false;
 
                   return result;
               });
@@ -261,11 +301,15 @@ void FlushRenderQueue(GameState* gameState)
         int end = start + 1;
         RenderMode currMode = g_renderQueue[start].renderMode;
         GLuint currTexture = g_renderQueue[start].texture;
+        bool currHasColor = g_renderQueue[start].hasColor;
+        z::vec3 currColor = g_renderQueue[start].color;
 
         // NOTE(Charly): Find all meshes that share a texture
         while (end < g_renderQueue.size() &&
                g_renderQueue[end].renderMode == currMode &&
-               g_renderQueue[end].texture == currTexture)
+               g_renderQueue[end].texture == currTexture &&
+               g_renderQueue[end].hasColor == currHasColor &&
+               g_renderQueue[end].color == currColor)
         {
             ++end;
         }
@@ -273,6 +317,8 @@ void FlushRenderQueue(GameState* gameState)
         Mesh mesh;
         mesh.program = g_renderQueue[start].program;
         mesh.texture = currTexture;
+        mesh.hasColor = currHasColor;
+        mesh.color = currColor;
 
         z::mat3 projMatrix = GetProjectionMatrix(currMode, gameState);
 
@@ -438,7 +484,7 @@ void LoadFont(const char* font)
 
         glGenTextures(1, &fontTexture);
         glBindTexture(GL_TEXTURE_2D, fontTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512, 512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tmpBitmap);
+        GLAssert(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, tmpBitmap));
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -452,7 +498,7 @@ void LoadFont(const char* font)
     }
 }
 
-void RenderText(char* text, z::vec2 pos, GameState* state)
+void RenderText(char* text, z::vec2 pos, z::vec3 color, GameState* state)
 {
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)
@@ -505,8 +551,10 @@ void RenderText(char* text, z::vec2 pos, GameState* state)
     t.position = pos;
     mesh.worldTransform = GetTransformMatrix(RenderMode_ScreenRelative, &t);
     mesh.renderMode = RenderMode_ScreenRelative;
-    mesh.program = g_bitmapProg;
+    mesh.program = g_textProg;
     mesh.texture = fontTexture;
+    mesh.color = color;
+    mesh.hasColor = true;
 
     g_renderQueue.push_back(mesh);
 }
@@ -541,24 +589,15 @@ void RenderMesh(const Mesh* mesh, z::mat3 proj)
     glActiveTexture(GL_TEXTURE0);
 
     glUniform1i(glGetUniformLocation(mesh->program, "u_tex"), 0);
+    if (mesh->hasColor)
+    {
+        glUniform3fv(glGetUniformLocation(mesh->program, "u_color"), 1, mesh->color.data);
+    }
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glEnable(GL_LINE_SMOOTH);
-    glLineWidth(1.f);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(-1.f, -1.1f);
-
-    glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size() , GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
     glEnable(GL_DEPTH_TEST);
 
     glDeleteBuffers(1, &vbo);

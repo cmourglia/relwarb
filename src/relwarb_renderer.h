@@ -105,6 +105,8 @@ struct Mesh
     std::vector<GLuint> indices;
 
     z::mat3 worldTransform;
+    z::vec3 color;
+    bool hasColor = false;
 };
 
 void InitializeRenderer(GameState* gameState);
@@ -145,7 +147,7 @@ void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseTexture(Bitmap* bitmap);
 
-void RenderText(char* text, z::vec2 pos, GameState* state);
+void RenderText(char* text, z::vec2 pos, z::vec3 color, GameState* state);
 void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
 z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform);

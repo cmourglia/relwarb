@@ -1,6 +1,3 @@
-// TODO(Charly): Remove this
-#include <string.h>
-
 #include "relwarb_defines.h"
 #include "relwarb_utils.h"
 #include "relwarb_opengl.h"
@@ -18,16 +15,16 @@ global_variable uint32 localRight;
 global_variable uint32 localUp;
 
 #define WGL_GET_AND_CHECK(name, type)                                   \
-    do {                                                                    \
-        name = (type)wglGetProcAddress(STRINGIFY(name));                    \
-        if (name == 0 ||                                                    \
-            (name == (void*)0x1) || (name == (void*)0x2) ||                 \
-            (name == (void*)0x3) || (name == (void*)-1)) {                  \
-            HMODULE module = LoadLibraryA("opengl32.dll");                  \
-            name = (type)GetProcAddress(module, STRINGIFY(name));           \
-        }                                                                   \
-        Assert(name);                                                       \
-    } while (false)
+do {                                                                    \
+    name = (type)wglGetProcAddress(STRINGIFY(name));                    \
+    if (name == 0 ||                                                    \
+        (name == (void*)0x1) || (name == (void*)0x2) ||                 \
+        (name == (void*)0x3) || (name == (void*)-1)) {                  \
+        HMODULE module = LoadLibraryA("opengl32.dll");                  \
+        name = (type)GetProcAddress(module, STRINGIFY(name));           \
+    }                                                                   \
+    Assert(name);                                                       \
+} while (false)
 
 #define WGL_DRAW_TO_WINDOW_ARB                      0x2001
 #define WGL_ACCELERATION_ARB                        0x2003
@@ -466,10 +463,20 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                     {
                         gameState->controllers[0].moveRight = isDown;
                     }
-                    else if (vkCode == VK_UP || vkCode == VK_SPACE || vkCode == localUp)
+                    else if (vkCode == VK_UP || vkCode == localUp)
                     {
                         gameState->controllers[0].newJump = !gameState->controllers[0].jump;
                         gameState->controllers[0].jump = isDown;
+                    }
+                    else if (vkCode == VK_SPACE)
+                    {
+                        gameState->controllers[0].newDash = !gameState->controllers[0].dash;
+                        gameState->controllers[0].dash = isDown;
+                    }
+                    else if (vkCode == VK_SHIFT)
+                    {
+                        gameState->controllers[0].newMana = !gameState->controllers[0].mana;
+                        gameState->controllers[0].mana = isDown;
                     }
                 }
             } break;

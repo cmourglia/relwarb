@@ -28,9 +28,8 @@ void InitGame(GameState* gameState)
     gameState->worldSize = z::vec2(48, 24);
 
     z::mat4 worldMat(1);
-    worldMat[0][0] = (gameState->viewportSize.x() / 2.f) / (gameState->worldSize.x() / 2.f);
-    worldMat[1][1] = (gameState->viewportSize.y() / 2.f) / (gameState->worldSize.y() / 2.f);
-    //worldMat[3][1] = -gameState->viewportSize.y() / 2.f;
+    worldMat[0][0]         = (gameState->viewportSize.x() / 2.f) / (gameState->worldSize.x() / 2.f);
+    worldMat[1][1]         = (gameState->viewportSize.y() / 2.f) / (gameState->worldSize.y() / 2.f);
     gameState->worldMatrix = worldMat;
 
     gameState->gravity = z::vec2(0.f, -1.f);
@@ -153,9 +152,9 @@ void RenderGame(GameState* gameState, real32 dt)
             }
 
             RenderHUD(gameState);
-            RenderText("Hello, World", z::vec2(0.0, 0.0), gameState);
-            RenderText("I am another test text !", z::vec2(0.0, 0.1), gameState);
-            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), gameState);
+            RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec3(1, 0, 0), gameState);
+            RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec3(0, 1, 0), gameState);
+            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec3(0, 0, 1), gameState);
 
             FlushRenderQueue(gameState);
         } break;

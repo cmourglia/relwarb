@@ -20,17 +20,17 @@ struct Controller
     uint32 controlledEntityID;
 
     // TODO(Thomas): Use
-    bool32 enabled;
+    bool32 enabled = false;
 
-    bool32 moveLeft;
-    bool32 moveRight;
+    bool32 moveLeft = false;
+    bool32 moveRight = false;
 
-    bool32 jump;
-    bool32 newJump;
-    bool32 dash;
-    bool32 newDash;
-    bool32 mana;
-    bool32 newMana;
+    bool32 jump = false;
+    bool32 newJump = false;
+    bool32 dash = false;
+    bool32 newDash = false;
+    bool32 mana = false;
+    bool32 newMana = false;
 };
 
 // TODO(Charly): This should go somewhere else

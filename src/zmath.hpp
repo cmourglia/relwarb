@@ -93,6 +93,7 @@ namespace z
     template <int Size> inline real DistSquared(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline real Dist(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline vec<Size> Normalize(const vec<Size>& v);
+    template <int Size> inline bool operator==(const vec<Size>& a, const vec<Size>& b);
 
     inline real Cross(const vec<2>& v1, const vec<2>& v2);
     inline vec<3> Cross(const vec<3>& v1, const vec<3>& v2);
@@ -130,6 +131,7 @@ namespace z
         static inline mat Identity();
     };
 
+    template <int Size> inline bool operator==(const mat<Size>& a, const mat<Size>& b);
     template <int Size> inline mat<Size> operator-(const mat<Size>& m);
     template <int Size> inline mat<Size> operator+(const mat<Size>& m1, const mat<Size>& m2);
     template <int Size> inline mat<Size> operator-(const mat<Size>& m1, const mat<Size>& m2);
@@ -451,6 +453,22 @@ namespace z
         return data[3];
     }
 
+    template <int Size> inline bool operator==(const vec<Size>& a, const vec<Size>& b)
+    {
+        bool result = true;
+
+        for (int i = 0; i < Size; ++i)
+        {
+            if (a[i] != b[i])
+            {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
     template <int Size> inline vec<Size> operator-(const vec<Size>& v)
     {
         vec<Size> result;
@@ -744,6 +762,22 @@ namespace z
     template <int Size> inline mat<Size> mat<Size>::Identity()
     {
         mat<Size> result(1.0);
+        return result;
+    }
+
+    template <int Size> inline bool operator==(const mat<Size>& a, const mat<Size>& b)
+    {
+        bool result = true;
+
+        for (int i = 0; i < Size; ++i)
+        {
+            if (a[i] != b[i])
+            {
+                result = false;
+                break;
+            }
+        }
+
         return result;
     }
 

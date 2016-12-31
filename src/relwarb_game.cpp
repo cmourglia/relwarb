@@ -139,6 +139,7 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
                 }
             }
 
+            // TODO(Charly): Allow player to stop charging on demand
             if (controller->mana && controller->newMana)
             {
                 if (player->skills[1].remainingCooldown <= 0.f)
