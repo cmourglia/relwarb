@@ -1,4 +1,7 @@
 #include "relwarb.h"
+
+#include <ctime>
+
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
@@ -13,11 +16,13 @@
 
 void InitGame(GameState* gameState)
 {
+    z::SeedRNG((unsigned)time(nullptr));
     LoadBitmapData("assets/sprites/health_full.png", &gameState->hudHealth[0]);
     LoadBitmapData("assets/sprites/health_mid.png", &gameState->hudHealth[1]);
     LoadBitmapData("assets/sprites/health_none.png", &gameState->hudHealth[2]);
     LoadBitmapData("assets/sprites/mana_full.png", &gameState->hudMana[0]);
     LoadBitmapData("assets/sprites/mana_none.png", &gameState->hudMana[1]);
+    LoadBitmapData("assets/sprites/smiley.png", &gameState->particleBitmap);
 
     InitializeRenderer(gameState);
     gameState->projMatrix = z::Ortho(-gameState->viewportSize.x() / 2, gameState->viewportSize.x() / 2,
@@ -62,7 +67,6 @@ void InitGame(GameState* gameState)
     RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, sprite_p1);
     CreatePlayerEntity(gameState, z::vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[0]);
 
-
     RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, sprite_p2);
     CreatePlayerEntity(gameState, z::vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
 
@@ -99,6 +103,30 @@ void UpdateGame(GameState* gameState, real32 dt)
         {
             UpdateGameLogic(gameState, dt);
             UpdateWorld(gameState, dt);
+
+            // Update particle system
+            for (uint32 particleSpawnIndex = 0; particleSpawnIndex < 1; ++particleSpawnIndex)
+            {
+                Particle* particle = gameState->particles + gameState->nextParticle++;
+                if (gameState->nextParticle >= MAX_PARTICLES)
+                {
+                    gameState->nextParticle = 0;
+                }
+
+                particle->p = z::vec2(z::GenerateRandBetween(-0.5, 0.5), 3);
+                particle->dp = z::vec2(z::GenerateRandBetween(-2.5, 2.5), z::GenerateRandBetween(9, 11));
+                particle->color = z::vec4(1, 1, 1, 1);
+                particle->dcolor = z::vec4(0, 0, 0, -0.5);
+            }
+
+            for (uint32 particleIdx = 0; particleIdx < MAX_PARTICLES; ++particleIdx)
+            {
+                const z::vec2 gravity(0, -10);
+                Particle* particle = gameState->particles + particleIdx;
+                particle->dp += gravity * dt;
+                particle->p += particle->dp * dt;
+                particle->color += particle->dcolor * dt;
+            }
         } break;
 
         case GameMode_Editor:
@@ -146,10 +174,22 @@ void RenderGame(GameState* gameState, real32 dt)
                 }
             }
 
+            for (uint32 particleIdx = 0; particleIdx < MAX_PARTICLES; ++particleIdx)
+            {
+                Particle* particle = gameState->particles + particleIdx;
+                Transform transform = GetWorldTransform(particle->p);
+                RenderBitmap(&gameState->particleBitmap, RenderMode_World,
+                             &transform, particle->color);
+            }
+
             RenderHUD(gameState);
             RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec4(1, 0, 0, 1), gameState, ObjectType_Debug);
             RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec4(0, 1, 0, 1), gameState, ObjectType_Debug);
             RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec4(0, 0, 1, 1), gameState, ObjectType_Debug);
+
+            char fps[128];
+            snprintf(fps, 128, "dt: %.3f, fps: %.3f", dt, 1/dt);
+            RenderText(fps, z::vec2(0.8, 0), z::vec4(0, 0, 0, 1), gameState, ObjectType_Debug);
 
             FlushRenderQueue(gameState);
         } break;

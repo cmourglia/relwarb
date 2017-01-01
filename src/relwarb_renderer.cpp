@@ -454,7 +454,7 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4
     mesh.program = g_bitmapProg;
     mesh.texture = bitmap->texture;
     mesh.worldTransform = GetTransformMatrix(mode, transform);
-    mesh.color = color;
+    mesh.color = z::Saturate(color);
 
     mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 1)});
     mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 1)});

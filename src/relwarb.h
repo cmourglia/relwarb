@@ -14,6 +14,8 @@
 #define MAX_CONTROLLERS 5
 #define MAX_PLAYERS     4
 
+#define MAX_PARTICLES 128
+
 struct Controller
 {
     // TODO(Thomas): Use
@@ -47,6 +49,15 @@ enum GameMode
 {
     GameMode_Game = 0,
     GameMode_Editor,
+};
+
+struct Particle
+{
+    z::vec2 p;
+    z::vec2 dp;
+
+    z::vec4 color;
+    z::vec4 dcolor;
 };
 
 // NOTE(Charly): Store the current state of the game
@@ -87,6 +98,10 @@ struct GameState
 
     Controller          controllers[MAX_CONTROLLERS];
     uint32              nbControllers = 0;
+
+    Particle            particles[MAX_PARTICLES];
+    Bitmap              particleBitmap;
+    uint32              nextParticle = 0;
 
     Bitmap              hudHealth[3];
     Bitmap              hudMana[2];

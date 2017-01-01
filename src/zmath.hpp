@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include <cstdlib>
 
 #ifndef ZMATH_NO_SSE
 #include <immintrin.h>
@@ -39,6 +40,12 @@ namespace z
     inline real ArcSin(real x);
     inline real ArcTan(real x);
     inline real SinCosSquared(real x, real* psin, real* pcos);
+
+    inline void SeedRNG(unsigned int seed);
+    inline real GenerateRandBetween(real a = real(0), real b = real(1));
+
+    template <typename T> inline T Clamp(const T& x, const T& a, const T& b);
+    template <typename T> inline T Saturate(const T& x);
 
     template <int Size>
     union vec
@@ -78,6 +85,11 @@ namespace z
         inline const real& w() const;
     };
 
+    template <int Size> inline bool operator==(const vec<Size>& a, const vec<Size>& b);
+    template <int Size> inline bool operator>(const vec<Size>& a, const vec<Size>& b);
+    template <int Size> inline bool operator<(const vec<Size>& a, const vec<Size>& b);
+    template <int Size> inline bool operator<=(const vec<Size>& a, const vec<Size>& b);
+    template <int Size> inline bool operator>=(const vec<Size>& a, const vec<Size>& b);
     template <int Size> inline vec<Size> operator-(const vec<Size>& v);
     template <int Size> inline vec<Size> operator+(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline vec<Size> operator-(const vec<Size>& v1, const vec<Size>& v2);
@@ -93,7 +105,6 @@ namespace z
     template <int Size> inline real DistSquared(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline real Dist(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline vec<Size> Normalize(const vec<Size>& v);
-    template <int Size> inline bool operator==(const vec<Size>& a, const vec<Size>& b);
 
     inline real Cross(const vec<2>& v1, const vec<2>& v2);
     inline vec<3> Cross(const vec<3>& v1, const vec<3>& v2);
@@ -304,6 +315,45 @@ namespace z
         *pcos = 1 - *psin;
     }
 
+    template <typename T> inline T Clamp(const T& x, const T& a, const T& b)
+    {
+        T result;
+        if (x <= a)
+        {
+            result = a;
+        }
+        else if (result >= b)
+        {
+            result = b;
+        }
+        else
+        {
+            result = x;
+        }
+
+        return result;
+    }
+
+    template <typename T> inline T Saturate(const T& x)
+    {
+        T result = Clamp(x, T(0), T(1));
+        return result;
+    }
+
+    inline void SeedRNG(unsigned int seed)
+    {
+        std::srand(seed);
+    }
+
+    inline real GenerateRandBetween(real a, real b)
+    {
+        // [0..1]
+        real r = real(std::rand()) / real(RAND_MAX);
+        r = r * (b - a) + a;
+
+        return r;
+    }
+
     // No initialization by default
     template <int Size> inline vec<Size>::vec()
     {
@@ -466,6 +516,50 @@ namespace z
             }
         }
 
+        return result;
+    }
+
+    template <int Size> inline bool operator<(const vec<Size>& a, const vec<Size>& b)
+    {
+        bool result = true;
+
+        for (int i = 0; i < Size; ++i)
+        {
+            if (a[i] > b[i])
+            {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    template <int Size> inline bool operator>(const vec<Size>& a, const vec<Size>& b)
+    {
+        bool result = true;
+
+        for (int i = 0; i < Size; ++i)
+        {
+            if (a[i] < b[i])
+            {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    template <int Size> inline bool operator<=(const vec<Size>& a, const vec<Size>& b)
+    {
+       bool result = !(a > b);
+       return result;
+    }
+
+    template <int Size> inline bool operator>=(const vec<Size>& a, const vec<Size>& b)
+    {
+        bool result = !(a < b);
         return result;
     }
 
