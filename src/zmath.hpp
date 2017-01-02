@@ -37,6 +37,10 @@ namespace z
     inline bool SameSign(real x, real y);
     inline bool OppositeSign(real x, real y);
     inline real Abs(real x);
+    inline real Log(real x);
+    inline real Log2(real x);
+    inline real Log10(real x);
+    inline real Logn(real x, real n);
 
     inline real Cos(real x);
     inline real Sin(real x);
@@ -257,6 +261,30 @@ namespace z
     inline real Clamp(real x, real a, real b)
     {
         real result = Min(Max(x, a), b);
+        return result;
+    }
+
+    inline real Log(real x)
+    {
+        real result = std::log(x);
+        return result;
+    }
+
+    inline real Log2(real x)
+    {
+        real result = std::log2(x);
+        return result;
+    }
+
+    inline real Log10(real x)
+    {
+        real result = std::log10(x);
+        return result;
+    }
+
+    inline real Logn(real x, real n)
+    {
+        real result = Log(x) / Log(n);
         return result;
     }
 
