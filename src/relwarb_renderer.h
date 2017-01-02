@@ -150,6 +150,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
 
 void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::vec4(1));
+void RenderParticles(GameState* gameState);
 
 void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory

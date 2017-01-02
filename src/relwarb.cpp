@@ -22,7 +22,8 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/sprites/health_none.png", &gameState->hudHealth[2]);
     LoadBitmapData("assets/sprites/mana_full.png", &gameState->hudMana[0]);
     LoadBitmapData("assets/sprites/mana_none.png", &gameState->hudMana[1]);
-    LoadBitmapData("assets/sprites/smiley.png", &gameState->particleBitmap);
+    //LoadBitmapData("assets/sprites/smiley.png", &gameState->particleBitmap);
+    LoadBitmapData("assets/sprites/particle.png", &gameState->particleBitmap);
 
     InitializeRenderer(gameState);
     gameState->projMatrix = z::Ortho(-gameState->viewportSize.x() / 2, gameState->viewportSize.x() / 2,
@@ -101,10 +102,16 @@ void UpdateGame(GameState* gameState, real32 dt)
     {
         case GameMode_Game:
         {
+            if (InputUpFront(&gameState->buttonStates[Button_Left]))
+            {
+                SpawnParticleSystem(gameState, ViewportToWorld(gameState, gameState->cursor));
+            }
+
             UpdateGameLogic(gameState, dt);
             UpdateWorld(gameState, dt);
 
             // Update particle system
+#if 0
             for (uint32 particleSpawnIndex = 0; particleSpawnIndex < 1; ++particleSpawnIndex)
             {
                 Particle* particle = gameState->particles + gameState->nextParticle++;
@@ -127,6 +134,7 @@ void UpdateGame(GameState* gameState, real32 dt)
                 particle->p += particle->dp * dt;
                 particle->color += particle->dcolor * dt;
             }
+#endif
         } break;
 
         case GameMode_Editor:
@@ -172,14 +180,6 @@ void RenderGame(GameState* gameState, real32 dt)
 
                     RenderPattern(pattern, &transform, entity->shape->size);
                 }
-            }
-
-            for (uint32 particleIdx = 0; particleIdx < MAX_PARTICLES; ++particleIdx)
-            {
-                Particle* particle = gameState->particles + particleIdx;
-                Transform transform = GetWorldTransform(particle->p);
-                RenderBitmap(&gameState->particleBitmap, RenderMode_World,
-                             &transform, particle->color);
             }
 
             RenderHUD(gameState);

@@ -704,7 +704,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         {
             QueryPerformanceCounter(&t1);
             // HACK(Charly): Prevent dt from being stupidly large.
-            real32 dt = z::Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 1.f / 60.f);
+            real32 dt = z::Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 0.5f);
             t0 = t1;
 
             // TODO(Charly): Handle keyboard and xbox controller separatly
