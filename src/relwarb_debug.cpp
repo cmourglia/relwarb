@@ -20,10 +20,12 @@ internal const char* GetLogLevelMessage(LogLevel level)
 
 internal void VarLog(LogLevel level, const char* format, va_list args)
 {
-    char str[1024];
+    local_persist FILE* logFile = fopen("log.txt", "w");
 
+    char str[1024];
     vsnprintf(str, 1024, format, args);
 
+#if 1
 #ifdef OS_WINDOWS
     OutputDebugString(GetLogLevelMessage(level));
     OutputDebugString(str);
@@ -32,6 +34,9 @@ internal void VarLog(LogLevel level, const char* format, va_list args)
     fprintf(stderr, "%s", GetLogLevelMessage(level));
     fprintf(stderr, str);
     fprintf(stderr, "\n");
+#endif
+#else
+    fprintf(logFile, "%s%s\n", GetLogLevelMessage(level), str);
 #endif
 }
 
