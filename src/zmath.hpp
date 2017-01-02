@@ -24,6 +24,11 @@ typedef float real;
 
 namespace z
 {
+    constexpr real Pi = real(3.14159265359);
+    constexpr real PiDiv2 = Pi / real(2);
+    constexpr real PiDiv4 = Pi / real(4);
+    constexpr real PiTimes2 = Pi * real(2);
+    constexpr real PiInv = real(1) / Pi;
     inline real Sqrt(real x);
     inline real InvSqrt(real x);
     inline real Pow(real x, int n);
