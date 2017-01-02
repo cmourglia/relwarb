@@ -55,6 +55,7 @@ namespace z
 
     template <typename T> inline T Clamp(const T& x, const T& a, const T& b);
     template <typename T> inline T Saturate(const T& x);
+    template <typename T> inline T Lerp(const T& a, const T& b, real t);
 
     template <int Size>
     union vec
@@ -370,6 +371,12 @@ namespace z
     template <typename T> inline T Saturate(const T& x)
     {
         T result = Clamp(x, T(0), T(1));
+        return result;
+    }
+
+    template <typename T> inline T Lerp(const T& a, const T& b, real t)
+    {
+        T result = t * b + (1 - t) * a;
         return result;
     }
 
