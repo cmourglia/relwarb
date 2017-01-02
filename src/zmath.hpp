@@ -29,6 +29,7 @@ namespace z
     constexpr real PiDiv4 = Pi / real(4);
     constexpr real PiTimes2 = Pi * real(2);
     constexpr real PiInv = real(1) / Pi;
+
     inline real Sqrt(real x);
     inline real InvSqrt(real x);
     inline real Pow(real x, int n);
@@ -1371,9 +1372,9 @@ namespace z
     {
         mat4 result(1);
 
-        result[3][0] = tx;
-        result[3][1] = ty;
-        result[3][2] = tz;
+        result[0][3] = tx;
+        result[1][3] = ty;
+        result[2][3] = tz;
 
         return result;
     }
