@@ -52,6 +52,7 @@ namespace z
 
     inline void SeedRNG(unsigned int seed);
     inline real GenerateRandBetween(real a = real(0), real b = real(1));
+    inline real GenerateRandNormal(real mean = 0.0,  real stddev = 1.0);
 
     template <typename T> inline T Clamp(const T& x, const T& a, const T& b);
     template <typename T> inline T Saturate(const T& x);
@@ -392,6 +393,42 @@ namespace z
         r = r * (b - a) + a;
 
         return r;
+    }
+
+    inline real GenerateRandNormal(real mean, real stddev)
+    {
+        // NOTE(Charly): Box-muller method http://stackoverflow.com/a/28551411/4717805
+        static real n2(0);
+        static bool n2_cached = false;
+
+        real result;
+
+        if (!n2_cached)
+        {
+            real x, y, r;
+            do
+            {
+                x = real(2) * std::rand() / real(RAND_MAX) - real(1);
+                y = real(2) * std::rand() / real(RAND_MAX) - real(1);
+
+                r = x * x + y * y;
+            }
+            while (r == real(0) || r > real(1));
+
+            real d = Sqrt(-2 * Log(r) / r);
+            real n1 = x * d;
+            n2 = y * d;
+
+            result = n1 * stddev + mean;
+            n2_cached = true;
+        }
+        else
+        {
+            n2_cached = false;
+            result = n2 * stddev + mean;
+        }
+
+        return result;
     }
 
     // No initialization by default
