@@ -10,7 +10,7 @@ if (UNIX)
 
     set(NO_WARN "-Wno-unused-variable -Wno-unused-function")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${NO_WARN}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -D_DEBUG")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
 
     set(platform_flag)
@@ -20,15 +20,20 @@ elseif (WIN32)
 
     #set(NO_WARN "/wd4100 /wd4189 /wd4065 /wd4505 /wd4101 /wd4244 /wd4201 /wd4577")
     set(OTHER_FLAGS "/WX /W4 /FC /GR- /EHsc-")
-    message(STATUS "${CMAKE_CXX_FLAGS}")
-    message(STATUS "${CMAKE_CXX_FLAGS_DEBUG}")
-    message(STATUS "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS ${OTHER_FLAGS}")
-    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG ${CMAKE_CXX_FLAGS} /Z7 /Od /MDd")
-    set(CMAKE_CXX_FLAGS_RELEASE "/DNDEBUG ${CMAKE_CXX_FLAGS} /Ox /MD")
+    set(CMAKE_CXX_FLAGS "${OTHER_FLAGS}")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /Z7 /Od /MDd")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox /MD")
 
     set(libs user32.lib gdi32.lib opengl32.lib)
     set(platform_flag WIN32)
+
+    add_definitions(-DWIN32 -D_WINDOWS -D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    add_definitions(-D_DEBUG)
+else()
+    add_definitions(-DNDEBUG)
 endif()
 
 set(sources
