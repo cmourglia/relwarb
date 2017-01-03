@@ -25,58 +25,11 @@
 #define GLAssert(x) x
 #endif
 
-typedef std::vector<Mesh> RenderQueue;
-
-global_variable RenderQueue g_defaultRenderQueue;
-global_variable RenderQueue g_debugRenderQueue;
-global_variable RenderQueue g_uiRenderQueue;
-
-global_variable GLuint g_bitmapProg;
-global_variable GLuint g_colorProg;
-global_variable GLuint g_textProg;
-global_variable GLuint g_particlesProg;
-
+constexpr size_t MAX_PARTICLES = 100000;
 global_variable size_t g_renderPeak;
 
-global_variable const char* bitmapVert = R"(
-#version 330
-
-layout (location = 0) in vec2 in_pos;
-layout (location = 1) in vec2 in_uv;
-
-uniform mat3 u_proj;
-
-out vec2 uv;
-out vec2 pos;
-
-void main()
-{
-    //vec3 p = u_proj * vec3(in_pos, 1);
-    gl_Position = vec4(in_pos, 0, 1);
-    uv = in_uv;
-    pos = gl_Position.xy;
-}
-)";
-
-global_variable const char* bitmapFrag = R"(
-#version 330
-
-in vec2 pos;
-in vec2 uv;
-
-out vec4 color;
-
-uniform vec4 u_color;
-uniform sampler2D u_tex;
-
-void main()
-{
-    color = u_color * texture(u_tex, uv);
-}
-)";
-
 global_variable const char* colorFrag = R"(
-#version 330
+#version 450
 
 out vec4 color;
 uniform vec4 u_color;
@@ -87,83 +40,122 @@ void main()
 }
 )";
 
-global_variable const char* textFrag = R"(
-#version 330
-
-in vec2 uv;
-out vec4 color;
-
-uniform sampler2D u_tex;
-uniform vec4 u_color;
-
-void main()
+GLuint CompileProgram(GLenum shaderType, const char* shaderFile)
 {
-    float r = texture(u_tex, uv).r;
+    GLuint result;
 
-    color = u_color;
-    color.a *= r;
-}
-)";
-
-global_variable const char* particlesVert = R"(
-#version 330
-
-layout (location = 0) in vec4 in_billboard;
-layout (location = 1) in vec4 in_posSize;
-layout (location = 2) in vec4 in_color;
-
-out vec2 uv;
-out vec4 color;
-
-uniform vec2 u_worldSize;
-
-void main()
-{
-    gl_Position = vec4(in_posSize.xy + (1 / u_worldSize) * in_billboard.xy, 0, 1);
-    uv = in_billboard.zw;
-
-    color = in_color;
-}
-)";
-
-global_variable const char* particlesFrag = R"(
-#version 330
-
-in vec2 uv;
-in vec4 color;
-out vec4 fragColor;
-
-uniform sampler2D u_tex;
-
-void main()
-{
-    fragColor = color * texture(u_tex, uv);
-//    fragColor =  color;
-}
-)";
-
-internal GLuint CompileShader(const char* src, GLenum type)
-{
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &src, nullptr);
-    glCompileShader(shader);
-
-    GLint compiled;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    if (compiled != GL_TRUE)
+    FILE* file = fopen(shaderFile, "r");
+    if (file)
     {
-        GLsizei logLength;
-        GLchar message[1024];
-        glGetShaderInfoLog(shader, 1024, &logLength, message);
+        fseek(file, 0, SEEK_END);
+        size_t length = ftell(file);
+        fseek(file, 0, SEEK_SET);
 
-        // TODO(Charly): Proper logging
-        Log(Log_Error, "Shader not compiled (%d): %s\n", logLength, message);
+        char* shaderSource = (char*)malloc((length + 1) * sizeof(char));
 
-        glDeleteShader(shader);
-        shader = 0;
+        if (shaderSource)
+        {
+            length = fread(shaderSource, 1, length, file);
+            shaderSource[length] = '\0';
+
+            //Log(Log_Info, "File %s has %u characters.\n%s", shaderFile, length, shaderSource);
+
+            result = glCreateShaderProgramv(shaderType, 1, &shaderSource);
+
+            GLint linked;
+            glGetProgramiv(result, GL_LINK_STATUS, &linked);
+            if (linked != GL_TRUE)
+            {
+                GLsizei logLength;
+                GLchar message[1024];
+                glGetProgramInfoLog(result, 1024, &logLength, message);
+                Log(Log_Error, "Shader program %s did not compile: %s", shaderFile, message);
+
+                result = 0;
+            }
+
+            free(shaderSource);
+        }
+        else
+        {
+            Log(Log_Error, "Could not allocate memory to read program %s", shaderFile);
+            result = 0;
+        }
+
+        fclose(file);
+    }
+    else
+    {
+        Log(Log_Error, "Could not open file %s", shaderFile);
+        result = 0;
     }
 
-    return shader;
+    return result;
+}
+
+void InitializeRenderer(GameState* gameState)
+{
+    Renderer* renderer = &gameState->renderer;
+
+    renderer->defaultVertexProg     = CompileProgram(GL_VERTEX_SHADER, "assets/shaders/default.vert.glsl");
+    renderer->instancedVertexProg   = CompileProgram(GL_VERTEX_SHADER, "assets/shaders/instanced.vert.glsl");
+
+    renderer->bitmapFragmentProg    = CompileProgram(GL_FRAGMENT_SHADER, "assets/shaders/bitmap.frag.glsl");
+    renderer->colorFragmentProg     = CompileProgram(GL_FRAGMENT_SHADER, "assets/shaders/color.frag.glsl");
+    renderer->textFragmentProg      = CompileProgram(GL_FRAGMENT_SHADER, "assets/shaders/text.frag.glsl");
+    renderer->particlesFragmentProg = CompileProgram(GL_FRAGMENT_SHADER, "assets/shaders/particles.frag.glsl");
+
+    Assert(renderer->defaultVertexProg);
+    Assert(renderer->instancedVertexProg);
+    Assert(renderer->bitmapFragmentProg);
+    Assert(renderer->textFragmentProg);
+    Assert(renderer->particlesFragmentProg);
+
+    glGenProgramPipelines(RendererPipeline_Count, renderer->pipelines);
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Bitmap], GL_VERTEX_SHADER_BIT, renderer->defaultVertexProg);
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Bitmap], GL_FRAGMENT_SHADER_BIT, renderer->bitmapFragmentProg);
+
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Color], GL_VERTEX_SHADER_BIT, renderer->defaultVertexProg);
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Color], GL_FRAGMENT_SHADER_BIT, renderer->colorFragmentProg);
+
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Text], GL_VERTEX_SHADER_BIT, renderer->defaultVertexProg);
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Text], GL_FRAGMENT_SHADER_BIT, renderer->textFragmentProg);
+
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Particles], GL_VERTEX_SHADER_BIT, renderer->instancedVertexProg);
+    glUseProgramStages(renderer->pipelines[RendererPipeline_Particles], GL_FRAGMENT_SHADER_BIT, renderer->particlesFragmentProg);
+
+    ///////////////////////////////////////////////////////////////
+    GLfloat billboard[] =
+    {
+        -0.5f, -0.5f, 0.f, 0.f,
+        +0.5f, -0.5f, 1.f, 0.f,
+        -0.5f,  0.5f, 0.f, 1.f,
+        +0.5f,  0.5f, 1.f, 1.f,
+    };
+
+    glGenVertexArrays(1, &renderer->particlesVAO);
+    glBindVertexArray(renderer->particlesVAO);
+
+    glGenBuffers(ParticleBuffer_Count, renderer->particlesVBOs);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->particlesVBOs[ParticleBuffer_Billboard]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(billboard), billboard, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->particlesVBOs[ParticleBuffer_PosSize]);
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * sizeof(z::vec4), nullptr, GL_STREAM_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->particlesVBOs[ParticleBuffer_Color]);
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * sizeof(z::vec4), nullptr, GL_STREAM_DRAW);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
 }
 
 Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap)
@@ -208,8 +200,8 @@ Bitmap* GetSpriteBitmap(const Sprite* sprite)
             return sprite->steps[sprite->currentStep];
         } break;
         default:
-            Assert(false);
-            return nullptr;
+        Assert(false);
+        return nullptr;
     }
 }
 
@@ -269,10 +261,10 @@ void UpdateGameUITime(GameUI* gameUI, real32 dt)
 }
 
 RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
-                                         z::vec2 size,
-                                         uint8* pattern,
-                                         uint8 nbBitmaps,
-                                         Bitmap** bitmaps)
+                                             z::vec2 size,
+                                             uint8* pattern,
+                                             uint8 nbBitmaps,
+                                             Bitmap** bitmaps)
 {
     ComponentID id = gameState->nbPatterns++;
     Assert(id < WORLD_SIZE);
@@ -294,50 +286,7 @@ void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern)
     SetEntityComponent(entity, ComponentFlag_Renderable);
 }
 
-GLuint LoadProgram(const char* vertShader, const char* fragShader)
-{
-    GLuint vshader = CompileShader(vertShader, GL_VERTEX_SHADER);
-    GLuint fshader = CompileShader(fragShader, GL_FRAGMENT_SHADER);
 
-    Assert(glIsShader(vshader));
-    Assert(glIsShader(fshader));
-
-    GLuint result = glCreateProgram();
-    glAttachShader(result, vshader);
-    glAttachShader(result, fshader);
-    glLinkProgram(result);
-
-    GLint linked;
-    glGetProgramiv(result, GL_LINK_STATUS, &linked);
-    if (linked != GL_TRUE)
-    {
-        GLsizei length;
-        GLchar message[1024];
-        glGetProgramInfoLog(result, 1024, &length, message);
-        Log(Log_Error, "Program not linked : %s", message);
-    }
-
-    glDetachShader(result, vshader);
-    glDetachShader(result, fshader);
-
-    glDeleteShader(vshader);
-    glDeleteShader(fshader);
-
-    return result;
-}
-
-void InitializeRenderer(GameState* gameState)
-{
-    g_bitmapProg = LoadProgram(bitmapVert, bitmapFrag);
-    g_colorProg = LoadProgram(bitmapVert, colorFrag);
-    g_textProg = LoadProgram(bitmapVert, textFrag);
-    g_particlesProg = LoadProgram(particlesVert, particlesFrag);
-
-    Assert(glIsProgram(g_bitmapProg));
-    Assert(glIsProgram(g_colorProg));
-    Assert(glIsProgram(g_textProg));
-    Assert(glIsProgram(g_particlesProg));
-}
 
 internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
 {
@@ -346,8 +295,8 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
               [](const Mesh& a, const Mesh& b)
               {
                   bool result =
-                      a.program < b.program ? true
-                      : a.program > b.program ? false
+                      a.pipeline < b.pipeline ? true
+                      : a.pipeline > b.pipeline ? false
                       : a.renderMode < b.renderMode ? true
                       : a.renderMode > b.renderMode ? false
                       : a.texture < b.texture ? true : false;
@@ -374,7 +323,9 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
         }
 
         Mesh mesh;
-        mesh.program = (*renderQueue)[start].program;
+        mesh.pipeline = (*renderQueue)[start].pipeline;
+        mesh.vertexProgram = (*renderQueue)[start].vertexProgram;
+        mesh.fragmentProgram = (*renderQueue)[start].fragmentProgram;
         mesh.texture = currTexture;
         mesh.color = currColor;
 
@@ -408,9 +359,9 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
 
 void FlushRenderQueue(GameState* gameState)
 {
-    if (g_defaultRenderQueue.size() > g_renderPeak)
+    if (gameState->renderer.defaultRenderQueue.size() > g_renderPeak)
     {
-        g_renderPeak = g_defaultRenderQueue.size();
+        g_renderPeak = gameState->renderer.defaultRenderQueue.size();
         Log(Log_Info, "New render count peak: %zu", g_renderPeak);
     }
 
@@ -422,27 +373,27 @@ void FlushRenderQueue(GameState* gameState)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    FlushRenderQueue(&g_defaultRenderQueue, gameState);
+    FlushRenderQueue(&gameState->renderer.defaultRenderQueue, gameState);
 
     RenderParticles(gameState);
 
     glDisable(GL_DEPTH_TEST);
 
-    FlushRenderQueue(&g_uiRenderQueue, gameState);
-    FlushRenderQueue(&g_debugRenderQueue, gameState);
+    FlushRenderQueue(&gameState->renderer.uiRenderQueue, gameState);
+    FlushRenderQueue(&gameState->renderer.debugRenderQueue, gameState);
 }
 
-void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
+void RenderPattern(GameState* gameState, RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
     switch (pattern->patternType)
     {
         case RenderingPattern_Unique:
         {
-            RenderBitmap(GetSpriteBitmap(pattern->unique), RenderMode_World, transform);
+            RenderBitmap(gameState, GetSpriteBitmap(pattern->unique), RenderMode_World, transform);
         } break;
         case RenderingPattern_Fill:
         {
-            RenderFillPattern(pattern, transform, size);
+            RenderFillPattern(gameState, pattern, transform, size);
         } break;
 
         default:
@@ -453,7 +404,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
     }
 }
 
-void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
+void RenderFillPattern(GameState* gameState, RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
     uint32 middleTileX = pattern->size.x() * 0.5f;
     uint32 middleTileY = pattern->size.y() * 0.5f;
@@ -473,7 +424,7 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
             // TODO(Thomas): Do properly.
             currentTransform.size = z::vec2(1);
             currentTransform.position += z::vec2(i, j);
-            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
+            RenderBitmap(gameState, pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
                          RenderMode_World, &currentTransform);
 
             if (indexY == middleTileY && deltaY > 0)
@@ -491,23 +442,23 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
     }
 }
 
-void InsertMesh(const Mesh& mesh, ObjectType type)
+void InsertMesh(GameState* gameState, const Mesh& mesh, ObjectType type)
 {
     switch (type)
     {
         case ObjectType_Default:
         {
-            g_defaultRenderQueue.push_back(mesh);
+            gameState->renderer.defaultRenderQueue.push_back(mesh);
         } break;
 
         case ObjectType_UI:
         {
-            g_uiRenderQueue.push_back(mesh);
+            gameState->renderer.uiRenderQueue.push_back(mesh);
         } break;
 
         case ObjectType_Debug:
         {
-            g_debugRenderQueue.push_back(mesh);
+            gameState->renderer.debugRenderQueue.push_back(mesh);
         } break;
 
         default:
@@ -534,13 +485,15 @@ void RenderGameUI(GameState* gameState, const GameUI* gameUI)
     }
 }
 
-void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color)
+void RenderBitmap(GameState* gameState, Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color)
 {
     glDisable(GL_DEPTH_TEST);
 
     Mesh mesh;
     mesh.renderMode = mode;
-    mesh.program = g_bitmapProg;
+    mesh.pipeline = gameState->renderer.pipelines[RendererPipeline_Bitmap];
+    mesh.vertexProgram = gameState->renderer.defaultVertexProg;
+    mesh.fragmentProgram = gameState->renderer.bitmapFragmentProg;
     mesh.texture = bitmap->texture;
     mesh.worldTransform = GetTransformMatrix(mode, transform);
     mesh.color = z::Saturate(color);
@@ -552,37 +505,27 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4
 
     mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
 
-    g_defaultRenderQueue.push_back(mesh);
+    gameState->renderer.defaultRenderQueue.push_back(mesh);
 }
 
 void RenderParticles(GameState* gameState)
 {
-    GLuint vao;
-
-    enum BufferIndex
-    {
-        BufferIndex_Billboard = 0,
-        BufferIndex_PosSize,
-        BufferIndex_Color,
-        BufferIndex_Count,
-    };
-
-    GLuint buffers[BufferIndex_Count];
     // 0: Billboard -> vec4
     // 1: PosSize -> vec4
     // 2: Color -> vec4
 
-    local_persist GLfloat billboard[] =
-    {
-        -0.5f, -0.5f, 0.f, 0.f,
-         0.5f, -0.5f, 1.f, 0.f,
-        -0.5f,  0.5f, 0.f, 1.f,
-         0.5f,  0.5f, 1.f, 1.f,
-    };
-
-    std::vector<z::vec4> positionsSizes;
-    std::vector<z::vec4> colors;
     GLsizei particleCount = 0;
+
+    local_persist std::vector<z::vec4> positionsSizes;
+    local_persist std::vector<z::vec4> colors;
+    local_persist bool32 firstCall = true;
+
+    if (firstCall)
+    {
+        positionsSizes.reserve(MAX_PARTICLES);
+        colors.reserve(MAX_PARTICLES);
+        firstCall = false;
+    }
 
     z::mat3 projMatrix = GetProjectionMatrix(RenderMode_World, gameState);
     for (int systemIdx = 0; systemIdx < MAX_PARTICLE_SYSTEMS; ++systemIdx)
@@ -590,10 +533,6 @@ void RenderParticles(GameState* gameState)
         ParticleSystem* system = gameState->particleSystems + systemIdx;
         for (const auto& particle : system->particles)
         {
-            ++particleCount;
-
-            colors.push_back(particle.color);
-
             z::mat3 worldMatrix = z::Translation(particle.p);
             z::mat3 transformMatrix = projMatrix * worldMatrix;
 
@@ -601,64 +540,58 @@ void RenderParticles(GameState* gameState)
             z::vec3 size = transformMatrix * z::vec3(0.5, 0.5, 0);
             z::vec4 ps(pos.x(), pos.y(), size.x(), size.y());
             positionsSizes.push_back(ps);
+            colors.push_back(particle.color);
         }
     }
 
-    Log(Log_Info, "Rendering %i particles", particleCount);
+    particleCount = (GLsizei)positionsSizes.size();
+    Log(Log_Info, "Particle count : %u", particleCount);
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glGenBuffers(BufferIndex_Count, buffers);
+    if (particleCount > MAX_PARTICLES)
+    {
+        Log(Log_Warning, "Too much particles, need a bit of shrinking");
+        positionsSizes.resize(MAX_PARTICLES);
+        colors.resize(MAX_PARTICLES);
+        particleCount = (GLsizei)positionsSizes.size();
+    }
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[BufferIndex_Billboard]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(billboard), billboard, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindVertexArray(gameState->renderer.particlesVAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[BufferIndex_PosSize]);
-    glBufferData(GL_ARRAY_BUFFER, positionsSizes.size() * sizeof(z::vec4), positionsSizes.data(), GL_STREAM_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, gameState->renderer.particlesVBOs[ParticleBuffer_PosSize]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, positionsSizes.size() * sizeof(z::vec4), positionsSizes.data());
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[BufferIndex_Color]);
-    glBufferData(GL_ARRAY_BUFFER, particleCount * sizeof(z::vec4), colors.data(), GL_STREAM_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, gameState->renderer.particlesVBOs[ParticleBuffer_Color]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, particleCount * sizeof(z::vec4), colors.data());
 
-    glVertexAttribDivisor(0, 0);
-    glVertexAttribDivisor(1, 1);
-    glVertexAttribDivisor(2, 1);
+    glBindProgramPipeline(gameState->renderer.pipelines[RendererPipeline_Particles]);
+    glBindTextureUnit(0, gameState->particleBitmap.texture);
 
-    glUseProgram(g_particlesProg);
-    glBindTexture(GL_TEXTURE_2D, gameState->particleBitmap.texture);
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(g_particlesProg, "u_tex"), 0);
-    glUniform2f(glGetUniformLocation(g_particlesProg, "u_worldSize"),
-                gameState->worldSize.x(), gameState->worldSize.y());
+    glProgramUniform2f(gameState->renderer.instancedVertexProg,
+                       glGetUniformLocation(gameState->renderer.instancedVertexProg, "u_worldSize"),
+                       gameState->worldSize.x(), gameState->worldSize.y());
+    glProgramUniform1i(gameState->renderer.particlesFragmentProg,
+                       glGetUniformLocation(gameState->renderer.particlesFragmentProg, "u_tex"), 0);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particleCount);
-    glUseProgram(0);
 
-    glDeleteBuffers(BufferIndex_Count, buffers);
-    glDeleteVertexArrays(1, &vao);
+    positionsSizes.clear();
+    colors.clear();
 }
 
 void LoadTexture(Bitmap* bitmap)
 {
     if (!glIsTexture(bitmap->texture))
     {
-        glGenTextures(1, &bitmap->texture);
-        glBindTexture(GL_TEXTURE_2D, bitmap->texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                     bitmap->width, bitmap->height,
-                     0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     bitmap->data);
+        glCreateTextures(GL_TEXTURE_2D, 1, &bitmap->texture);
+        glTextureStorage2D(bitmap->texture, 1, GL_RGBA8, bitmap->width, bitmap->height);
+        glTextureSubImage2D(bitmap->texture, 0, 0, 0,
+                            bitmap->width, bitmap->height, GL_RGBA,
+                            GL_UNSIGNED_BYTE, bitmap->data);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glTextureParameteri(bitmap->texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTextureParameteri(bitmap->texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(bitmap->texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(bitmap->texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glGenerateTextureMipmap(bitmap->texture);
     }
 }
 
@@ -702,7 +635,7 @@ void LoadFont(const char* font)
     }
 }
 
-void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
+void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* gameState, ObjectType type)
 {
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)
@@ -748,18 +681,20 @@ void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, Object
     for (auto& v : mesh.vertices)
     {
         v.position.y() -= miny;
-        v.position /= state->viewportSize;
+        v.position /= gameState->viewportSize;
     }
 
     Transform t;
     t.position = pos;
     mesh.worldTransform = GetTransformMatrix(RenderMode_ScreenRelative, &t);
     mesh.renderMode = RenderMode_ScreenRelative;
-    mesh.program = g_textProg;
+    mesh.pipeline = gameState->renderer.pipelines[RendererPipeline_Text];
+    mesh.vertexProgram = gameState->renderer.defaultVertexProg;
+    mesh.fragmentProgram = gameState->renderer.textFragmentProg;
     mesh.texture = fontTexture;
     mesh.color = color;
 
-    InsertMesh(mesh, type);
+    InsertMesh(gameState, mesh, type);
 }
 
 void RenderMesh(const Mesh* mesh, z::mat3 proj)
@@ -787,17 +722,16 @@ void RenderMesh(const Mesh* mesh, z::mat3 proj)
 
     glDisable(GL_DEPTH_TEST);
 
-    glUseProgram(mesh->program);
-    glBindTexture(GL_TEXTURE_2D, mesh->texture);
-    glActiveTexture(GL_TEXTURE0);
+    glBindProgramPipeline(mesh->pipeline);
+    glBindTextureUnit(0, mesh->texture);
 
-    glUniform1i(glGetUniformLocation(mesh->program, "u_tex"), 0);
-    glUniform4fv(glGetUniformLocation(mesh->program, "u_color"), 1, mesh->color.data);
+    Assert(glIsProgram(mesh->fragmentProgram));
+    glProgramUniform1i(mesh->fragmentProgram, glGetUniformLocation(mesh->fragmentProgram, "u_tex"), 0);
+    glProgramUniform4fv(mesh->fragmentProgram, glGetUniformLocation(mesh->fragmentProgram, "u_color"), 1, mesh->color.data);
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, (GLuint)mesh->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_DEPTH_TEST);
 
     glDeleteBuffers(1, &vbo);

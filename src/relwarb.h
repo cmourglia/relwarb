@@ -99,6 +99,8 @@ struct GameState
     Bitmap              hudHealth[3];
     Bitmap              hudMana[2];
 
+    Renderer            renderer;
+
     z::vec2 gravity;
 
     GameMode mode = GameMode_Game;

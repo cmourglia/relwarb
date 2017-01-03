@@ -178,7 +178,7 @@ void RenderGame(GameState* gameState, real32 dt)
                         transform.orientation = entity->orientation < 0.f ? -1 : 1;
                     }
 
-                    RenderPattern(pattern, &transform, entity->shape->size);
+                    RenderPattern(gameState, pattern, &transform, entity->shape->size);
                 }
             }
 
@@ -240,7 +240,7 @@ void RenderHUD(GameState* gameState)
 
         // Avatar
         transform.position = onScreenPos;
-        RenderBitmap(player->avatar, RenderMode_ScreenRelative, &transform);
+        RenderBitmap(gameState, player->avatar, RenderMode_ScreenRelative, &transform);
 
         // Health
         transform.size = z::vec2(0.025f, 0.025f*ratio);
@@ -252,16 +252,16 @@ void RenderHUD(GameState* gameState)
             {
                 if (hp + 1 < player->health)
                 {
-                    RenderBitmap(&gameState->hudHealth[0], RenderMode_ScreenRelative, &transform);
+                    RenderBitmap(gameState, &gameState->hudHealth[0], RenderMode_ScreenRelative, &transform);
                 }
                 else
                 {
-                    RenderBitmap(&gameState->hudHealth[1], RenderMode_ScreenRelative, &transform);
+                    RenderBitmap(gameState, &gameState->hudHealth[1], RenderMode_ScreenRelative, &transform);
                 }
             }
             else
             {
-                RenderBitmap(&gameState->hudHealth[2], RenderMode_ScreenRelative, &transform);
+                RenderBitmap(gameState, &gameState->hudHealth[2], RenderMode_ScreenRelative, &transform);
             }
 
             healthPos.x() += 0.0255f;
@@ -274,11 +274,11 @@ void RenderHUD(GameState* gameState)
             transform.position = manaPos;
             if (mp < player->mana)
             {
-                RenderBitmap(&gameState->hudMana[0], RenderMode_ScreenRelative, &transform);
+                RenderBitmap(gameState, &gameState->hudMana[0], RenderMode_ScreenRelative, &transform);
             }
             else
             {
-                RenderBitmap(&gameState->hudMana[1], RenderMode_ScreenRelative, &transform);
+                RenderBitmap(gameState, &gameState->hudMana[1], RenderMode_ScreenRelative, &transform);
             }
             manaPos.x() += 0.0255f;
         }
