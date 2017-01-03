@@ -662,7 +662,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         HGLRC openglRC = win32_InitOpenGL(openglDC);
 
         wglMakeCurrent(openglDC, openglRC);
-        wglSwapIntervalEXT(1);
+        wglSwapIntervalEXT(0);
 
         g_running = true;
 
