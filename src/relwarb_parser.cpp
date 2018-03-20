@@ -35,7 +35,7 @@ int SwitchParseObject(const std::string & header)
     if (header == "Pa2En")
         return ObjectParsing_PatternToEntity;
 
-    Log(Log_Error, "Wrong header '%s'", header);
+    Log(Log_Error, "Wrong header '%s'", header.c_str());
     return ObjectParsing_Unknown;
 }
 
