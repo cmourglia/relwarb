@@ -713,6 +713,7 @@ int CALLBACK WinMain(HINSTANCE instance,
 
             UpdateGame(&gameState, dt);
             RenderGame(&gameState, dt);
+            CleanGame(&gameState, dt);
 
             SwapBuffers(openglDC);
         }

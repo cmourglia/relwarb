@@ -23,6 +23,7 @@ struct Sprite
     SpriteType spriteType;
     union {
         Bitmap* stillSprite;
+
         // Time based sprite
         struct {
             uint32 nbSteps;
@@ -33,6 +34,26 @@ struct Sprite
             bool32 active;
             real32 elapsed;
         };
+    };
+};
+
+enum GameUIType
+{
+    GameUIType_Text = 0,
+};
+
+// TODO(Thomas) Rename ?
+struct GameUI {
+
+    GameUIType uiType;
+    z::vec2 initialPos;
+    real32 duration; // Infinite if negative
+
+    real32 elapsed;
+
+    struct {
+        char* text;
+        z::vec4 initialColor;
     };
 };
 
@@ -127,8 +148,12 @@ Sprite* CreateTimeSprite(GameState* gameState, uint32 nbBitmaps, Bitmap** bitmap
 
 Bitmap* GetSpriteBitmap(const Sprite* sprite);
 
+GameUI* CreateTextualGameUI(GameState* gameState, char* text, z::vec4 color = z::vec4(1), z::vec2 initialPos = z::vec2(0), real32 duration = -1.0);
+
 // NOTE(Thomas): Maybe just merge into render function or something ?
 void UpdateSpriteTime(Sprite* sprite, real32 dt);
+
+void UpdateGameUITime(GameUI* gameUI, real32 dt);
 
 RenderingPattern* CreateUniqueRenderingPattern( GameState* gameState,
                                                 Sprite* sprite);
@@ -149,6 +174,7 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
 // Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
 
+void RenderGameUI(GameState* gameState, const GameUI* gameUI);
 void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::vec4(1));
 void RenderParticles(GameState* gameState);
 

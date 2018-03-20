@@ -213,6 +213,22 @@ Bitmap* GetSpriteBitmap(const Sprite* sprite)
     }
 }
 
+GameUI* CreateTextualGameUI(GameState* gameState, char* text, z::vec4 color, z::vec2 pos, real32 duration)
+{
+    ComponentID id = gameState->nbGameUIs++;
+    Assert(id < WORLD_SIZE);
+
+    GameUI* result = &gameState->gameUIs[id];
+    result->uiType = GameUIType_Text;
+    result->text = new char[strlen(text)];
+    result->initialColor = color;
+    memcpy(result->text, text, strlen(text)/* * sizeof(char)*/);
+    result->duration = duration;
+    result->elapsed = 0.0;
+
+    return result;
+}
+
 RenderingPattern* CreateUniqueRenderingPattern( GameState* gameState,
                                                 Sprite* sprite)
 {
@@ -241,6 +257,14 @@ void UpdateSpriteTime(Sprite* sprite, real32 dt)
                 sprite->currentStep = 0;
             }
         }
+    }
+}
+
+void UpdateGameUITime(GameUI* gameUI, real32 dt)
+{
+    if (gameUI->duration > 0.0)
+    {
+        gameUI->elapsed += dt;
     }
 }
 
@@ -493,6 +517,22 @@ void InsertMesh(const Mesh& mesh, ObjectType type)
     }
 }
 
+void RenderGameUI(GameState* gameState, const GameUI* gameUI)
+{
+    switch (gameUI->uiType)
+    {
+        case GameUIType_Text:
+        {
+            RenderText(gameUI->text, gameUI->initialPos, gameUI->initialColor, gameState, ObjectType_UI);
+        } break;
+
+        default:
+        {
+            // Unknown game UI type
+            Assert(!"Wrong code path");
+        };
+    }
+}
 
 void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color)
 {

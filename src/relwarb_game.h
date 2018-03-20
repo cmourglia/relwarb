@@ -10,10 +10,13 @@ struct GameState;
 struct Skill
 {
     // Parameters
-    // NOTE(Thomas): Trigger may not be null. Apply and collide can.
-    void (*triggerHandle)(Skill*, Entity*);
-    void (*applyHandle)(Skill*, Entity*, real32);
-    void (*collideHandle)(Skill*, Entity*, Entity*, void*);
+    // NOTE(Thomas): Trigger may not be null. Apply, collide and post effects can.
+    bool (*triggerHandle)(Skill*, Entity*);
+    bool (*postTriggerHandle)(Skill*, Entity*, GameState*);
+    bool (*applyHandle)(Skill*, Entity*, real32);
+    bool (*postApplyHandle)(Skill*, Entity*, GameState*);
+    bool (*collideHandle)(Skill*, Entity*, Entity*, void*);
+    bool (*postCollideHandle)(Skill*, Entity*, GameState*);
 
     // Active status
     bool32 isActive;
@@ -47,14 +50,16 @@ struct Skill
     };
 };
 
-void CreateDashSkill(Skill* skill, Entity* executive);
-void DashTrigger(Skill* skill, Entity* entity);
-void DashApply(Skill* skill, Entity* executive, real32 dt);
-//void DashCollide(Entity* executive, Entity* victim, void* parameters);
+bool CreateDashSkill(Skill* skill, Entity* executive);
+bool DashTrigger(Skill* skill, Entity* entity);
+bool DashPostTrigger(Skill* skill, Entity* entity, GameState* gameState);
+bool DashApply(Skill* skill, Entity* executive, real32 dt);
+//bool DashCollide(Entity* executive, Entity* victim, void* parameters);
 
-void CreateManaRecharge(Skill* skill, Entity* executive);
-void ManaTrigger(Skill* skill, Entity* entity);
-void ManaApply(Skill* skill, Entity* executive, real32 dt);
+bool CreateManaRecharge(Skill* skill, Entity* executive);
+bool ManaTrigger(Skill* skill, Entity* entity);
+bool ManaPostTrigger(Skill* skill, Entity* entity, GameState* gameState);
+bool ManaApply(Skill* skill, Entity* executive, real32 dt);
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 
