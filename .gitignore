@@ -16,3 +16,7 @@ log.txt
 .vs/*
 *.tss
 Relwarb.vcxproj.user
+
+build.bat
+
+.vscode/**
