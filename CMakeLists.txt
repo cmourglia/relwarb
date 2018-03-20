@@ -5,6 +5,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 # file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
     # DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(3rd/glfw)
+
 if (UNIX)
     set(platform_sources src/linux_relwarb.cpp)
 
@@ -37,7 +43,8 @@ else()
 endif()
 
 set(sources
-    ${platform_sources}
+    # ${platform_sources}
+    src/relwarb_glfw.cpp
     src/relwarb.cpp
     src/relwarb_opengl.cpp
     src/relwarb_utils.cpp
@@ -66,11 +73,14 @@ set(headers
 
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})
-target_link_libraries(relwarb ${libs})
+target_link_libraries(relwarb ${libs} glfw)
+target_include_directories(relwarb PRIVATE 3rd/glfw/include)
 
 set_property(TARGET relwarb PROPERTY CXX_STANDARD 14)
 set_property(TARGET relwarb PROPERTY CXX_STANDARD_REQUIRED True)
 
 if (WIN32)
     set_target_properties(relwarb PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    set_target_properties(relwarb PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+    set_target_properties(relwarb PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
 endif()
