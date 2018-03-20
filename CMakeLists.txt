@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.9)
 project(relwarb)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
+# file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+    # DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
 if (UNIX)
     set(platform_sources src/linux_relwarb.cpp)
@@ -30,7 +30,7 @@ elseif (WIN32)
     add_definitions(-DWIN32 -D_WINDOWS -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
     add_definitions(-D_DEBUG)
 else()
     add_definitions(-DNDEBUG)
