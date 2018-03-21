@@ -39,7 +39,6 @@ void InitGame(GameState* gameState)
     gameState->worldMatrix = worldMat;
 
     gameState->gravity = z::Vec2(0.f, -1.f);
-    z::vec2 halfSize = gameState->worldSize * 0.5f;
 
     // NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
     LoadMapFile(gameState, "config/base_map.ini");

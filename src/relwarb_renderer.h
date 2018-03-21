@@ -157,7 +157,7 @@ void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseTexture(Bitmap* bitmap);
 
-void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type);
+void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type);
 void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
 z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform);

@@ -245,10 +245,10 @@ void UpdateSpriteTime(Sprite* sprite, real32 dt)
 }
 
 RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
-                                         z::vec2 size,
-                                         uint8* pattern,
-                                         uint8 nbBitmaps,
-                                         Bitmap** bitmaps)
+                                             z::vec2 size,
+                                             uint8* pattern,
+                                             uint8 nbBitmaps,
+                                             Bitmap** bitmaps)
 {
     ComponentID id = gameState->nbPatterns++;
     Assert(id < WORLD_SIZE);
@@ -256,7 +256,7 @@ RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
     RenderingPattern* result = &gameState->patterns[id];
     result->size = size;
     result->patternType = RenderingPattern_Fill;
-    result->pattern = new uint8[size.x() * size.y()];
+    result->pattern = new uint8[(int32)(size.x() * size.y())];
     memcpy(result->pattern, pattern, size.x() * size.y() * sizeof(uint8));
     result->tiles = new Bitmap*[nbBitmaps];
     memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
@@ -332,8 +332,9 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
               });
 
     int start = 0;
+    const int queueSize = (int)renderQueue->size();
 
-    while (start < renderQueue->size())
+    while (start < queueSize)
     {
         int end = start + 1;
         RenderMode currMode = (*renderQueue)[start].renderMode;
@@ -341,7 +342,7 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
         z::vec4 currColor = (*renderQueue)[start].color;
 
         // NOTE(Charly): Find all meshes that share a texture
-        while (end < renderQueue->size() &&
+        while (end < queueSize &&
                (*renderQueue)[end].renderMode == currMode &&
                (*renderQueue)[end].texture == currTexture &&
                (*renderQueue)[end].color == currColor)
@@ -635,9 +636,8 @@ static GLuint fontTexture;
 
 void LoadFont(const char* font)
 {
-    FILE* fontFile;
-    fopen_s(&fontFile, font, "rb");
-    if (fontFile != nullptr)
+    FILE* fontFile = fopen(font, "rb");
+    if (fontFile)
     {
         unsigned char* ttfBuffer = new unsigned char[1 << 20];
         unsigned char* tmpBitmap = new unsigned char[512 * 512];
@@ -662,7 +662,7 @@ void LoadFont(const char* font)
     }
 }
 
-void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
+void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
 {
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)

@@ -23,10 +23,6 @@ struct Shape
 {
     z::vec2 size;
     z::vec2 offset;
-
-    inline Shape() {}
-    inline Shape(z::vec2 size_, z::vec2 offset_ = z::vec2(0))
-        :size(size_), offset(offset_) {}
 };
 
 struct Particle

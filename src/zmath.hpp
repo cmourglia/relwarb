@@ -49,7 +49,7 @@ namespace z
     inline real ArcCos(real x);
     inline real ArcSin(real x);
     inline real ArcTan(real x);
-    inline real SinCosSquared(real x, real* psin, real* pcos);
+    inline void SinCosSquared(real x, real* psin, real* pcos);
 
     inline void SeedRNG(unsigned int seed);
     inline real GenerateRandBetween(real a = real(0), real b = real(1));
@@ -63,7 +63,6 @@ namespace z
     struct vec
     {
         real data[Size];
-
 
         inline vec& operator+=(const vec& v);
         inline vec& operator-=(const vec& v);
@@ -343,7 +342,7 @@ namespace z
         return std::atan(x);
     }
 
-    inline real SinCosSquared(real x, real* psin, real* pcos)
+    inline void SinCosSquared(real x, real* psin, real* pcos)
     {
         real s = Sin(x);
         s *= s;
@@ -376,19 +375,19 @@ namespace z
         return result;
     }
 
-    template <> inline vec2 Saturate<vec2>(const vec2& x) 
+    template <> inline vec2 Saturate<vec2>(const vec2& x)
     {
         vec2 result = Clamp(x, Vec2(0), Vec2(1));
         return result;
     }
 
-    template <> inline vec3 Saturate<vec3>(const vec3& x) 
+    template <> inline vec3 Saturate<vec3>(const vec3& x)
     {
         vec3 result = Clamp(x, Vec3(0), Vec3(1));
         return result;
     }
 
-    template <> inline vec4 Saturate<vec4>(const vec4& x) 
+    template <> inline vec4 Saturate<vec4>(const vec4& x)
     {
         vec4 result = Clamp(x, Vec4(0), Vec4(1));
         return result;
