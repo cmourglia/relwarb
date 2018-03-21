@@ -831,7 +831,7 @@ namespace z
                                               const vec<Size>& row2,
                                               const vec<Size>& row3)
     {
-        static_assert(Size == 4, "mat(row0, row1‚ row2, row3) is only valid for matrices of size 4.");
+        static_assert(Size == 4, "mat(row0, row1, row2, row3) is only valid for matrices of size 4.");
         rows[0] = row0;
         rows[1] = row1;
         rows[2] = row2;
