@@ -84,9 +84,6 @@ struct GameState
     Sprite              sprites[WORLD_SIZE];
     uint32              nbSprites = 0;
 
-    GameUI				gameUIs[WORLD_SIZE];
-    uint32				nbGameUIs = 0;
-
     RenderingPattern    patterns[WORLD_SIZE];
     uint32              nbPatterns = 0;
 
@@ -122,8 +119,6 @@ void UpdateGame(GameState* gameState, real32 dt);
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
 void RenderGame(GameState* gameState, real32 dt);
-
-void CleanGame(GameState* gameState, real32 dt);
 
 // NOTE(Thomas): Render HUD (atm only in GameMode_Game)
 void RenderHUD(GameState* gameState);

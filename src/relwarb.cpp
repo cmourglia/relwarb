@@ -182,11 +182,6 @@ void RenderGame(GameState* gameState, real32 dt)
                 }
             }
 
-            for (uint32 gameUIIdx = 0; gameUIIdx < gameState->nbGameUIs; ++gameUIIdx)
-            {
-                RenderGameUI(gameState, &gameState->gameUIs[gameUIIdx]);
-            }
-
             RenderHUD(gameState);
             RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec4(1, 0, 0, 1), gameState, ObjectType_Debug);
             RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec4(0, 1, 0, 1), gameState, ObjectType_Debug);
@@ -207,20 +202,6 @@ void RenderGame(GameState* gameState, real32 dt)
         default:
         {
             Assert(!"Wrong code path");
-        }
-    }
-}
-
-void CleanGame(GameState* gameState, real32 dt)
-{
-    for (uint32 gameUIIdx = 0; gameUIIdx < gameState->nbGameUIs; ++gameUIIdx)
-    {
-        GameUI* gameUI = &gameState->gameUIs[gameUIIdx];
-        if (gameUI->duration > 0.0 && gameUI->elapsed > gameUI->duration)
-        {
-            memmove(&gameUI, &gameState->gameUIs[gameUIIdx + 1], gameState->nbGameUIs - gameUIIdx);
-            --gameUIIdx;
-            --gameState->nbGameUIs;
         }
     }
 }

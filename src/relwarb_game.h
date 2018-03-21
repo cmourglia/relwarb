@@ -10,13 +10,10 @@ struct GameState;
 struct Skill
 {
     // Parameters
-    // NOTE(Thomas): Trigger may not be null. Apply, collide and post effects can.
-    bool (*triggerHandle)(Skill*, Entity*);
-    bool (*postTriggerHandle)(Skill*, Entity*, GameState*);
-    bool (*applyHandle)(Skill*, Entity*, real32);
-    bool (*postApplyHandle)(Skill*, Entity*, GameState*);
-    bool (*collideHandle)(Skill*, Entity*, Entity*, void*);
-    bool (*postCollideHandle)(Skill*, Entity*, GameState*);
+    // NOTE(Thomas): Trigger may not be null. Apply and collide can.
+    bool(*triggerHandle)(GameState*, Skill*, Entity*);
+    bool(*applyHandle)(GameState*, Skill*, Entity*, real32);
+    bool(*collideHandle)(GameState*, Skill*, Entity*, Entity*, void*);
 
     // Active status
     bool32 isActive;
@@ -35,6 +32,7 @@ struct Skill
             uint32  manaCost;
             real32  horizDistance;
 
+            z::vec2 initialPos;
             real32  direction; // Toward left (-1) or toward right (+1)
         };
         // ManaRecharge Data
@@ -48,18 +46,18 @@ struct Skill
         };
         // ...
     };
+
+    Skill() {};
 };
 
 bool CreateDashSkill(Skill* skill, Entity* executive);
-bool DashTrigger(Skill* skill, Entity* entity);
-bool DashPostTrigger(Skill* skill, Entity* entity, GameState* gameState);
-bool DashApply(Skill* skill, Entity* executive, real32 dt);
-//bool DashCollide(Entity* executive, Entity* victim, void* parameters);
+bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity);
+bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
+//bool DashCollide(GameState* gameState, Entity* executive, Entity* victim, void* parameters);
 
 bool CreateManaRecharge(Skill* skill, Entity* executive);
-bool ManaTrigger(Skill* skill, Entity* entity);
-bool ManaPostTrigger(Skill* skill, Entity* entity, GameState* gameState);
-bool ManaApply(Skill* skill, Entity* executive, real32 dt);
+bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity);
+bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 
