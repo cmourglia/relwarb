@@ -70,3 +70,7 @@ target_link_libraries(relwarb ${libs})
 
 set_property(TARGET relwarb PROPERTY CXX_STANDARD 14)
 set_property(TARGET relwarb PROPERTY CXX_STANDARD_REQUIRED True)
+
+if (WIN32)
+    set_target_properties(relwarb PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+endif()
