@@ -3,6 +3,7 @@ x64/*
 Debug/*
 backlog/*
 assets/storage/*
+videos/*
 log.txt
 *.exe
 *.dll
