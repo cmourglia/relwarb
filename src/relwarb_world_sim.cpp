@@ -252,7 +252,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
             if (EntityHasComponent(it.first, ComponentFlag_Movable) && EntityHasComponent(it.second, ComponentFlag_Movable))
             {
-                // TODO(Thomas): Handle collision w.r.t to respective weights
+                // TODO(Thomas): Handle collision w.r.t respective weights
             }
             else
             {
