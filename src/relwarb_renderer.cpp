@@ -223,7 +223,8 @@ GameUI* CreateTextualGameUI(GameState* gameState, char* text, z::vec4 color, z::
     result->text = new char[strlen(text)];
     result->initialColor = color;
     memcpy(result->text, text, strlen(text)/* * sizeof(char)*/);
-    result->duration = duration;
+	result->initialPos = pos;
+	result->duration = duration;
     result->elapsed = 0.0;
 
     return result;

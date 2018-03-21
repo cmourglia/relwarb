@@ -83,13 +83,21 @@ bool ManaTrigger(Skill* skill, Entity* entity)
 
 bool DashPostTrigger(Skill* skill, Entity* entity, GameState* gameState)
 {
-    CreateTextualGameUI(gameState, "Dash !", z::vec4(1.0, 0.0, 0.0, 1.0), entity->p + z::vec2(0.5, 0.5), 2.0);
+	Transform transform = {};
+	transform.origin = z::vec2(0.5, 0);
+	auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
+	auto normalizePos = worldToNormalize * (entity->p + entity->shape->size * z::vec2(0, 1));
+	CreateTextualGameUI(gameState, "Dash !", z::vec4(1.0, 0.0, 0.0, 1.0), normalizePos * z::vec2(0.5) + z::vec2(0.5), 0.5);
     return true;
 }
 
 bool ManaPostTrigger(Skill* skill, Entity* entity, GameState* gameState)
 {
-    CreateTextualGameUI(gameState, "Mana !", z::vec4(0.0, 0.0, 1.0, 1.0), entity->p + z::vec2(0.5, 0.5), 5.0);
+	Transform transform = {};
+	transform.origin = z::vec2(0.5, 0);
+	auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
+	auto normalizePos = worldToNormalize * (entity->p + entity->shape->size * z::vec2(0, 1));
+    CreateTextualGameUI(gameState, "Mana !", z::vec4(0.0, 0.0, 1.0, 1.0), normalizePos * z::vec2(0.5) + z::vec2(0.5), 2.0);
     return true;
 }
 
