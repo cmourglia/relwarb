@@ -131,7 +131,11 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         }
 
         // Post effects
-        z::vec4 currentColor(0.0, 0.0, 1.0, 1.0);
+        z::vec4 indigo(0.3, 0.f, 0.51, 1.0);
+        z::vec4 turquoise(0.f, 0.8, 0.81, 1.0);
+        real32 elapsed2 = skill->elapsed * 2.f;
+        real32 interpolate = (elapsed2 < 1.f) ? (elapsed2) : (2.f - elapsed2) ;
+        z::vec4 currentColor = indigo * interpolate +turquoise * (1.f - interpolate);
         Transform transform = {};
         transform.origin = z::vec2(0.5, 0);
         auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
