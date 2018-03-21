@@ -75,8 +75,8 @@ struct RenderingPattern
 struct Transform
 {
     z::vec2 position;
-    z::vec2 size = z::vec2(1);
-    z::vec2 origin = z::vec2(0);
+    z::vec2 size = z::Vec2(1);
+    z::vec2 origin = z::Vec2(0);
 
     real32 rotation = 0;
     int orientation = 1;    // NOTE(Charly): Negative value if looking left,
@@ -145,12 +145,12 @@ RenderingPattern* CreateFillRenderingPattern(   GameState* gameState,
 
 void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
 
-void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size = z::vec2(0));
+void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size = z::Vec2(0));
 
 // Render the pattern at the position given in transform, and repeated to fit the given size
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
 
-void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::vec4(1));
+void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::Vec4(1));
 void RenderParticles(GameState* gameState);
 
 void LoadTexture(Bitmap* bitmap);

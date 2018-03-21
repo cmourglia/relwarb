@@ -447,8 +447,8 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
         {
             Transform currentTransform = *transform;
             // TODO(Thomas): Do properly.
-            currentTransform.size = z::vec2(1);
-            currentTransform.position += z::vec2(i, j);
+            currentTransform.size = z::Vec2(1);
+            currentTransform.position += z::Vec2(i, j);
             RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
                          RenderMode_World, &currentTransform);
 
@@ -504,10 +504,10 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4
     mesh.worldTransform = GetTransformMatrix(mode, transform);
     mesh.color = z::Saturate(color);
 
-    mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 1)});
-    mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 1)});
-    mesh.vertices.push_back({z::vec2(1, 1), z::vec2(1, 0)});
-    mesh.vertices.push_back({z::vec2(0, 1), z::vec2(0, 0)});
+    mesh.vertices.push_back({z::Vec2(0, 0), z::Vec2(0, 1)});
+    mesh.vertices.push_back({z::Vec2(1, 0), z::Vec2(1, 1)});
+    mesh.vertices.push_back({z::Vec2(1, 1), z::Vec2(1, 0)});
+    mesh.vertices.push_back({z::Vec2(0, 1), z::Vec2(0, 0)});
 
     mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
 
@@ -556,9 +556,9 @@ void RenderParticles(GameState* gameState)
             z::mat3 worldMatrix = z::Translation(particle.p);
             z::mat3 transformMatrix = projMatrix * worldMatrix;
 
-            z::vec3 pos = transformMatrix * z::vec3(0, 0, 1);
-            z::vec3 size = transformMatrix * z::vec3(0.5, 0.5, 0);
-            z::vec4 ps(pos.x(), pos.y(), size.x(), size.y());
+            z::vec3 pos = transformMatrix * z::Vec3(0, 0, 1);
+            z::vec3 size = transformMatrix * z::Vec3(0.5, 0.5, 0);
+            z::vec4 ps = z::Vec4(pos.x(), pos.y(), size.x(), size.y());
             positionsSizes.push_back(ps);
         }
     }
@@ -687,10 +687,10 @@ void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, Object
 
             miny = z::Min(q.y0, miny);
 
-            mesh.vertices.push_back({z::vec2(q.x0, q.y0), z::vec2(q.s0, q.t0)});
-            mesh.vertices.push_back({z::vec2(q.x1, q.y0), z::vec2(q.s1, q.t0)});
-            mesh.vertices.push_back({z::vec2(q.x1, q.y1), z::vec2(q.s1, q.t1)});
-            mesh.vertices.push_back({z::vec2(q.x0, q.y1), z::vec2(q.s0, q.t1)});
+            mesh.vertices.push_back({z::Vec2(q.x0, q.y0), z::Vec2(q.s0, q.t0)});
+            mesh.vertices.push_back({z::Vec2(q.x1, q.y0), z::Vec2(q.s1, q.t0)});
+            mesh.vertices.push_back({z::Vec2(q.x1, q.y1), z::Vec2(q.s1, q.t1)});
+            mesh.vertices.push_back({z::Vec2(q.x0, q.y1), z::Vec2(q.s0, q.t1)});
 
             mesh.indices.push_back(idx + 0);
             mesh.indices.push_back(idx + 1);

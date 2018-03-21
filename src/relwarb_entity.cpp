@@ -94,9 +94,13 @@ z::vec2 Overlap(const Entity* entity1, const Entity* entity2)
     const Shape* shape1 = entity1->shape;
     const Shape* shape2 = entity2->shape;
 
-    z::vec2 over(pos1.x() + shape1->offset.x() - pos2.x() - shape2->offset.x(),
-        pos1.y() + shape1->offset.y() - pos2.y() - shape2->offset.y());
-    z::vec2 size(shape1->size + shape2->size);
-    z::vec2 sign(over.x() > 0.f ? 1.f : -1.f, over.y() > 0.f ? 1.f : -1.f);
+    const real32 overX = (pos1.x() + shape1->offset.x()) - (pos2.x() - shape2->offset.x());
+    const real32 overY = (pos1.y() + shape1->offset.y()) - (pos2.y() - shape2->offset.y());
+    const real32 signX = overX >= 0.f ? 1.f : -1.f;
+    const real32 signY = overY >= 0.f ? 1.f : -1.f;
+
+    z::vec2 over = z::Vec2(overX, overY);
+    z::vec2 size = shape1->size + shape2->size;
+    z::vec2 sign = z::Vec2(signX, signY);
     return over - 0.5f * sign * size;
 }

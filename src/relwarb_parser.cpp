@@ -122,7 +122,7 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                     {
                         z::vec2 size;
                         ExtractVec2(currentLine, size);
-                        z::vec2 offset(0.f);
+                        z::vec2 offset = z::Vec2(0);
                         if (!currentLine.empty())
                         {
                             ExtractVec2(currentLine, offset);
@@ -165,7 +165,7 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                     {
                         uint8 type;
                         ExtractUint8(currentLine, type);
-                        z::vec2 p, dp(0), ddp(0);
+                        z::vec2 p, dp = z::Vec2(0), ddp = z::Vec2(0);
                         ExtractVec2(currentLine, p);
                         if (!currentLine.empty())
                         {

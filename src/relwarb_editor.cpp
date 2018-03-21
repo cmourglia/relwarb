@@ -99,7 +99,7 @@ void RenderEditor(GameState* gameState)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Transform t;
-    t.origin = z::vec2(0.5, 0.5);
+    t.origin = z::Vec2(0.5, 0.5);
 
     for (int i = 0; i < width; ++i)
     {
@@ -108,7 +108,7 @@ void RenderEditor(GameState* gameState)
             int tile = tiles[j * width + i];
             if (tile != -1)
             {
-                t.position = z::vec2((i - width / 2) + 0.5, (j - height / 2) + 0.5);
+                t.position = z::Vec2((i - width / 2) + 0.5, (j - height / 2) + 0.5);
                 RenderBitmap(&gameState->bitmaps[tile], RenderMode_World, &t);
             }
             ++tile;
@@ -118,7 +118,7 @@ void RenderEditor(GameState* gameState)
     // NOTE(Charly): Render attached bitmap
     {
         z::vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
-        t.position = z::vec2(z::Floor(cursor.x()) + 0.5, z::Floor(cursor.y()) + 0.5);
+        t.position = z::Vec2(z::Floor(cursor.x()) + 0.5, z::Floor(cursor.y()) + 0.5);
         RenderBitmap(&gameState->bitmaps[selectedBitmap], RenderMode_World, &t);
     }
 /*

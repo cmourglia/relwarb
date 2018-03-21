@@ -70,7 +70,7 @@ struct ParticleSystem
 // NOTE(Charly): Create a rigid body
 //               A null mass will lead to a static object
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass = 0.f);
-Shape* CreateShape(GameState* gameState, z::vec2 size_, z::vec2 offset_ = z::vec2(0));
+Shape* CreateShape(GameState* gameState, z::vec2 size, z::vec2 offset = z::Vec2(0));
 
 ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos);
 

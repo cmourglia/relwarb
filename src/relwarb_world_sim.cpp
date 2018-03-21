@@ -43,7 +43,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
                 real32 oldX = entity->p.x();
 
-                z::vec2 acc = z::vec2(0, entity->gravity);
+                z::vec2 acc = z::Vec2(0, entity->gravity);
                 entity->dp.x() = 0.0;
 
                 if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
@@ -128,7 +128,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
                 Particle particle;
                 particle.p = system->pos;
-                particle.dp = z::vec2(vel * z::Cos(angle), vel * z::Sin(angle));
+                particle.dp = z::Vec2(vel * z::Cos(angle), vel * z::Sin(angle));
                 particle.color = system->startColor;
                 particle.life = z::GenerateRandNormal(system->particleLife, system->particleLifeDelta);
                 particle.totalLife = particle.life;
@@ -259,13 +259,13 @@ void UpdateWorld(GameState* gameState, real32 dt)
                 z::vec2 clampDp;
                 if (z::Abs(overlap.x()) < z::Abs(overlap.y()))
                 {
-                    overlap = overlap * z::vec2(1.f, 0.f);
-                    clampDp = z::vec2(0.f, 1.f);
+                    overlap = overlap * z::Vec2(1.f, 0.f);
+                    clampDp = z::Vec2(0.f, 1.f);
                 }
                 else
                 {
-                    overlap = overlap * z::vec2(0.f, 1.f);
-                    clampDp = z::vec2(1.f, 0.f);
+                    overlap = overlap * z::Vec2(0.f, 1.f);
+                    clampDp = z::Vec2(1.f, 0.f);
                 }
                 if (EntityHasComponent(it.first, ComponentFlag_Movable))
                 {
@@ -345,14 +345,14 @@ ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos)
     result->particlesPerSecond = 1000;
     result->particleLife = 1;
     result->particleLifeDelta = 0.25;
-    result->startColor = z::vec4(1, 1, 1, 1);
-    result->endColor = z::vec4(1, 1, 1, 0);
+    result->startColor = z::Vec4(1, 1, 1, 1);
+    result->endColor = z::Vec4(1, 1, 1, 0);
     result->particleBitmap = &gameState->particleBitmap;
     result->minAngle = (1.0 / 3.0) * z::Pi;
     result->maxAngle = (2.0 / 3.0) * z::Pi;
     result->minVelocity = 13;
     result->maxVelocity = 17;
-    result->gravity = z::vec2(0, -20);
+    result->gravity = z::Vec2(0, -20);
 
     return result;
 }
