@@ -563,7 +563,8 @@ void RenderParticles(GameState* gameState)
         }
     }
 
-    Log(Log_Info, "Rendering %i particles", particleCount);
+    if (particleCount > 0)
+        Log(Log_Info, "Rendering %i particles", particleCount);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
