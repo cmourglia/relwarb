@@ -12,7 +12,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(3rd/glfw)
 
 if (UNIX)
-    set(platform_sources src/linux_relwarb.cpp)
+    set(platform_sources src/relwarb_glfw.cpp)
 
     set(NO_WARN "-Wno-unused-variable -Wno-unused-function")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${NO_WARN}")
@@ -43,8 +43,8 @@ else()
 endif()
 
 set(sources
-    # ${platform_sources}
-    src/relwarb_glfw.cpp
+    ${platform_sources}
+    #src/relwarb_glfw.cpp
     src/relwarb.cpp
     src/relwarb_opengl.cpp
     src/relwarb_utils.cpp
