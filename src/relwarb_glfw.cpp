@@ -5,7 +5,7 @@
 #include "relwarb_input.h"
 #include "relwarb.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <chrono>
 
@@ -81,7 +81,7 @@ int main() {
     gl3wInit();
 
     GameState gameState = {};
-    gameState.viewportSize = z::vec2(worldWindowWidth, worldWindowHeight);
+    gameState.viewportSize = z::Vec2(worldWindowWidth, worldWindowHeight);
 
     glfwSetWindowUserPointer(window, &gameState);
     glfwSetKeyCallback(window, KeyCallback);
