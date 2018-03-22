@@ -376,7 +376,7 @@ internal z::vec2 win32_GetCursorPos()
     GetCursorPos(&cursor);
     ScreenToClient(GetActiveWindow(), &cursor);
 
-    z::vec2 result(cursor.x, cursor.y);
+    z::vec2 result = { real32(cursor.x), real32(cursor.y) };
     return result;
 }
 
@@ -420,7 +420,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
 
             case WM_SIZE:
             {
-                gameState->viewportSize = z::vec2(LOWORD(message.lParam), HIWORD(message.lParam));
+                gameState->viewportSize = { real32(LOWORD(message.lParam)), real32(HIWORD(message.lParam)) };
             } break;
 
             case WM_KEYUP:
@@ -691,7 +691,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         }
 
         GameState gameState;
-        gameState.viewportSize = z::vec2(worldWindowWidth, worldWindowHeight);
+        gameState.viewportSize = { real32(worldWindowWidth), real32(worldWindowHeight) };
 
         InitGame(&gameState);
 
