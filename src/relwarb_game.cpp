@@ -116,17 +116,22 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         if (skill->elapsed >= skill->stepDuration)
         {
             executive->mana += skill->manaRefundPerStep;
-            if (executive->mana > executive->max_mana)
+            if (executive->mana >= executive->max_mana)
             {
                 executive->mana = executive->max_mana;
+                skill->remainingSteps = 0;
             }
+
             skill->elapsed -= skill->stepDuration;
-            skill->remainingSteps -= 1;
             if (skill->remainingSteps == 0)
             {
                 UnsetEntityStatus(executive, EntityStatus_Rooted);
                 skill->remainingCooldown = skill->cooldownDuration;
                 skill->isActive = false;
+            }
+            else
+            {
+                skill->remainingSteps -= 1;
             }
         }
 
