@@ -703,9 +703,14 @@ int CALLBACK WinMain(HINSTANCE instance,
         while (g_running)
         {
             QueryPerformanceCounter(&t1);
-            // HACK(Charly): Prevent dt from being stupidly large.
-            real32 dt = z::Clamp((t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart, 0, 0.5f);
+            real32 dt = (t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart;
             t0 = t1;
+  
+            // HACK(Thomas): Prevent the game from being ruined because of breakpointing
+            if (dt > 0.5)
+            {
+                continue;
+            }
 
             // TODO(Charly): Handle keyboard and xbox controller separatly
             win32_ProcessInputMessages(&gameState);
