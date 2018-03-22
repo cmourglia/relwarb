@@ -389,8 +389,8 @@ internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clic
         state.stateChange = true;
 
         z::vec2 cursor = win32_GetCursorPos();
-        state.cursorX = cursor.x();
-        state.cursorY = cursor.y();
+        state.cursorX = cursor.x;
+        state.cursorY = cursor.y;
 
         gameState->buttonStates[bt] = state;
     }
@@ -445,8 +445,8 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         state.stateChange = true;
 
                         z::vec2 cursor = win32_GetCursorPos();
-                        state.cursorX = cursor.x();
-                        state.cursorY = cursor.y();
+                        state.cursorX = cursor.x;
+                        state.cursorY = cursor.y;
 
                         gameState->keyStates[key] = state;
                     }
@@ -705,7 +705,7 @@ int CALLBACK WinMain(HINSTANCE instance,
             QueryPerformanceCounter(&t1);
             real32 dt = (t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart;
             t0 = t1;
-  
+
             // HACK(Thomas): Prevent the game from being ruined because of breakpointing
             if (dt > 0.5)
             {

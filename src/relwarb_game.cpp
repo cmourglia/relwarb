@@ -15,7 +15,7 @@ bool CreateDashSkill(Skill* skill, Entity* entity)
     skill->manaCost = 1;
     // NOTE(Thomas): Magic numbers to tailor
     skill->duration = 0.2f;
-    skill->horizDistance = entity->shape->size.x() * 5.f;
+    skill->horizDistance = entity->shape->size.x * 5.f;
     skill->cooldownDuration = 0.1f;
 
     return true;
@@ -91,7 +91,7 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         }
 
         real32 ratio = dt / skill->duration;
-        executive->p.x() += skill->direction * ratio * skill->horizDistance;
+        executive->p.x += skill->direction * ratio * skill->horizDistance;
         executive->dp = z::Vec2(0.f);
         
         // Post effects

@@ -134,8 +134,8 @@ bool LoadMapFile(GameState * gameState, const char* mapfile)
                     {
                         z::vec2 size;
                         ExtractVec2(currentLine, size);
-                        uint8* pattern = new uint8[(int)(size.x() * size.y())];
-                        for (uint8 idx = 0; idx < size.x()*size.y(); ++idx)
+                        uint8* pattern = new uint8[(int)(size.x * size.y)];
+                        for (uint8 idx = 0; idx < size.x*size.y; ++idx)
                         {
                             ExtractUint8(currentLine, pattern[idx]);
                         }

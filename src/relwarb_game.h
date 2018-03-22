@@ -1,7 +1,7 @@
 #ifndef RELWARB_GAME_H
 #define RELWARB_GAME_H
 
-#include "zmath.hpp"
+#include "relwarb_math.h"
 #include "relwarb_defines.h"
 
 struct Entity;

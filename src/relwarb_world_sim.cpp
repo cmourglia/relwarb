@@ -41,21 +41,21 @@ void UpdateWorld(GameState* gameState, real32 dt)
 #define MAX_STOP_TIME   0.05f
 #define MAX_NB_JUMPS    2
 
-                real32 oldX = entity->p.x();
+                real32 oldX = entity->p.x;
 
                 z::vec2 acc = z::Vec2(0, entity->gravity);
-                entity->dp.x() = 0.0;
+                entity->dp.x = 0.0;
 
                 if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
                 {
                     if (controller->moveLeft)
                     {
-                        entity->dp.x() += -10.0;
+                        entity->dp.x += -10.0;
                     }
 
                     if (controller->moveRight)
                     {
-                        entity->dp.x() += 10.0;
+                        entity->dp.x += 10.0;
                     }
 
                     if (controller->jump)
@@ -63,7 +63,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
                         if (controller->newJump && (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
                         {
                             // Start jumping
-                            entity->dp.y() = entity->initialJumpVelocity;
+                            entity->dp.y = entity->initialJumpVelocity;
                             entity->alreadyJumping = true;
                             entity->newJump = false;
                             ++entity->nbJumps;
@@ -89,7 +89,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
                             if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
                             {
                                 entity->quickFallTime += dt;
-                                acc.y() *= 5;
+                                acc.y *= 5;
                             }
                         }
                     }
@@ -99,7 +99,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
                 entity->dp += dt * acc;
 
                 // NOTE(Thomas): I don't like that it's handle in a physic resolution function while it's "game logic" related (or graphic related)
-                if (z::OppositeSign(entity->p.x() - oldX, entity->orientation))
+                if (z::OppositeSign(entity->p.x - oldX, entity->orientation))
                 {
                     entity->orientation *= -1.f;
                 }
@@ -257,7 +257,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
             else
             {
                 z::vec2 clampDp;
-                if (z::Abs(overlap.x()) < z::Abs(overlap.y()))
+                if (z::Abs(overlap.x) < z::Abs(overlap.y))
                 {
                     overlap = overlap * z::Vec2(1.f, 0.f);
                     clampDp = z::Vec2(0.f, 1.f);
@@ -289,7 +289,7 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
     if (e1->entityType == EntityType_Player && e2->entityType == EntityType_Wall)
     {
         z::vec2* overlap = static_cast<z::vec2*>(userParam);
-        if (z::Abs(overlap->y()) < z::Abs(overlap->x()) && overlap->y() > 0)
+        if (z::Abs(overlap->y) < z::Abs(overlap->x) && overlap->y > 0)
         {
             Landed(e1);
         }
@@ -297,7 +297,7 @@ bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
     else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
     {
         z::vec2* overlap = static_cast<z::vec2*>(userParam);
-        if (z::Abs(overlap->y()) < z::Abs(overlap->x()) && overlap->y() > 0)
+        if (z::Abs(overlap->y) < z::Abs(overlap->x) && overlap->y > 0)
         {
             Landed(e2);
         }
@@ -337,7 +337,7 @@ ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos)
 
     ParticleSystem* result = &gameState->particleSystems[idx];
 
-    Log(Log_Info, "Hello @ %.3f %.3f", pos.x(), pos.y());
+    Log(Log_Info, "Hello @ %.3f %.3f", pos.x, pos.y);
 
     result->pos = pos;
     result->systemLife = 2;

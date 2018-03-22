@@ -23,8 +23,8 @@ global_variable int* tiles;
 
 internal int GetTileIndex(z::vec2 worldPos)
 {
-    int x = z::Clamp(z::Floor(worldPos.x()) + width / 2, 0, width - 1);
-    int y = z::Clamp(z::Floor(worldPos.y()) + height / 2, 0, height - 1);
+    int x = z::Clamp(z::Floor(worldPos.x) + width / 2, 0, width - 1);
+    int y = z::Clamp(z::Floor(worldPos.y) + height / 2, 0, height - 1);
 
     int result = y * width + x;
     return result;
@@ -59,8 +59,8 @@ void UpdateEditor(GameState* state)
 {
     if (tiles == nullptr)
     {
-        width = (int)state->worldSize.x();
-        height = (int)state->worldSize.y();
+        width = (int)state->worldSize.x;
+        height = (int)state->worldSize.y;
         tiles = (int*)malloc(width * height * sizeof(int));
         Assert(tiles);
 
@@ -93,7 +93,7 @@ void UpdateEditor(GameState* state)
 
 void RenderEditor(GameState* gameState)
 {
-    glViewport(0, 0, gameState->viewportSize.x(), gameState->viewportSize.y());
+    glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
 
     glClearColor(0.3f, 0.8f, 0.7f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -118,13 +118,13 @@ void RenderEditor(GameState* gameState)
     // NOTE(Charly): Render attached bitmap
     {
         z::vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
-        t.position = z::Vec2(z::Floor(cursor.x()) + 0.5, z::Floor(cursor.y()) + 0.5);
+        t.position = z::Vec2(z::Floor(cursor.x) + 0.5, z::Floor(cursor.y) + 0.5);
         RenderBitmap(&gameState->bitmaps[selectedBitmap], RenderMode_World, &t);
     }
 /*
     {
         z::vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
-        t.position = z::vec2(cursor.x(), cursor.y());
+        t.position = z::vec2(cursor.x, cursor.y);
         RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
     }*/
 }

@@ -256,8 +256,8 @@ RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
     RenderingPattern* result = &gameState->patterns[id];
     result->size = size;
     result->patternType = RenderingPattern_Fill;
-    result->pattern = new uint8[(int32)(size.x() * size.y())];
-    memcpy(result->pattern, pattern, size.x() * size.y() * sizeof(uint8));
+    result->pattern = new uint8[(int32)(size.x * size.y)];
+    memcpy(result->pattern, pattern, size.x * size.y * sizeof(uint8));
     result->tiles = new Bitmap*[nbBitmaps];
     memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
 
@@ -391,7 +391,7 @@ void FlushRenderQueue(GameState* gameState)
         Log(Log_Info, "New render count peak: %zu", g_renderPeak);
     }
 
-    glViewport(0, 0, gameState->viewportSize.x(), gameState->viewportSize.y());
+    glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
     glClearColor(0.3f, 0.8f, 0.7f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -432,12 +432,12 @@ void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size
 
 void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size)
 {
-    uint32 middleTileX = pattern->size.x() * 0.5f;
-    uint32 middleTileY = pattern->size.y() * 0.5f;
-    uint32 deltaX = size.x() - pattern->size.x();
-    uint32 deltaY = size.y() - pattern->size.y();
-    real32 halfSizeX = size.x() * 0.5f - 0.5f;
-    real32 halfSizeY = size.y() * 0.5f - 0.5f;
+    uint32 middleTileX = pattern->size.x * 0.5f;
+    uint32 middleTileY = pattern->size.y * 0.5f;
+    uint32 deltaX = size.x - pattern->size.x;
+    uint32 deltaY = size.y - pattern->size.y;
+    real32 halfSizeX = size.x * 0.5f - 0.5f;
+    real32 halfSizeY = size.y * 0.5f - 0.5f;
     Assert(deltaX >= 0 && deltaY >= 0);
 
     uint32 indexX = 0, indexY;
@@ -450,7 +450,7 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
             // TODO(Thomas): Do properly.
             currentTransform.size = z::Vec2(1);
             currentTransform.position += z::Vec2(i, j);
-            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
+            RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x) + indexX],
                          RenderMode_World, &currentTransform);
 
             if (indexY == middleTileY && deltaY > 0)
@@ -559,7 +559,7 @@ void RenderParticles(GameState* gameState)
 
             z::vec3 pos = transformMatrix * z::Vec3(0, 0, 1);
             z::vec3 size = transformMatrix * z::Vec3(0.5, 0.5, 0);
-            z::vec4 ps = z::Vec4(pos.x(), pos.y(), size.x(), size.y());
+            z::vec4 ps = z::Vec4(pos.x, pos.y, size.x, size.y);
             positionsSizes.push_back(ps);
         }
     }
@@ -595,7 +595,7 @@ void RenderParticles(GameState* gameState)
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(g_particlesProg, "u_tex"), 0);
     glUniform2f(glGetUniformLocation(g_particlesProg, "u_worldSize"),
-                gameState->worldSize.x(), gameState->worldSize.y());
+                gameState->worldSize.x, gameState->worldSize.y);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particleCount);
     glUseProgram(0);
 
@@ -707,7 +707,7 @@ void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, 
 
     for (auto& v : mesh.vertices)
     {
-        v.position.y() -= miny;
+        v.position.y -= miny;
         v.position /= state->viewportSize;
     }
 
@@ -792,12 +792,12 @@ z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform)
     real32 angle = -transform->rotation;
     real32 cosine = z::Cos(angle);
     real32 sine = z::Sin(angle);
-    real32 sxc = transform->size.x() * cosine;
-    real32 syc = transform->size.y() * cosine;
-    real32 sxs = transform->size.x() * sine;
-    real32 sys = transform->size.y() * sine;
-    real32 tx = -transform->origin.x() * sxc - transform->origin.y() * sys + transform->position.x();
-    real32 ty = transform->origin.x() * sxs - transform->origin.y() * syc + transform->position.y();
+    real32 sxc = transform->size.x * cosine;
+    real32 syc = transform->size.y * cosine;
+    real32 sxs = transform->size.x * sine;
+    real32 sys = transform->size.y * sine;
+    real32 tx = -transform->origin.x * sxc - transform->origin.y * sys + transform->position.x;
+    real32 ty = transform->origin.x * sxs - transform->origin.y * syc + transform->position.y;
 
     result[0][0] = sxc;
     result[0][1] = sys;
@@ -821,9 +821,9 @@ z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState)
     {
         case RenderMode_ScreenAbsolute:
         {
-            result[0][0] = 2 / gameState->viewportSize.x();
+            result[0][0] = 2 / gameState->viewportSize.x;
             result[0][2] = -1;
-            result[1][1] = -2 / gameState->viewportSize.y();
+            result[1][1] = -2 / gameState->viewportSize.y;
             result[1][2] = 1;
         } break;
 
@@ -837,8 +837,8 @@ z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState)
 
         case RenderMode_World:
         {
-            result[0][0] = 2 / gameState->worldSize.x();
-            result[1][1] = 2 / gameState->worldSize.y();
+            result[0][0] = 2 / gameState->worldSize.x;
+            result[1][1] = 2 / gameState->worldSize.y;
         } break;
 
         default:

@@ -2,13 +2,12 @@
 
 #include <ctime>
 
+#include "relwarb_math.h"
 #include "relwarb_renderer.h"
 #include "relwarb_opengl.h"
 #include "relwarb_debug.h"
 #include "relwarb_parser.h"
 #include "relwarb_editor.h"
-
-#include "zmath.hpp"
 
 // TODO(Charly): This should go somewhere else.
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,16 +25,16 @@ void InitGame(GameState* gameState)
     LoadBitmapData("assets/sprites/particle.png", &gameState->particleBitmap);
 
     InitializeRenderer(gameState);
-    gameState->projMatrix = z::Ortho(-gameState->viewportSize.x() / 2, gameState->viewportSize.x() / 2,
-                                     -gameState->viewportSize.y() / 2, gameState->viewportSize.y() / 2);
-    real32 ratio = gameState->viewportSize.x() / gameState->viewportSize.y();
+    gameState->projMatrix = z::Ortho(-gameState->viewportSize.x / 2, gameState->viewportSize.x / 2,
+                                     -gameState->viewportSize.y / 2, gameState->viewportSize.y / 2);
+    real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
     // NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport size are computed accordingly.
     gameState->worldSize = z::Vec2(48, 24);
 
     z::mat4 worldMat(1);
-    worldMat[0][0]         = (gameState->viewportSize.x() / 2.f) / (gameState->worldSize.x() / 2.f);
-    worldMat[1][1]         = (gameState->viewportSize.y() / 2.f) / (gameState->worldSize.y() / 2.f);
+    worldMat[0][0]         = (gameState->viewportSize.x / 2.f) / (gameState->worldSize.x / 2.f);
+    worldMat[1][1]         = (gameState->viewportSize.y / 2.f) / (gameState->worldSize.y / 2.f);
     gameState->worldMatrix = worldMat;
 
     gameState->gravity = z::Vec2(0.f, -1.f);
@@ -206,7 +205,7 @@ void RenderGame(GameState* gameState, real32 dt)
 
 void RenderHUD(GameState* gameState)
 {
-    real32 ratio = gameState->viewportSize.x() / gameState->viewportSize.y();
+    real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
 
     Transform transform;
 
@@ -243,7 +242,7 @@ void RenderHUD(GameState* gameState)
                 RenderBitmap(&gameState->hudHealth[2], RenderMode_ScreenRelative, &transform);
             }
 
-            healthPos.x() += 0.0255f;
+            healthPos.x += 0.0255f;
         }
 
         // Mana
@@ -259,10 +258,10 @@ void RenderHUD(GameState* gameState)
             {
                 RenderBitmap(&gameState->hudMana[1], RenderMode_ScreenRelative, &transform);
             }
-            manaPos.x() += 0.0255f;
+            manaPos.x += 0.0255f;
         }
 
-        onScreenPos.x() += 0.24;
+        onScreenPos.x += 0.24;
     }
 }
 
@@ -316,7 +315,7 @@ z::vec2 ViewportToWorld(GameState* state, z::vec2 in)
     // [0, viewport] -> [0, 1], origin top left
     z::vec2 result = in / state->viewportSize;
     // [0, 1] -> [0, 1] origin bot left
-    result.y() = 1 - result.y();
+    result.y = 1 - result.y;
     // [0, 1] -> [-0.5, 0.5]
     result = result - z::Vec2(0.5);
     // [-0.5, 0.5] -> [-world / 2, world / 2]

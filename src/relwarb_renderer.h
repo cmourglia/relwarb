@@ -1,7 +1,7 @@
 #ifndef RELWARB_RENDERER_H
 #define RELWARB_RENDERER_H
 
-#include "zmath.hpp"
+#include "relwarb_math.h"
 #include "relwarb_entity.h"
 #include "relwarb_opengl.h"
 

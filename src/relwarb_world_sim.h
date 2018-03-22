@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "zmath.hpp"
+#include "relwarb_math.h"
 #include "relwarb_defines.h"
 
 struct GameState;

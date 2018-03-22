@@ -81,9 +81,9 @@ bool32 Intersect(const Entity* entity1, const Entity* entity2)
     const Shape* shape1 = entity1->shape;
     const Shape* shape2 = entity2->shape;
 
-    real32 diffX = z::Abs(pos1.x() + shape1->offset.x() - pos2.x() - shape2->offset.x());
-    real32 diffY = z::Abs(pos1.y() + shape1->offset.y() - pos2.y() - shape2->offset.y());
-    return (diffX < (shape1->size.x() + shape2->size.x()) * 0.5f && diffY < (shape1->size.y() + shape2->size.y()) * 0.5f);
+    real32 diffX = z::Abs(pos1.x + shape1->offset.x - pos2.x - shape2->offset.x);
+    real32 diffY = z::Abs(pos1.y + shape1->offset.y - pos2.y - shape2->offset.y);
+    return (diffX < (shape1->size.x + shape2->size.x) * 0.5f && diffY < (shape1->size.y + shape2->size.y) * 0.5f);
 }
 
 z::vec2 Overlap(const Entity* entity1, const Entity* entity2)
@@ -94,8 +94,8 @@ z::vec2 Overlap(const Entity* entity1, const Entity* entity2)
     const Shape* shape1 = entity1->shape;
     const Shape* shape2 = entity2->shape;
 
-    const real32 overX = (pos1.x() + shape1->offset.x()) - (pos2.x() - shape2->offset.x());
-    const real32 overY = (pos1.y() + shape1->offset.y()) - (pos2.y() - shape2->offset.y());
+    const real32 overX = (pos1.x + shape1->offset.x) - (pos2.x - shape2->offset.x);
+    const real32 overY = (pos1.y + shape1->offset.y) - (pos2.y - shape2->offset.y);
     const real32 signX = overX >= 0.f ? 1.f : -1.f;
     const real32 signY = overY >= 0.f ? 1.f : -1.f;
 
