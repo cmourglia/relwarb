@@ -17,17 +17,17 @@ struct Skill
 
     // Active status
     bool32 isActive;
-    real32 elapsed;
 
-    // Cooldown status
-    real32 cooldownDuration;
-    real32 remainingCooldown;
+	real32	cooldownDuration;
+	real32	remainingCooldown;
 
     union
     {
         // Dash Data
         struct
         {
+			real32	elapsed;
+
             real32  duration;
             uint32  manaCost;
             real32  horizDistance;
@@ -35,16 +35,18 @@ struct Skill
             real32 initialPosX;
             real32 initialPosY;
             real32  direction; // Toward left (-1) or toward right (+1)
-        };
+        } dash;
         // ManaRecharge Data
         struct
         {
+			real32	elapsed;
+
             uint32  nbSteps;
             uint32  manaRefundPerStep;
             real32  stepDuration;
 
             uint32  remainingSteps;
-        };
+        } mana;
         // Passive regeneration
         struct
         {
@@ -55,11 +57,10 @@ struct Skill
             real32  manaStepDuration;
 
             real32  healthStepElasped;
-        };
+			real32  manaStepElasped;
+        } regen;
         // ...
     };
-
-    Skill();
 };
 
 bool CreateDashSkill(Skill* skill, Entity* executive);
