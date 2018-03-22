@@ -44,7 +44,7 @@ void ExtractString(std::string& line, std::string& extract)
     size_t separator = line.find_first_of(SEPARATOR);
     extract = line.substr(0, separator);
 
-    Log(Log_Info, "%i", separator);
+    // Log(Log_Info, "%i", separator);
 
     if (separator != std::string::npos)
         line = line.substr(separator + 1);
@@ -157,8 +157,8 @@ bool LoadMapFile(GameState * gameState, const char* mapfile)
                         //               Pass the type of the pattern first
                         CreateFillRenderingPattern(gameState, size, pattern, nbBitmaps, bitmaps);
 
-                        delete pattern;
-                        delete bitmaps;
+                        delete[] pattern;
+                        delete[] bitmaps;
                         break;
                     }
                     case ObjectParsing_Entity:

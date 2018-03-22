@@ -518,37 +518,37 @@ namespace z
 
     inline vec2 Vec2(real x)
     {
-        vec2 v = {x, x};
+        vec2 v = {{x, x}};
         return v;
     }
 
     inline vec2 Vec2(real x, real y)
     {
-        vec2 v = {x, y};
+        vec2 v = {{x, y}};
         return v;
     }
 
     inline vec3 Vec3(real x)
     {
-        vec3 v = {x, x, x};
+        vec3 v = {{x, x, x}};
         return v;
     }
 
     inline vec3 Vec3(real x, real y, real z)
     {
-        vec3 v = {x, y, z};
+        vec3 v = {{x, y, z}};
         return v;
     }
 
     inline vec4 Vec4(real x)
     {
-        vec4 v = {x, x, x, x};
+        vec4 v = {{x, x, x, x}};
         return v;
     }
 
     inline vec4 Vec4(real x, real y, real z, real w)
     {
-        vec4 v = {x, y, z, w};
+        vec4 v = {{x, y, z, w}};
         return v;
     }
 

@@ -642,7 +642,8 @@ void LoadFont(const char* font)
         unsigned char* ttfBuffer = new unsigned char[1 << 20];
         unsigned char* tmpBitmap = new unsigned char[512 * 512];
 
-        fread(ttfBuffer, 1, 1 << 20, fontFile);
+        size_t nbRead = fread(ttfBuffer, 1, 1 << 20, fontFile);
+        (void)nbRead;
         // NOTE(Charly): No guarantee this fits !
         stbtt_BakeFontBitmap(ttfBuffer, 0, 32.0, tmpBitmap, 512, 512, 32, 96, cdata);
 
@@ -680,7 +681,7 @@ void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, 
 
     while (*text)
     {
-        if (*text >= 32 && *text < 128)
+        if (*text >= 32)
         {
             stbtt_aligned_quad q;
             stbtt_GetBakedQuad(cdata, 512, 512, *text - 32, &x, &y, &q, 1);

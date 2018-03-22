@@ -332,7 +332,8 @@ Shape* CreateShape(GameState* gameState, z::vec2 size_, z::vec2 offset_)
 ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos)
 {
     uint32 idx;
-    for (idx = 0; idx < MAX_PARTICLE_SYSTEMS && gameState->particleSystems[idx].alive; ++idx);
+    for (idx = 0; idx < MAX_PARTICLE_SYSTEMS && gameState->particleSystems[idx].alive; ++idx)
+        ;
     Assert(idx < MAX_PARTICLE_SYSTEMS);
 
     ParticleSystem* result = &gameState->particleSystems[idx];

@@ -287,8 +287,9 @@ Entity* CreateEntity(GameState* gameState, EntityType type, z::vec2 p, z::vec2 d
     EntityID id = gameState->nbEntities++;
     Assert(id < WORLD_SIZE);
 
+    static Entity empty = {};
     Entity* result = &gameState->entities[id];
-    *result = {0};
+    *result = empty;
 
     result->id = id;
 
