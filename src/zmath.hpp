@@ -49,7 +49,7 @@ namespace z
     inline real ArcCos(real x);
     inline real ArcSin(real x);
     inline real ArcTan(real x);
-    inline real SinCosSquared(real x, real* psin, real* pcos);
+    inline void SinCosSquared(real x, real* psin, real* pcos);
 
     inline void SeedRNG(unsigned int seed);
     inline real GenerateRandBetween(real a = real(0), real b = real(1));
@@ -60,17 +60,9 @@ namespace z
     template <typename T> inline T Lerp(const T& a, const T& b, real t);
 
     template <int Size>
-    union vec
+    struct vec
     {
         real data[Size];
-
-        inline vec();
-        inline explicit vec(real x);
-        inline vec(real x, real y);
-        inline vec(real x, real y, real z);
-        inline vec(real x, real y, real z, real w);
-
-        DEFAULT_CTORS(vec);
 
         inline vec& operator+=(const vec& v);
         inline vec& operator-=(const vec& v);
@@ -117,6 +109,13 @@ namespace z
     template <int Size> inline real DistSquared(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline real Dist(const vec<Size>& v1, const vec<Size>& v2);
     template <int Size> inline vec<Size> Normalize(const vec<Size>& v);
+
+    vec<2> Vec2(real x);
+    vec<2> Vec2(real x, real y);
+    vec<3> Vec3(real x);
+    vec<3> Vec3(real x, real y, real z);
+    vec<4> Vec4(real x);
+    vec<4> Vec4(real x, real y, real z, real w);
 
     inline real Cross(const vec<2>& v1, const vec<2>& v2);
     inline vec<3> Cross(const vec<3>& v1, const vec<3>& v2);
@@ -343,7 +342,7 @@ namespace z
         return std::atan(x);
     }
 
-    inline real SinCosSquared(real x, real* psin, real* pcos)
+    inline void SinCosSquared(real x, real* psin, real* pcos)
     {
         real s = Sin(x);
         s *= s;
@@ -373,6 +372,24 @@ namespace z
     template <typename T> inline T Saturate(const T& x)
     {
         T result = Clamp(x, T(0), T(1));
+        return result;
+    }
+
+    template <> inline vec2 Saturate<vec2>(const vec2& x)
+    {
+        vec2 result = Clamp(x, Vec2(0), Vec2(1));
+        return result;
+    }
+
+    template <> inline vec3 Saturate<vec3>(const vec3& x)
+    {
+        vec3 result = Clamp(x, Vec3(0), Vec3(1));
+        return result;
+    }
+
+    template <> inline vec4 Saturate<vec4>(const vec4& x)
+    {
+        vec4 result = Clamp(x, Vec4(0), Vec4(1));
         return result;
     }
 
@@ -432,42 +449,12 @@ namespace z
         return result;
     }
 
-    // No initialization by default
-    template <int Size> inline vec<Size>::vec()
-    {
-    }
-
-    template <int Size> inline vec<Size>::vec(real x)
-    {
-        for (int i = 0; i < Size; ++i)
-        {
-            data[i] = x;
-        }
-    }
-
-    template <int Size> inline vec<Size>::vec(real x, real y)
-    {
-        static_assert(Size == 2, "vec(real x, real y) is only valid for vec2");
-        data[0] = x;
-        data[1] = y;
-    }
-
-    template <int Size> inline vec<Size>::vec(real x, real y, real z)
-    {
-        static_assert(Size == 3, "vec(real x, real y, real z) is only valid for vec3");
-        data[0] = x;
-        data[1] = y;
-        data[2] = z;
-    }
-
-    template <int Size> inline vec<Size>::vec(real x, real y, real z, real w)
-    {
-        static_assert(Size == 4, "vec(real x, real y, real z, real w) is only valid for vec4");
-        data[0] = x;
-        data[1] = y;
-        data[2] = z;
-        data[3] = w;
-    }
+    inline vec<2> Vec2(real x) { return vec<2>{x, x}; }
+    inline vec<2> Vec2(real x, real y) { return vec<2>{x, y}; }
+    inline vec<3> Vec3(real x) { return vec<3>{x, x, x}; }
+    inline vec<3> Vec3(real x, real y, real z) { return vec<3>{x, y, z}; }
+    inline vec<4> Vec4(real x) { return vec<4>{x, x, x, x}; }
+    inline vec<4> Vec4(real x, real y, real z, real w) { return vec<4>{x, y, z, w}; }
 
     template <int Size> inline vec<Size>& vec<Size>::operator+=(const vec<Size>& v)
     {
@@ -799,11 +786,11 @@ namespace z
 
     inline vec<3> Cross(const vec<3>& v1, const vec<3>& v2)
     {
-        vec<3> result;
-
-        result.x() = v1.y() * v2.z() - v1.z() * v2.y();
-        result.y() = v1.z() * v2.x() - v1.x() * v2.z();
-        result.z() = v1.x() * v2.y() - v1.y() * v2.x();
+        vec<3> result = {
+            v1.y() * v2.z() - v1.z() * v2.y(),
+            v1.z() * v2.x() - v1.x() * v2.z(),
+            v1.x() * v2.y() - v1.y() * v2.x(),
+        };
 
         return result;
     }
@@ -844,7 +831,7 @@ namespace z
                                               const vec<Size>& row2,
                                               const vec<Size>& row3)
     {
-        static_assert(Size == 4, "mat(row0, row1‚ row2, row3) is only valid for matrices of size 4.");
+        static_assert(Size == 4, "mat(row0, row1, row2, row3) is only valid for matrices of size 4.");
         rows[0] = row0;
         rows[1] = row1;
         rows[2] = row2;
@@ -1088,7 +1075,7 @@ namespace z
 
     template <int Size> inline real Determinant(const mat<Size>& m)
     {
-        static_asset(false, "No generic determinant implementation.");
+        return 0.0f;
     }
 
     template <> inline real Determinant(const mat2& m)

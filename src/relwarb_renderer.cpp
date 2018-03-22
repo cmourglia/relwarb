@@ -245,10 +245,10 @@ void UpdateSpriteTime(Sprite* sprite, real32 dt)
 }
 
 RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
-                                         z::vec2 size,
-                                         uint8* pattern,
-                                         uint8 nbBitmaps,
-                                         Bitmap** bitmaps)
+                                             z::vec2 size,
+                                             uint8* pattern,
+                                             uint8 nbBitmaps,
+                                             Bitmap** bitmaps)
 {
     ComponentID id = gameState->nbPatterns++;
     Assert(id < WORLD_SIZE);
@@ -256,7 +256,7 @@ RenderingPattern* CreateFillRenderingPattern(GameState* gameState,
     RenderingPattern* result = &gameState->patterns[id];
     result->size = size;
     result->patternType = RenderingPattern_Fill;
-    result->pattern = new uint8[size.x() * size.y()];
+    result->pattern = new uint8[(int32)(size.x() * size.y())];
     memcpy(result->pattern, pattern, size.x() * size.y() * sizeof(uint8));
     result->tiles = new Bitmap*[nbBitmaps];
     memcpy(result->tiles, bitmaps, nbBitmaps * sizeof(Bitmap*));
@@ -332,8 +332,9 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
               });
 
     int start = 0;
+    const int queueSize = (int)renderQueue->size();
 
-    while (start < renderQueue->size())
+    while (start < queueSize)
     {
         int end = start + 1;
         RenderMode currMode = (*renderQueue)[start].renderMode;
@@ -341,7 +342,7 @@ internal void FlushRenderQueue(RenderQueue* renderQueue, GameState* gameState)
         z::vec4 currColor = (*renderQueue)[start].color;
 
         // NOTE(Charly): Find all meshes that share a texture
-        while (end < renderQueue->size() &&
+        while (end < queueSize &&
                (*renderQueue)[end].renderMode == currMode &&
                (*renderQueue)[end].texture == currTexture &&
                (*renderQueue)[end].color == currColor)
@@ -447,8 +448,8 @@ void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 
         {
             Transform currentTransform = *transform;
             // TODO(Thomas): Do properly.
-            currentTransform.size = z::vec2(1);
-            currentTransform.position += z::vec2(i, j);
+            currentTransform.size = z::Vec2(1);
+            currentTransform.position += z::Vec2(i, j);
             RenderBitmap(pattern->tiles[indexY * uint32(pattern->size.x()) + indexX],
                          RenderMode_World, &currentTransform);
 
@@ -504,10 +505,10 @@ void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4
     mesh.worldTransform = GetTransformMatrix(mode, transform);
     mesh.color = z::Saturate(color);
 
-    mesh.vertices.push_back({z::vec2(0, 0), z::vec2(0, 1)});
-    mesh.vertices.push_back({z::vec2(1, 0), z::vec2(1, 1)});
-    mesh.vertices.push_back({z::vec2(1, 1), z::vec2(1, 0)});
-    mesh.vertices.push_back({z::vec2(0, 1), z::vec2(0, 0)});
+    mesh.vertices.push_back({z::Vec2(0, 0), z::Vec2(0, 1)});
+    mesh.vertices.push_back({z::Vec2(1, 0), z::Vec2(1, 1)});
+    mesh.vertices.push_back({z::Vec2(1, 1), z::Vec2(1, 0)});
+    mesh.vertices.push_back({z::Vec2(0, 1), z::Vec2(0, 0)});
 
     mesh.indices = std::vector<GLuint>({0, 1, 2, 0, 2, 3});
 
@@ -556,9 +557,9 @@ void RenderParticles(GameState* gameState)
             z::mat3 worldMatrix = z::Translation(particle.p);
             z::mat3 transformMatrix = projMatrix * worldMatrix;
 
-            z::vec3 pos = transformMatrix * z::vec3(0, 0, 1);
-            z::vec3 size = transformMatrix * z::vec3(0.5, 0.5, 0);
-            z::vec4 ps(pos.x(), pos.y(), size.x(), size.y());
+            z::vec3 pos = transformMatrix * z::Vec3(0, 0, 1);
+            z::vec3 size = transformMatrix * z::Vec3(0.5, 0.5, 0);
+            z::vec4 ps = z::Vec4(pos.x(), pos.y(), size.x(), size.y());
             positionsSizes.push_back(ps);
         }
     }
@@ -635,9 +636,8 @@ static GLuint fontTexture;
 
 void LoadFont(const char* font)
 {
-    FILE* fontFile;
-    fopen_s(&fontFile, font, "rb");
-    if (fontFile != nullptr)
+    FILE* fontFile = fopen(font, "rb");
+    if (fontFile)
     {
         unsigned char* ttfBuffer = new unsigned char[1 << 20];
         unsigned char* tmpBitmap = new unsigned char[512 * 512];
@@ -662,7 +662,7 @@ void LoadFont(const char* font)
     }
 }
 
-void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
+void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type)
 {
     // FIXME(Charly): The font rendering is terribly hacky, this needs to be cleaned up
     if (fontTexture == 0)
@@ -687,10 +687,10 @@ void RenderText(char* text, z::vec2 pos, z::vec4 color, GameState* state, Object
 
             miny = z::Min(q.y0, miny);
 
-            mesh.vertices.push_back({z::vec2(q.x0, q.y0), z::vec2(q.s0, q.t0)});
-            mesh.vertices.push_back({z::vec2(q.x1, q.y0), z::vec2(q.s1, q.t0)});
-            mesh.vertices.push_back({z::vec2(q.x1, q.y1), z::vec2(q.s1, q.t1)});
-            mesh.vertices.push_back({z::vec2(q.x0, q.y1), z::vec2(q.s0, q.t1)});
+            mesh.vertices.push_back({z::Vec2(q.x0, q.y0), z::Vec2(q.s0, q.t0)});
+            mesh.vertices.push_back({z::Vec2(q.x1, q.y0), z::Vec2(q.s1, q.t0)});
+            mesh.vertices.push_back({z::Vec2(q.x1, q.y1), z::Vec2(q.s1, q.t1)});
+            mesh.vertices.push_back({z::Vec2(q.x0, q.y1), z::Vec2(q.s0, q.t1)});
 
             mesh.indices.push_back(idx + 0);
             mesh.indices.push_back(idx + 1);

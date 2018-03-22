@@ -31,16 +31,14 @@ void InitGame(GameState* gameState)
     real32 ratio = gameState->viewportSize.x() / gameState->viewportSize.y();
 
     // NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport size are computed accordingly.
-    gameState->worldSize = z::vec2(48, 24);
+    gameState->worldSize = z::Vec2(48, 24);
 
     z::mat4 worldMat(1);
     worldMat[0][0]         = (gameState->viewportSize.x() / 2.f) / (gameState->worldSize.x() / 2.f);
     worldMat[1][1]         = (gameState->viewportSize.y() / 2.f) / (gameState->worldSize.y() / 2.f);
     gameState->worldMatrix = worldMat;
 
-    gameState->gravity = z::vec2(0.f, -1.f);
-
-    z::vec2 halfSize = gameState->worldSize * 0.5f;
+    gameState->gravity = z::Vec2(0.f, -1.f);
 
     // NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
     LoadMapFile(gameState, "config/base_map.ini");
@@ -63,13 +61,13 @@ void InitGame(GameState* gameState)
 
     uint8 tiles_indices[] = { 1 };
 
-    Shape* heroShape = CreateShape(gameState, z::vec2(1.f, 1.5f));
+    Shape* heroShape = CreateShape(gameState, z::Vec2(1.f, 1.5f));
 
     RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, sprite_p1);
-    CreatePlayerEntity(gameState, z::vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[0]);
+    CreatePlayerEntity(gameState, z::Vec2(-2, -2), heroPattern1, heroShape, &gameState->controllers[0]);
 
     RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, sprite_p2);
-    CreatePlayerEntity(gameState, z::vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
+    CreatePlayerEntity(gameState, z::Vec2(2, -2), heroPattern2, heroShape, &gameState->controllers[1]);
 
     LoadBitmapData("assets/sprites/corner_topleft.png", CreateBitmap(gameState));
     LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap(gameState));
@@ -183,13 +181,13 @@ void RenderGame(GameState* gameState, real32 dt)
             }
 
             RenderHUD(gameState);
-            RenderText("Hello, World", z::vec2(0.0, 0.0), z::vec4(1, 0, 0, 1), gameState, ObjectType_Debug);
-            RenderText("I am another test text !", z::vec2(0.0, 0.1), z::vec4(0, 1, 0, 1), gameState, ObjectType_Debug);
-            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec4(0, 0, 1, 1), gameState, ObjectType_Debug);
+            RenderText("Hello, World", z::Vec2(0.0, 0.0), z::Vec4(1, 0, 0, 1), gameState, ObjectType_Debug);
+            RenderText("I am another test text !", z::Vec2(0.0, 0.1), z::Vec4(0, 1, 0, 1), gameState, ObjectType_Debug);
+            RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::Vec2(0.0, 0.2), z::Vec4(0, 0, 1, 1), gameState, ObjectType_Debug);
 
             char fps[128];
             snprintf(fps, 128, "dt: %.3f, fps: %.3f", dt, 1/dt);
-            RenderText(fps, z::vec2(0.8, 0), z::vec4(0, 0, 0, 1), gameState, ObjectType_Debug);
+            RenderText(fps, z::Vec2(0.8, 0), z::Vec4(0, 0, 0, 1), gameState, ObjectType_Debug);
 
             FlushRenderQueue(gameState);
         } break;
@@ -212,20 +210,20 @@ void RenderHUD(GameState* gameState)
 
     Transform transform;
 
-    z::vec2 onScreenPos = z::vec2(0.04, 0.04);
+    z::vec2 onScreenPos = z::Vec2(0.04, 0.04);
     for (uint32 i = 0; i < gameState->nbPlayers; ++i)
     {
         Entity* player = gameState->players[i];
 
-        transform.size = z::vec2(0.0625, 0.0625 * ratio);
+        transform.size = z::Vec2(0.0625, 0.0625 * ratio);
 
         // Avatar
         transform.position = onScreenPos;
         RenderBitmap(player->avatar, RenderMode_ScreenRelative, &transform);
 
         // Health
-        transform.size = z::vec2(0.025f, 0.025f*ratio);
-        z::vec2 healthPos = onScreenPos + z::vec2(0.075f, 0.f);
+        transform.size = z::Vec2(0.025f, 0.025f*ratio);
+        z::vec2 healthPos = onScreenPos + z::Vec2(0.075f, 0.f);
         for (uint32 hp = 0; hp < player->max_health; hp+=2)
         {
             transform.position = healthPos;
@@ -249,7 +247,7 @@ void RenderHUD(GameState* gameState)
         }
 
         // Mana
-        z::vec2 manaPos = onScreenPos + z::vec2(0.075f, 0.0375f*ratio);
+        z::vec2 manaPos = onScreenPos + z::Vec2(0.075f, 0.0375f*ratio);
         for (uint32 mp = 0; mp < player->max_mana; ++mp)
         {
             transform.position = manaPos;
@@ -320,7 +318,7 @@ z::vec2 ViewportToWorld(GameState* state, z::vec2 in)
     // [0, 1] -> [0, 1] origin bot left
     result.y() = 1 - result.y();
     // [0, 1] -> [-0.5, 0.5]
-    result = result - z::vec2(0.5);
+    result = result - z::Vec2(0.5);
     // [-0.5, 0.5] -> [-world / 2, world / 2]
     result = result * state->worldSize;
 
@@ -331,7 +329,7 @@ Transform GetWorldTransform(z::vec2 pos)
 {
     Transform result;
     result.position = pos;
-    result.origin = z::vec2(0.5);
+    result.origin = z::Vec2(0.5);
 
     return result;
 }

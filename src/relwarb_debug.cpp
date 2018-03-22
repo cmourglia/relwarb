@@ -32,7 +32,7 @@ internal void VarLog(LogLevel level, const char* format, va_list args)
     OutputDebugString("\n");
 #else
     fprintf(stderr, "%s", GetLogLevelMessage(level));
-    fprintf(stderr, str);
+    fprintf(stderr, "%s", str);
     fprintf(stderr, "\n");
 #endif
 #else

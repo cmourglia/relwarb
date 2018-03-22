@@ -131,8 +131,8 @@ void ReleaseBitmapData(Bitmap* bitmap);
 Entity* CreateEntity(GameState* gameState,
                      EntityType type,
                      z::vec2 p,
-                     z::vec2 dp = z::vec2(0),
-                     z::vec2 ddp = z::vec2(0));
+                     z::vec2 dp = z::Vec2(0),
+                     z::vec2 ddp = z::Vec2(0));
 
 Bitmap* CreateBitmap(GameState* gameState);
 // XXXComponent* CreateXXXComponent(GameState* gameState);

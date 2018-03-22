@@ -35,6 +35,7 @@ struct Skill
             z::vec2 initialPos;
             real32  direction; // Toward left (-1) or toward right (+1)
         };
+
         // ManaRecharge Data
         struct
         {
@@ -61,4 +62,4 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 
-#endif  RELWARB_GAME_H
+#endif // RELWARB_GAME_H

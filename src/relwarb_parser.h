@@ -3,7 +3,7 @@
 
 #include "relwarb.h"
 
-bool LoadMapFile(GameState * gameState, char * mapfile);
+bool LoadMapFile(GameState * gameState, const char* mapfile);
 
 
 
