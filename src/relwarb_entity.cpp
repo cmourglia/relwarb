@@ -42,7 +42,7 @@ Entity* CreatePlayerEntity(GameState* state, z::vec2 p,
             Log(Log_Error, "Invalid number of players");
     }
     result->max_health = 10;
-    result->health = 7;
+    result->health = 1;
     result->max_mana = 5;
     result->mana = 5;
     result->playerSpeed = 40.f;
@@ -55,7 +55,7 @@ Entity* CreatePlayerEntity(GameState* state, z::vec2 p,
 
     CreateDashSkill(&result->skills[0], result);
     CreateManaRecharge(&result->skills[1], result);
-    CreateManaRecharge(&result->skills[2], result);
+    CreatePassiveRegeneration(&result->skills[2], result);
 
     result->controller = controller;
 

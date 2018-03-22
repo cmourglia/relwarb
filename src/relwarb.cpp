@@ -188,7 +188,7 @@ void RenderGame(GameState* gameState, real32 dt)
             RenderText("abcdefghijklmnopqrstuvwxyz 0123456789", z::vec2(0.0, 0.2), z::vec4(0, 0, 1, 1), gameState, ObjectType_Debug);
 
             char fps[128];
-            snprintf(fps, 128, "dt: %.3f, fps: %.3f", dt, 1/dt);
+            snprintf(fps, 128, "dt: %.4f, fps: %.1f", dt, 1/dt);
             RenderText(fps, z::vec2(0.8, 0), z::vec4(0, 0, 0, 1), gameState, ObjectType_Debug);
 
             FlushRenderQueue(gameState);

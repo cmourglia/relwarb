@@ -5,6 +5,32 @@
 
 #include "relwarb_debug.h"
 
+Skill::Skill()
+{
+    triggerHandle = nullptr;
+    applyHandle = nullptr;
+    collideHandle = nullptr;
+    isActive = false;
+    elapsed = 0;
+    cooldownDuration = 0;
+    remainingCooldown = 0;
+    duration = 0;
+    manaCost = 0;
+    horizDistance = 0;
+    initialPosX = 0;
+    initialPosY = 0;
+    direction = 0;
+    nbSteps = 0;
+    manaRefundPerStep = 0;
+    stepDuration = 0;
+    remainingSteps = 0;
+    healthRefundPerStep = 0;
+    healthStepDuration = 0;
+    manaRefundPerStep = 0;
+    manaStepDuration = 0;
+    healthStepElasped = 0;
+}
+
 bool CreateDashSkill(Skill* skill, Entity* entity)
 {
     skill->isActive = false;
@@ -14,7 +40,7 @@ bool CreateDashSkill(Skill* skill, Entity* entity)
 
     skill->manaCost = 1;
     // NOTE(Thomas): Magic numbers to tailor
-    skill->duration = 0.2f;
+    skill->duration = 0.25f;
     skill->horizDistance = entity->shape->size.x() * 5.f;
     skill->cooldownDuration = 0.1f;
 
@@ -37,6 +63,22 @@ bool CreateManaRecharge(Skill* skill, Entity* executive)
     return true;
 }
 
+bool CreatePassiveRegeneration(Skill* skill, Entity* executive)
+{
+    skill->isActive = false;
+    skill->triggerHandle = &PassiveRegenerationTrigger;
+    skill->applyHandle = &PassiveRegenerationApply;
+    skill->collideHandle = nullptr;
+
+    skill->manaRefundPerStep = 1;
+    skill->manaStepDuration = 2.f;
+
+    skill->healthRefundPerStep = 1;
+    skill->healthStepDuration = 1.f;
+
+    return true;
+}
+
 bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 {
     if (!skill->isActive && entity->mana >= skill->manaCost && !(entity->status & EntityStatus_Rooted))
@@ -46,7 +88,9 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
             entity->mana -= skill->manaCost;
             skill->isActive = true;
             skill->elapsed = 0.f;
-            skill->initialPos = entity->p + entity->shape->size * z::vec2(0, 1);
+            z::vec2 initPos = entity->p + entity->shape->size * z::vec2(0, 1);
+            skill->initialPosX = initPos.x();
+            skill->initialPosY = initPos.y();
 
             if (entity->controller->moveLeft)
             {
@@ -76,6 +120,22 @@ bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity)
     return false;
 }
 
+bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* entity)
+{
+    if (!skill->isActive)
+    {
+        skill->isActive = true;
+        skill->elapsed = 0.f;
+        skill->healthStepElasped = 0.f;
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 {
     if (skill->isActive)
@@ -100,7 +160,7 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         Transform transform = {};
         transform.origin = z::vec2(0.5, 0.f);
         auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
-        auto normalizePos = worldToNormalize * skill->initialPos;
+        auto normalizePos = worldToNormalize * z::vec2(skill->initialPosX, skill->initialPosY);
         RenderText("Dash !", normalizePos * z::vec2(0.5) + z::vec2(0.5), currentColor, gameState, ObjectType::ObjectType_UI);
         
         return true;
@@ -147,6 +207,37 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
     return false;
 }
 
+bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
+{
+    // Skill is always active
+    if (!(executive->status & EntityStatus::EntityStatus_Stunned))
+    {
+        skill->healthStepElasped += dt;
+        if (skill->healthStepElasped >= skill->healthStepDuration)
+        {
+            executive->health += skill->healthRefundPerStep;
+            if (executive->health > executive->max_health)
+            {
+                executive->health = executive->max_health;
+            }
+            skill->healthStepElasped -= skill->healthStepDuration;
+        }
+
+        skill->elapsed += dt;
+        if (skill->elapsed >= skill->manaStepDuration)
+        {
+            executive->mana += skill->manaRefundPerStep;
+            if (executive->mana > executive->max_mana)
+            {
+                executive->mana = executive->max_mana;
+            }
+            skill->elapsed -= skill->manaStepDuration;
+        }
+        return true;
+    }
+    return false;
+}
+
 void UpdateGameLogic(GameState* gameState, real32 dt)
 {
     for (uint32 playerIdx = 0; playerIdx < gameState->nbPlayers; ++playerIdx)
@@ -183,6 +274,8 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
                     player->skills[1].triggerHandle(gameState, &player->skills[1], player);
                 }
             }
+
+            player->skills[2].triggerHandle(gameState, &player->skills[2], player);
         }
 
         // Resolve skills
