@@ -12,109 +12,6 @@
 
 void UpdateWorld(GameState* gameState, real32 dt)
 {
-	// NOTE(Charly): I have removed generic integration stuff for now.
-	//               This function might actually be scripted, or call
-	//               scripted entity update functions.
-	for (uint32 entityIdx = 0; entityIdx < gameState->nbEntities; ++entityIdx)
-	{
-		Entity* entity = &gameState->entities[entityIdx];
-
-		switch (entity->entityType)
-		{
-			case EntityType_Player:
-			{
-				// NOTE(Charly): We are updating a player, so we need to :
-				//  - Change x velocity based on left / right inputs
-				//  - If jump is pressed:
-				//      - Is it the start of a new jump ?
-				//          - Y: start jumping, compute gravity and velocity
-				//          based on current state and wished jump height,
-				//          keep track of the number of total jumps (gd related)
-				//          - N: update jumping elapsed time
-				//  - Else:
-				//      - Did we begin a jump and stopped early ?
-				//          - Change the gravity momentarily and track time
-
-				int32 controllerId = entity->controllerId;
-
-#define MAX_JUMP_TIME 0.25f
-#define MAX_STOP_TIME 0.05f
-#define MAX_NB_JUMPS 2
-
-				real32 oldX = entity->p.x;
-
-				z::vec2 acc  = z::Vec2(0, entity->gravity);
-				entity->dp.x = 0.0;
-
-				if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
-				{
-					if (IsActionPressed(gameState, controllerId, Action_Left))
-					{
-						entity->dp.x += -10.0;
-					}
-
-					if (IsActionPressed(gameState, controllerId, Action_Right))
-					{
-						entity->dp.x += 10.0;
-					}
-
-					if (IsActionPressed(gameState, controllerId, Action_Jump))
-					{
-						if (IsActionRisingEdge(gameState, controllerId, Action_Jump) &&
-						    (!entity->alreadyJumping ||
-						     (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
-						{
-							// Start jumping
-							entity->dp.y           = entity->initialJumpVelocity;
-							entity->alreadyJumping = true;
-							entity->newJump        = false;
-							++entity->nbJumps;
-							WentAirborne(entity);
-						}
-						else
-						{
-							entity->jumpTime += dt;
-						}
-					}
-					else
-					{
-						entity->newJump = true;
-
-						if (entity->alreadyJumping)
-						{
-							if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
-							{
-								entity->quickFall     = true;
-								entity->quickFallTime = 0;
-							}
-
-							if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
-							{
-								entity->quickFallTime += dt;
-								acc.y *= 5;
-							}
-						}
-					}
-				}
-
-				entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
-				entity->dp += dt * acc;
-
-				// NOTE(Thomas): I don't like that it's handle in a physic resolution function while
-				// it's "game logic" related (or graphic related)
-				if (z::OppositeSign(entity->p.x - oldX, entity->orientation))
-				{
-					entity->orientation *= -1.f;
-				}
-			}
-			break;
-
-			default:
-			{
-			}
-		}
-	}
-
 	// Update particle systems
 	for (uint32 systemIdx = 0; systemIdx < MAX_PARTICLE_SYSTEMS; ++systemIdx)
 	{
@@ -377,4 +274,10 @@ void AddShapeToEntity(Entity* entity, Shape* shape)
 {
 	entity->shape = shape;
 	SetEntityComponent(entity, ComponentFlag_Collidable);
+}
+
+z::vec2 MoveEntity(GameState* state, Entity* entity, z::vec2 motion)
+{
+	entity->p += motion;
+	return motion;
 }

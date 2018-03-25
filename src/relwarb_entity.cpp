@@ -137,21 +137,101 @@ void UpdateEntityNoop(GameState* state, Entity* entity, real32 dt)
 
 void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 {
+	const int32 controllerId = entity->controllerId;
+
 	if (!(entity->status & EntityStatus_Muted) && !(entity->status & EntityStatus_Stunned))
 	{
 		// Check for triggers
-		if (IsActionRisingEdge(state, entity->controllerId, Action_Skill1))
+		if (IsActionRisingEdge(state, controllerId, Action_Skill1))
 		{
 			entity->skills[0].triggerHandle(state, &entity->skills[0], entity);
 		}
 
 		// TODO(Charly): Allow entity to stop charging on demand
-		if (IsActionRisingEdge(state, entity->controllerId, Action_Skill2))
+		if (IsActionRisingEdge(state, controllerId, Action_Skill2))
 		{
 			entity->skills[1].triggerHandle(state, &entity->skills[1], entity);
 		}
 
 		entity->skills[2].triggerHandle(state, &entity->skills[2], entity);
+	}
+
+#define MAX_JUMP_TIME 0.25f
+#define MAX_STOP_TIME 0.05f
+#define MAX_NB_JUMPS 2
+
+	// NOTE(Charly): We are updating a player, so we need to :
+	//  - Change x velocity based on left / right inputs
+	//  - If jump is pressed:
+	//      - Is it the start of a new jump ?
+	//          - Y: start jumping, compute gravity and velocity
+	//          based on current state and wished jump height,
+	//          keep track of the number of total jumps (gd related)
+	//          - N: update jumping elapsed time
+	//  - Else:
+	//      - Did we begin a jump and stopped early ?
+	//          - Change the gravity momentarily and track time
+	real32 oldX = entity->p.x;
+
+	z::vec2 acc    = z::Vec2(0, entity->gravity);
+	z::vec2 motion = entity->dp;
+
+	if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
+	{
+		if (IsActionPressed(state, controllerId, Action_Left))
+		{
+			motion.x += -10.0;
+		}
+
+		if (IsActionPressed(state, controllerId, Action_Right))
+		{
+			motion.x += 10.0;
+		}
+
+		if (IsActionPressed(state, controllerId, Action_Jump))
+		{
+			if (IsActionRisingEdge(state, controllerId, Action_Jump) &&
+			    (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
+			{
+				// Start jumping
+				motion.y               = entity->initialJumpVelocity;
+				entity->alreadyJumping = true;
+				entity->newJump        = false;
+				++entity->nbJumps;
+				WentAirborne(entity);
+			}
+			else
+			{
+				entity->jumpTime += dt;
+			}
+		}
+		else
+		{
+			entity->newJump = true;
+
+			if (entity->alreadyJumping)
+			{
+				if (!entity->quickFall && entity->jumpTime < MAX_JUMP_TIME)
+				{
+					entity->quickFall     = true;
+					entity->quickFallTime = 0;
+				}
+
+				if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
+				{
+					entity->quickFallTime += dt;
+					acc.y *= 5;
+				}
+			}
+		}
+	}
+
+	motion += dt * acc;
+	entity->dp = MoveEntity(state, entity, motion);
+
+	if (z::OppositeSign(entity->p.x - oldX, entity->orientation))
+	{
+		entity->orientation *= -1.f;
 	}
 
 	// Resolve skills
