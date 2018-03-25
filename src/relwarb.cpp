@@ -114,32 +114,6 @@ void UpdateGame(GameState* gameState, real32 dt)
 
 			UpdateGameLogic(gameState, dt);
 			UpdateWorld(gameState, dt);
-
-			// Update particle system
-#if 0
-            for (uint32 particleSpawnIndex = 0; particleSpawnIndex < 1; ++particleSpawnIndex)
-            {
-                Particle* particle = gameState->particles + gameState->nextParticle++;
-                if (gameState->nextParticle >= MAX_PARTICLES)
-                {
-                    gameState->nextParticle = 0;
-                }
-
-                particle->p = z::vec2(z::GenerateRandBetween(-0.5, 0.5), 3);
-                particle->dp = z::vec2(z::GenerateRandBetween(-2.5, 2.5), z::GenerateRandBetween(9, 11));
-                particle->color = z::vec4(1, 1, 1, 1);
-                particle->dcolor = z::vec4(0, 0, 0, -0.5);
-            }
-
-            for (uint32 particleIdx = 0; particleIdx < MAX_PARTICLES; ++particleIdx)
-            {
-                const z::vec2 gravity(0, -10);
-                Particle* particle = gameState->particles + particleIdx;
-                particle->dp += gravity * dt;
-                particle->p += particle->dp * dt;
-                particle->color += particle->dcolor * dt;
-            }
-#endif
 		}
 		break;
 
@@ -236,7 +210,7 @@ void RenderHUD(GameState* gameState)
 	z::vec2 onScreenPos = z::Vec2(0.04, 0.04);
 	for (uint32 i = 0; i < gameState->nbPlayers; ++i)
 	{
-		Entity* player = gameState->players[i];
+		Entity* player = GetPlayerEntity(gameState, i);
 
 		transform.size = z::Vec2(0.0625, 0.0625 * ratio);
 
