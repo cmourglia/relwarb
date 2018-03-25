@@ -16,7 +16,7 @@ bool CreateDashSkill(Skill* skill, Entity* entity)
     // NOTE(Thomas): Magic numbers to tailor
     skill->dash.duration = 0.25f;
     skill->dash.horizDistance = entity->shape->size.x() * 5.f;
-    skill->cooldownDuration = 0.1f;
+    skill->dash.cooldownDuration = 0.1f;
 
     return true;
 }
@@ -32,7 +32,7 @@ bool CreateManaRecharge(Skill* skill, Entity* executive)
     skill->mana.nbSteps = 5;
     skill->mana.manaRefundPerStep = 1.f;
     skill->mana.stepDuration = 0.8f;
-    skill->cooldownDuration = 2.f;
+    skill->mana.cooldownDuration = 2.f;
 
     return true;
 }
@@ -55,7 +55,7 @@ bool CreatePassiveRegeneration(Skill* skill, Entity* executive)
 
 bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 {
-    if (!skill->isActive && entity->mana >= skill->dash.manaCost && !(entity->status & EntityStatus_Rooted))
+    if (skill->dash.remainingCooldown <= 0.f && !skill->isActive && entity->mana >= skill->dash.manaCost && !(entity->status & EntityStatus_Rooted))
     {
         if (entity->controller->moveLeft || entity->controller->moveRight)
         {
@@ -83,7 +83,7 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 
 bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity)
 {
-    if (!skill->isActive && (entity->status & EntityStatus_Landed))
+    if (skill->mana.remainingCooldown <= 0.f && !skill->isActive && (entity->status & EntityStatus_Landed))
     {
         skill->isActive = true;
         skill->mana.elapsed = 0.f;
@@ -112,12 +112,18 @@ bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* enti
 
 bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 {
+    skill->dash.remainingCooldown -= dt;
+    if (skill->dash.remainingCooldown <= 0.f)
+    {
+        skill->dash.remainingCooldown = 0.f;
+    }
+
     if (skill->isActive)
     {
         skill->dash.elapsed += dt;
         if (skill->dash.elapsed >= skill->dash.duration)
         {
-            skill->remainingCooldown = skill->cooldownDuration;
+            skill->dash.remainingCooldown = skill->dash.cooldownDuration;
             skill->isActive = false;
             UnsetEntityStatus(executive, EntityStatus_Rooted);
 
@@ -144,12 +150,18 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 
 bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 {
+    skill->mana.remainingCooldown -= dt;
+    if (skill->mana.remainingCooldown <= 0.f)
+    {
+        skill->mana.remainingCooldown = 0.f;
+    }
+
     if (skill->isActive)
     {
         skill->mana.elapsed += dt;
         if (skill->mana.elapsed >= skill->mana.stepDuration)
         {
-            executive->mana += skill->regen.manaRefundPerStep;
+            executive->mana += skill->mana.manaRefundPerStep;
             if (executive->mana > executive->max_mana)
             {
                 executive->mana = executive->max_mana;
@@ -158,8 +170,9 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
             skill->mana.remainingSteps -= 1;
             if (skill->mana.remainingSteps == 0)
             {
+                // TODO(Thomas): Should be handle with a stack of some kind so that we do not "unroot" the player if an external effect is supposed to root him
                 UnsetEntityStatus(executive, EntityStatus_Rooted);
-                skill->remainingCooldown = skill->cooldownDuration;
+                skill->mana.remainingCooldown = skill->mana.cooldownDuration;
                 skill->isActive = false;
             }
         }
@@ -219,41 +232,26 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
         Entity* player = gameState->players[playerIdx];
         Controller* controller = player->controller;
 
-        // Refresh cooldowns
-        for (uint32 i = 0; i < NB_SKILLS; ++i) {
-            // TODO(Thomas): Encapsulate in "UpdateSkill" or something
-            player->skills[i].remainingCooldown -= dt;
-            if (player->skills[i].remainingCooldown <= 0.f)
-            {
-                player->skills[i].remainingCooldown = 0.f;
-            }
-        }
-
         if (!(player->status & EntityStatus_Muted) && !(player->status & EntityStatus_Stunned))
         {
             // Check for triggers
             if (controller->dash && controller->newDash)
             {
-                if (player->skills[0].remainingCooldown <= 0.f)
-                {
-                    player->skills[0].triggerHandle(gameState, &player->skills[0], player);
-                }
+                player->skills[0].triggerHandle(gameState, &player->skills[0], player);
             }
 
             // TODO(Charly): Allow player to stop charging on demand
             if (controller->mana && controller->newMana)
             {
-                if (player->skills[1].remainingCooldown <= 0.f)
-                {
-                    player->skills[1].triggerHandle(gameState, &player->skills[1], player);
-                }
+                player->skills[1].triggerHandle(gameState, &player->skills[1], player);
             }
 
             player->skills[2].triggerHandle(gameState, &player->skills[2], player);
         }
 
         // Resolve skills
-        for (uint32 i = 0; i < NB_SKILLS; ++i) {
+        for (uint32 i = 0; i < NB_SKILLS; ++i)
+        {
             if (player->skills[i].applyHandle != nullptr)
             {
                 player->skills[i].applyHandle(gameState, &player->skills[i], player, dt);

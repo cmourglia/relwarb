@@ -18,15 +18,14 @@ struct Skill
     // Active status
     bool32 isActive;
 
-	real32	cooldownDuration;
-	real32	remainingCooldown;
-
     union
     {
         // Dash Data
         struct
         {
 			real32	elapsed;
+            real32	cooldownDuration;
+            real32	remainingCooldown;
 
             real32  duration;
             uint32  manaCost;
@@ -40,6 +39,8 @@ struct Skill
         struct
         {
 			real32	elapsed;
+            real32	cooldownDuration;
+            real32	remainingCooldown;
 
             uint32  nbSteps;
             uint32  manaRefundPerStep;
