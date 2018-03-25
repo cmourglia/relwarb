@@ -5,8 +5,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 # file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
     # DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(3rd/glfw)
+
 if (UNIX)
-    set(platform_sources src/linux_relwarb.cpp)
+    set(platform_sources src/relwarb_glfw.cpp)
 
     set(NO_WARN "-Wno-unused-variable -Wno-unused-function")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${NO_WARN}")
@@ -38,6 +44,7 @@ endif()
 
 set(sources
     ${platform_sources}
+    #src/relwarb_glfw.cpp
     src/relwarb.cpp
     src/relwarb_opengl.cpp
     src/relwarb_utils.cpp
@@ -45,6 +52,8 @@ set(sources
     src/relwarb_renderer.cpp
     src/relwarb_debug.cpp
     src/relwarb_entity.cpp
+    src/relwarb_input.cpp
+    src/relwarb_controller.cpp
     src/relwarb_editor.cpp
     src/relwarb_parser.cpp
     src/relwarb_game.cpp)
@@ -59,6 +68,7 @@ set(headers
     src/relwarb_debug.h
     src/relwarb_world_sim.h
     src/relwarb_entity.h
+    src/relwarb_controller.h
     src/relwarb_input.h
     src/relwarb_editor.h
     src/relwarb_parser.h
@@ -66,11 +76,14 @@ set(headers
 
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})
-target_link_libraries(relwarb ${libs})
+target_link_libraries(relwarb ${libs} glfw)
+target_include_directories(relwarb PRIVATE 3rd/glfw/include)
 
 set_property(TARGET relwarb PROPERTY CXX_STANDARD 14)
 set_property(TARGET relwarb PROPERTY CXX_STANDARD_REQUIRED True)
 
 if (WIN32)
     set_target_properties(relwarb PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    set_target_properties(relwarb PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+    set_target_properties(relwarb PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
 endif()

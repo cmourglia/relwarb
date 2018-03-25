@@ -44,7 +44,7 @@ void ExtractString(std::string& line, std::string& extract)
     size_t separator = line.find_first_of(SEPARATOR);
     extract = line.substr(0, separator);
 
-    Log(Log_Info, "%i", separator);
+    // Log(Log_Info, "%i", separator);
 
     if (separator != std::string::npos)
         line = line.substr(separator + 1);
@@ -62,7 +62,7 @@ void ExtractVec2(std::string& line, z::vec2& extract)
     separator = line.find_first_of(SEPARATOR);
     token = line.substr(0, separator);
     real32 y = std::stof(token);
-    extract = z::vec2(x, y);
+    extract = z::Vec2(x, y);
 
     if (separator != std::string::npos)
         line = line.substr(separator + 1);
@@ -83,14 +83,14 @@ void ExtractUint8(std::string& line, uint8& extract)
         line = "";
 }
 
-bool LoadMapFile(GameState * gameState, char * mapfile)
+bool LoadMapFile(GameState * gameState, const char* mapfile)
 {
     std::ifstream ini;
     ini.open(mapfile);
 
     if (ini.is_open())
     {
-        std::string previousLocale = setlocale(LC_NUMERIC, "en-US");
+        const char* previousLocale = setlocale(LC_NUMERIC, "en-US");
         std::string currentLine;
 
         while (getline(ini, currentLine))
@@ -122,7 +122,7 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                     {
                         z::vec2 size;
                         ExtractVec2(currentLine, size);
-                        z::vec2 offset(0.f);
+                        z::vec2 offset = z::Vec2(0);
                         if (!currentLine.empty())
                         {
                             ExtractVec2(currentLine, offset);
@@ -134,8 +134,8 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                     {
                         z::vec2 size;
                         ExtractVec2(currentLine, size);
-                        uint8* pattern = new uint8[size.x()*size.y()];
-                        for (uint8 idx = 0; idx < size.x()*size.y(); ++idx)
+                        uint8* pattern = new uint8[(int)(size.x * size.y)];
+                        for (uint8 idx = 0; idx < size.x*size.y; ++idx)
                         {
                             ExtractUint8(currentLine, pattern[idx]);
                         }
@@ -157,15 +157,15 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
                         //               Pass the type of the pattern first
                         CreateFillRenderingPattern(gameState, size, pattern, nbBitmaps, bitmaps);
 
-                        delete pattern;
-                        delete bitmaps;
+                        delete[] pattern;
+                        delete[] bitmaps;
                         break;
                     }
                     case ObjectParsing_Entity:
                     {
                         uint8 type;
                         ExtractUint8(currentLine, type);
-                        z::vec2 p, dp(0), ddp(0);
+                        z::vec2 p, dp = z::Vec2(0), ddp = z::Vec2(0);
                         ExtractVec2(currentLine, p);
                         if (!currentLine.empty())
                         {
@@ -201,7 +201,7 @@ bool LoadMapFile(GameState * gameState, char * mapfile)
         }
 
         ini.close();
-        setlocale(LC_NUMERIC, previousLocale.c_str());
+        setlocale(LC_NUMERIC, previousLocale);
         return true;
     }
     else

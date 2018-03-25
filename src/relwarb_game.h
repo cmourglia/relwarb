@@ -1,7 +1,7 @@
 #ifndef RELWARB_GAME_H
 #define RELWARB_GAME_H
 
-#include "zmath.hpp"
+#include "relwarb_math.h"
 #include "relwarb_defines.h"
 
 struct Entity;
@@ -35,6 +35,7 @@ struct Skill
             real32 initialPosY;
             real32  direction; // Toward left (-1) or toward right (+1)
         } dash;
+
         // ManaRecharge Data
         struct
         {
@@ -79,4 +80,4 @@ bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* execut
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 
-#endif  RELWARB_GAME_H
+#endif // RELWARB_GAME_H

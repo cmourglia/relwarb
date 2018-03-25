@@ -376,7 +376,7 @@ internal z::vec2 win32_GetCursorPos()
     GetCursorPos(&cursor);
     ScreenToClient(GetActiveWindow(), &cursor);
 
-    z::vec2 result(cursor.x, cursor.y);
+    z::vec2 result = { real32(cursor.x), real32(cursor.y) };
     return result;
 }
 
@@ -389,8 +389,8 @@ internal void win32_FillButtonState(GameState* gameState, Button bt, bool32 clic
         state.stateChange = true;
 
         z::vec2 cursor = win32_GetCursorPos();
-        state.cursorX = cursor.x();
-        state.cursorY = cursor.y();
+        state.cursorX = cursor.x;
+        state.cursorY = cursor.y;
 
         gameState->buttonStates[bt] = state;
     }
@@ -420,7 +420,7 @@ internal void win32_ProcessInputMessages(GameState* gameState)
 
             case WM_SIZE:
             {
-                gameState->viewportSize = z::vec2(LOWORD(message.lParam), HIWORD(message.lParam));
+                gameState->viewportSize = { real32(LOWORD(message.lParam)), real32(HIWORD(message.lParam)) };
             } break;
 
             case WM_KEYUP:
@@ -445,8 +445,8 @@ internal void win32_ProcessInputMessages(GameState* gameState)
                         state.stateChange = true;
 
                         z::vec2 cursor = win32_GetCursorPos();
-                        state.cursorX = cursor.x();
-                        state.cursorY = cursor.y();
+                        state.cursorX = cursor.x;
+                        state.cursorY = cursor.y;
 
                         gameState->keyStates[key] = state;
                     }
@@ -691,7 +691,7 @@ int CALLBACK WinMain(HINSTANCE instance,
         }
 
         GameState gameState;
-        gameState.viewportSize = z::vec2(worldWindowWidth, worldWindowHeight);
+        gameState.viewportSize = { real32(worldWindowWidth), real32(worldWindowHeight) };
 
         InitGame(&gameState);
 
@@ -705,7 +705,7 @@ int CALLBACK WinMain(HINSTANCE instance,
             QueryPerformanceCounter(&t1);
             real32 dt = (t1.QuadPart - t0.QuadPart) / (real32)timerFreq.QuadPart;
             t0 = t1;
-  
+
             // HACK(Thomas): Prevent the game from being ruined because of breakpointing
             if (dt > 0.5)
             {

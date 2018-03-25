@@ -5,18 +5,19 @@
 #include "relwarb_renderer.h"
 #include "relwarb_debug.h"
 
-Entity* CreatePlayerEntity(GameState* state, z::vec2 p,
+Entity* CreatePlayerEntity(GameState*        state,
+                           z::vec2           p,
                            RenderingPattern* pattern,
-                           Shape* shape,
-                           Controller* controller)
+                           Shape*            shape,
+                           int32             controllerId)
 {
-    Entity* result = CreateEntity(state, EntityType_Player, p);
-    state->players[state->nbPlayers++] = result;
+	Entity* result                     = CreateEntity(state, EntityType_Player, p);
+	state->players[state->nbPlayers++] = result;
 
-    AddRenderingPatternToEntity(result, pattern);
-    AddShapeToEntity(result, shape);
-    SetEntityComponent(result, ComponentFlag_Movable);
-    SetEntityComponent(result, ComponentFlag_Orientable);
+	AddRenderingPatternToEntity(result, pattern);
+	AddShapeToEntity(result, shape);
+	SetEntityComponent(result, ComponentFlag_Movable);
+	SetEntityComponent(result, ComponentFlag_Orientable);
 
     // FIXME(Charly): Load this from files
     result->avatar = CreateBitmap(state);
@@ -57,46 +58,51 @@ Entity* CreatePlayerEntity(GameState* state, z::vec2 p,
     CreateManaRecharge(&result->skills[1], result);
     CreatePassiveRegeneration(&result->skills[2], result);
 
-    result->controller = controller;
+	result->controllerId = controllerId;
 
-    return result;
+	return result;
 }
 
 Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern, Shape* shape)
 {
-    Entity* result = CreateEntity(state, EntityType_Wall, p);
+	Entity* result = CreateEntity(state, EntityType_Wall, p);
 
-    AddRenderingPatternToEntity(result, pattern);
-    AddShapeToEntity(result, shape);
+	AddRenderingPatternToEntity(result, pattern);
+	AddShapeToEntity(result, shape);
 
-    return result;
+	return result;
 }
 
 // cf. http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=3
 bool32 Intersect(const Entity* entity1, const Entity* entity2)
 {
-    // NOTE(Thomas): Inliner ?
-    const z::vec2& pos1 = entity1->p;
-    const z::vec2& pos2 = entity2->p;
-    const Shape* shape1 = entity1->shape;
-    const Shape* shape2 = entity2->shape;
+	// NOTE(Thomas): Inliner ?
+	const z::vec2& pos1   = entity1->p;
+	const z::vec2& pos2   = entity2->p;
+	const Shape*   shape1 = entity1->shape;
+	const Shape*   shape2 = entity2->shape;
 
-    real32 diffX = z::Abs(pos1.x() + shape1->offset.x() - pos2.x() - shape2->offset.x());
-    real32 diffY = z::Abs(pos1.y() + shape1->offset.y() - pos2.y() - shape2->offset.y());
-    return (diffX < (shape1->size.x() + shape2->size.x()) * 0.5f && diffY < (shape1->size.y() + shape2->size.y()) * 0.5f);
+	real32 diffX = z::Abs(pos1.x + shape1->offset.x - pos2.x - shape2->offset.x);
+	real32 diffY = z::Abs(pos1.y + shape1->offset.y - pos2.y - shape2->offset.y);
+	return (diffX < (shape1->size.x + shape2->size.x) * 0.5f &&
+	        diffY < (shape1->size.y + shape2->size.y) * 0.5f);
 }
 
 z::vec2 Overlap(const Entity* entity1, const Entity* entity2)
 {
-    // NOTE(Thomas): Inliner ?
-    const z::vec2& pos1 = entity1->p;
-    const z::vec2& pos2 = entity2->p;
-    const Shape* shape1 = entity1->shape;
-    const Shape* shape2 = entity2->shape;
+	// NOTE(Thomas): Inliner ?
+	const z::vec2& pos1   = entity1->p;
+	const z::vec2& pos2   = entity2->p;
+	const Shape*   shape1 = entity1->shape;
+	const Shape*   shape2 = entity2->shape;
 
-    z::vec2 over(pos1.x() + shape1->offset.x() - pos2.x() - shape2->offset.x(),
-        pos1.y() + shape1->offset.y() - pos2.y() - shape2->offset.y());
-    z::vec2 size(shape1->size + shape2->size);
-    z::vec2 sign(over.x() > 0.f ? 1.f : -1.f, over.y() > 0.f ? 1.f : -1.f);
-    return over - 0.5f * sign * size;
+	const real32 overX = (pos1.x + shape1->offset.x) - (pos2.x - shape2->offset.x);
+	const real32 overY = (pos1.y + shape1->offset.y) - (pos2.y - shape2->offset.y);
+	const real32 signX = overX >= 0.f ? 1.f : -1.f;
+	const real32 signY = overY >= 0.f ? 1.f : -1.f;
+
+	z::vec2 over = z::Vec2(overX, overY);
+	z::vec2 size = shape1->size + shape2->size;
+	z::vec2 sign = z::Vec2(signX, signY);
+	return over - 0.5f * sign * size;
 }

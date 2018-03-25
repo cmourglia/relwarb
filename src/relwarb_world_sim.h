@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "zmath.hpp"
+#include "relwarb_math.h"
 #include "relwarb_defines.h"
 
 struct GameState;
@@ -23,10 +23,6 @@ struct Shape
 {
     z::vec2 size;
     z::vec2 offset;
-
-    inline Shape() {}
-    inline Shape(z::vec2 size_, z::vec2 offset_ = z::vec2(0))
-        :size(size_), offset(offset_) {}
 };
 
 struct Particle
@@ -70,7 +66,7 @@ struct ParticleSystem
 // NOTE(Charly): Create a rigid body
 //               A null mass will lead to a static object
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass = 0.f);
-Shape* CreateShape(GameState* gameState, z::vec2 size_, z::vec2 offset_ = z::vec2(0));
+Shape* CreateShape(GameState* gameState, z::vec2 size, z::vec2 offset = z::Vec2(0));
 
 ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos);
 
