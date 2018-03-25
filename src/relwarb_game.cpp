@@ -242,35 +242,12 @@ bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* execut
 
 void UpdateGameLogic(GameState* gameState, real32 dt)
 {
-	for (uint32 playerIdx = 0; playerIdx < gameState->nbPlayers; ++playerIdx)
+	for (uint32 entityId = 0; entityId < gameState->nbEntities; ++entityId)
 	{
-		Entity*     player     = gameState->players[playerIdx];
-		Controller* controller = &(gameState->controllers[player->controllerId]);
-
-		if (!(player->status & EntityStatus_Muted) && !(player->status & EntityStatus_Stunned))
+		Entity* entity = gameState->entities + entityId;
+		if (entity->updateFunc)
 		{
-			// Check for triggers
-			if (IsActionRisingEdge(gameState, playerIdx, Action_Skill1))
-			{
-				player->skills[0].triggerHandle(gameState, &player->skills[0], player);
-			}
-
-			// TODO(Charly): Allow player to stop charging on demand
-			if (IsActionRisingEdge(gameState, playerIdx, Action_Skill2))
-			{
-				player->skills[1].triggerHandle(gameState, &player->skills[1], player);
-			}
-
-			player->skills[2].triggerHandle(gameState, &player->skills[2], player);
-		}
-
-		// Resolve skills
-		for (uint32 i = 0; i < NB_SKILLS; ++i)
-		{
-			if (player->skills[i].applyHandle != nullptr)
-			{
-				player->skills[i].applyHandle(gameState, &player->skills[i], player, dt);
-			}
+			entity->updateFunc(gameState, entity, dt);
 		}
 	}
 

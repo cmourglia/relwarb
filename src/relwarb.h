@@ -47,8 +47,8 @@ struct GameState
 
 	bool32 onEdge = false;
 
-	Entity* players[MAX_PLAYERS];
-	uint32  nbPlayers = 0;
+	int32  players[MAX_PLAYERS];
+	uint32 nbPlayers = 0;
 
 	Entity entities[WORLD_SIZE];
 	uint32 nbEntities = 0;

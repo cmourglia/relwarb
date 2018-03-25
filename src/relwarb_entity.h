@@ -102,6 +102,8 @@ struct Entity
 
 	// HUD data
 	Bitmap* avatar;
+
+	void (*updateFunc)(GameState*, Entity*, real32);
 };
 
 // NOTE(Charly): Helps compressing a bit of code
@@ -174,10 +176,15 @@ Entity* CreatePlayerEntity(GameState*        state,
 
 Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern, Shape* shape);
 
+Entity* GetPlayerEntity(GameState* state, int32 player);
+
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 
 // Returns the overlap w.r.t entity1 so that applying the opposite vector to entity1 would lead to
 // shapes being just in contact.
 z::vec2 Overlap(const Entity* entity1, const Entity* entity2);
+
+void UpdateEntityNoop(GameState* state, Entity* entity, real32 dt);
+void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt);
 
 #endif // RELWARB_ENTITY_H
