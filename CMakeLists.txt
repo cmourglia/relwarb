@@ -43,8 +43,8 @@ else()
 endif()
 
 set(sources
-    ${platform_sources}
-    #src/relwarb_glfw.cpp
+    # ${platform_sources}
+    src/relwarb_glfw.cpp
     src/relwarb.cpp
     src/relwarb_opengl.cpp
     src/relwarb_utils.cpp
