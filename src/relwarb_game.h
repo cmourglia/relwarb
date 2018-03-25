@@ -17,38 +17,51 @@ struct Skill
 
     // Active status
     bool32 isActive;
-    real32 elapsed;
-
-    // Cooldown status
-    real32 cooldownDuration;
-    real32 remainingCooldown;
 
     union
     {
         // Dash Data
         struct
         {
+			real32	elapsed;
+            real32	cooldownDuration;
+            real32	remainingCooldown;
+
             real32  duration;
             uint32  manaCost;
             real32  horizDistance;
 
             z::vec2 initialPos;
             real32  direction; // Toward left (-1) or toward right (+1)
-        };
+        } dash;
 
         // ManaRecharge Data
         struct
         {
+			real32	elapsed;
+            real32	cooldownDuration;
+            real32	remainingCooldown;
+
             uint32  nbSteps;
             uint32  manaRefundPerStep;
             real32  stepDuration;
 
             uint32  remainingSteps;
-        };
+        } mana;
+        // Passive regeneration
+        struct
+        {
+            uint32  healthRefundPerStep;
+            real32  healthStepDuration;
+
+            uint32  manaRefundPerStep;
+            real32  manaStepDuration;
+
+            real32  healthStepElasped;
+			real32  manaStepElasped;
+        } regen;
         // ...
     };
-
-    Skill() {};
 };
 
 bool CreateDashSkill(Skill* skill, Entity* executive);
@@ -59,6 +72,10 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 bool CreateManaRecharge(Skill* skill, Entity* executive);
 bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity);
 bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
+
+bool CreatePassiveRegeneration(Skill* skill, Entity* executive);
+bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* entity);
+bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 

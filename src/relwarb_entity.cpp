@@ -19,50 +19,44 @@ Entity* CreatePlayerEntity(GameState*        state,
 	SetEntityComponent(result, ComponentFlag_Movable);
 	SetEntityComponent(result, ComponentFlag_Orientable);
 
-	// FIXME(Charly): Load this from files
-	result->avatar = CreateBitmap(state);
-	switch (state->nbPlayers)
-	{
-		case 1:
-		{
-			LoadBitmapData("assets/sprites/p1_avatar.png", result->avatar);
-		}
-		break;
-		case 2:
-		{
-			LoadBitmapData("assets/sprites/p2_avatar.png", result->avatar);
-		}
-		break;
-		case 3:
-		{
-			// LoadBitmapData("assets/sprites/p3_avatar.png", result->avatar);
-		}
-		break;
-		case 4:
-		{
-			// LoadBitmapData("assets/sprites/p4_avatar.png", result->avatar);
-		}
-		break;
-		default:
-			Log(Log_Error, "Invalid number of players");
-	}
-	result->max_health          = 10;
-	result->health              = 7;
-	result->max_mana            = 5;
-	result->mana                = 5;
-	result->playerSpeed         = 40.f;
-	result->playerJumpHeight    = 5.f;
-	result->playerJumpDist      = 16.f;
-	result->initialJumpVelocity = (2 * result->playerJumpHeight * result->playerSpeed) /
-	                              result->playerJumpDist;
-	result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) /
-	                  (result->playerJumpDist * result->playerJumpDist);
-	result->status      = 0;
-	result->orientation = 1.f;
+    // FIXME(Charly): Load this from files
+    result->avatar = CreateBitmap(state);
+    switch (state->nbPlayers)
+    {
+        case 1:
+        {
+            LoadBitmapData("assets/sprites/p1_avatar.png", result->avatar);
+        } break;
+        case 2:
+        {   
+            LoadBitmapData("assets/sprites/p2_avatar.png", result->avatar);
+        }break;
+        case 3:
+        {
+            //LoadBitmapData("assets/sprites/p3_avatar.png", result->avatar);
+        } break;
+        case 4:
+        {
+            //LoadBitmapData("assets/sprites/p4_avatar.png", result->avatar);
+        }break;
+        default:
+            Log(Log_Error, "Invalid number of players");
+    }
+    result->max_health = 10;
+    result->health = 1;
+    result->max_mana = 5;
+    result->mana = 5;
+    result->playerSpeed = 40.f;
+    result->playerJumpHeight = 5.f;
+    result->playerJumpDist = 16.f;
+    result->initialJumpVelocity = (2 * result->playerJumpHeight * result->playerSpeed) / result->playerJumpDist;
+    result->gravity = (-2 * result->playerJumpHeight * result->playerSpeed * result->playerSpeed) / (result->playerJumpDist * result->playerJumpDist);
+    result->status = 0;
+    result->orientation = 1.f;
 
-	CreateDashSkill(&result->skills[0], result);
-	CreateManaRecharge(&result->skills[1], result);
-	CreateManaRecharge(&result->skills[2], result);
+    CreateDashSkill(&result->skills[0], result);
+    CreateManaRecharge(&result->skills[1], result);
+    CreatePassiveRegeneration(&result->skills[2], result);
 
 	result->controllerId = controllerId;
 
