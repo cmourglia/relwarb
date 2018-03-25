@@ -1,6 +1,7 @@
 
 #include "relwarb_game.h"
 #include "relwarb_entity.h"
+#include "relwarb_controller.h"
 #include "relwarb.h"
 
 #include "relwarb_debug.h"
@@ -15,7 +16,7 @@ bool CreateDashSkill(Skill* skill, Entity* entity)
 	skill->dash.manaCost = 1;
     // NOTE(Thomas): Magic numbers to tailor
     skill->dash.duration = 0.25f;
-    skill->dash.horizDistance = entity->shape->size.x() * 5.f;
+    skill->dash.horizDistance = entity->shape->size.x * 5.f;
     skill->dash.cooldownDuration = 0.1f;
 
     return true;
@@ -57,16 +58,16 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 {
     if (skill->dash.remainingCooldown <= 0.f && !skill->isActive && entity->mana >= skill->dash.manaCost && !(entity->status & EntityStatus_Rooted))
     {
-        if (entity->controller->moveLeft || entity->controller->moveRight)
+        if (IsActionPressed(gameState, entity->controllerId, Action_Left) ||
+            IsActionPressed(gameState, entity->controllerId, Action_Right))
         {
             entity->mana -= skill->dash.manaCost;
             skill->isActive = true;
             skill->dash.elapsed = 0.f;
-            z::vec2 initPos = entity->p + entity->shape->size * z::vec2(0, 1);
-            skill->dash.initialPosX = initPos.x();
-            skill->dash.initialPosY = initPos.y();
+            z::vec2 initPos = 
+            skill->dash.initialPos = entity->p + entity->shape->size * z::vec2{ 0.0, 1.0 };
 
-            if (entity->controller->moveLeft)
+            if (IsActionPressed(gameState, entity->controllerId, Action_Left))
             {
                 skill->dash.direction = -1.f;
             }
@@ -131,17 +132,17 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         }
 
         real32 ratio = dt / skill->dash.duration;
-        executive->p.x() += skill->dash.direction * ratio * skill->dash.horizDistance;
-        executive->dp = z::vec2(0.f);
+        executive->p.x += skill->dash.direction * ratio * skill->dash.horizDistance;
+        executive->dp = z::vec2{ 0.0, 0.0 };
         
         // Post effects
-        real32 interpolate = skill->dash.elapsed * 5.f;
-        z::vec4 currentColor(1.0 - interpolate, interpolate, 0.f, 1.f);
+        real32 interpolate = skill->dash.elapsed * 5.0;
+        z::vec4 currentColor{ 1.f - interpolate, interpolate, 0.f, 1.f };
         Transform transform = {};
-        transform.origin = z::vec2(0.5, 0.f);
+        transform.origin = z::vec2{ 0.5, 0.0 };
         auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
-        auto normalizePos = worldToNormalize * z::vec2(skill->dash.initialPosX, skill->dash.initialPosY);
-        RenderText("Dash !", normalizePos * z::vec2(0.5) + z::vec2(0.5), currentColor, gameState, ObjectType::ObjectType_UI);
+        auto normalizePos = worldToNormalize * skill->dash.initialPos;
+        RenderText("Dash !", normalizePos * z::vec2{ 0.5, 0.5 } + z::vec2{ 0.5, 0.5 }, currentColor, gameState, ObjectType::ObjectType_UI);
         
         return true;
     }
@@ -178,16 +179,16 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
         }
 
         // Post effects
-        z::vec4 indigo(0.3, 0.f, 0.51, 1.0);
-        z::vec4 turquoise(0.f, 0.8, 0.81, 1.0);
+        z::vec4 indigo{ 0.3f, 0.0f, 0.51f, 1.0f };
+        z::vec4 turquoise{ 0.0f, 0.8f, 0.81f, 1.0f };
         real32 elapsed2 = skill->mana.elapsed * 2.f;
         real32 interpolate = (elapsed2 < 1.f) ? (elapsed2) : (2.f - elapsed2) ;
         z::vec4 currentColor = indigo * interpolate +turquoise * (1.f - interpolate);
         Transform transform = {};
-        transform.origin = z::vec2(0.5, 0);
+        transform.origin = z::vec2{ 0.5, 0.0 };
         auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) * GetTransformMatrix(RenderMode_World, &transform);
-        auto normalizePos = worldToNormalize * (executive->p + executive->shape->size * z::vec2(0, 1));
-        RenderText("Mana !", normalizePos * z::vec2(0.5) + z::vec2(0.5), currentColor, gameState, ObjectType::ObjectType_UI);
+        auto normalizePos = worldToNormalize * (executive->p + executive->shape->size * z::vec2{ 0.0, 1.0 });
+        RenderText("Mana !", normalizePos * z::vec2{ 0.5, 0.5 } + z::vec2{ 0.5, 0.5 }, currentColor, gameState, ObjectType::ObjectType_UI);
 
         return true;
     }
@@ -230,18 +231,18 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
     for (uint32 playerIdx = 0; playerIdx < gameState->nbPlayers; ++playerIdx)
     {
         Entity* player = gameState->players[playerIdx];
-        Controller* controller = player->controller;
+        Controller* controller = &(gameState->controllers[player->controllerId]);
 
         if (!(player->status & EntityStatus_Muted) && !(player->status & EntityStatus_Stunned))
         {
             // Check for triggers
-            if (controller->dash && controller->newDash)
+            if (IsActionRisingEdge(gameState, playerIdx, Action_Skill1))
             {
                 player->skills[0].triggerHandle(gameState, &player->skills[0], player);
             }
 
             // TODO(Charly): Allow player to stop charging on demand
-            if (controller->mana && controller->newMana)
+            if (IsActionRisingEdge(gameState, playerIdx, Action_Skill2))
             {
                 player->skills[1].triggerHandle(gameState, &player->skills[1], player);
             }

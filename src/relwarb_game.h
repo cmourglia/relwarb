@@ -31,8 +31,7 @@ struct Skill
             uint32  manaCost;
             real32  horizDistance;
 
-            real32 initialPosX;
-            real32 initialPosY;
+            z::vec2 initialPos;
             real32  direction; // Toward left (-1) or toward right (+1)
         } dash;
 
