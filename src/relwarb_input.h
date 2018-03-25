@@ -1,18 +1,13 @@
 #ifndef RELWARB_INPUT_H
 #define RELWARB_INPUT_H
 
-struct InputState
-{
-	bool32 clicked;
-	bool32 stateChange;
-
-	int cursorX, cursorY;
-};
+#include "relwarb_defines.h"
+#include "relwarb_math.h"
 
 enum Key
 {
 	Key_Unknown = -1,
-	Key_A = 0,
+	Key_A       = 0,
 	Key_B,
 	Key_C,
 	Key_D,
@@ -63,9 +58,12 @@ enum Key
 	Key_Esc,
 	Key_Space,
 	Key_Enter,
-	Key_Ctrl,
-	Key_Shift,
-	Key_Alt,
+	Key_LCtrl,
+	Key_RCltr,
+	Key_LShift,
+	Key_RShift,
+	Key_LAlt,
+	Key_RAlt,
 	Key_Tab,
 	Key_Left,
 	Key_Right,
@@ -74,25 +72,76 @@ enum Key
 	Key_Count,
 };
 
-enum Button
+enum MouseButton
 {
-	Button_Unknown = -1,
-	Button_Left = 0,
-	Button_Right,
-	Button_Middle,
-	Button_Count,
+	MouseButton_Unknown = -1,
+	MouseButton_Left    = 0,
+	MouseButton_Right,
+	MouseButton_Middle,
+	MouseButton_Count,
 };
 
-inline bool32 InputUpFront(InputState* state)
+enum GamepadButton
 {
-	bool32 result = (state->stateChange && state->clicked);
-	return result;
-}
+	GamepadButton_A = 0,
+	GamepadButton_B,
+	GamepadButton_X,
+	GamepadButton_Y,
+	GamepadButton_LeftShoulder,
+	GamepadButton_RightShoulder,
+	GamepadButton_Back,
+	GamepadButton_Start,
+	GamepadButton_Menu,
+	GamepadButton_LeftThumb,
+	GamepadButton_RightThumb,
+	GamepadButton_PadUp,
+	GamepadButton_PadRight,
+	GamepadButton_PadDown,
+	GamepadButton_PadLeft,
+	GamepadButton_Count,
+};
 
-inline bool32 InputDownFront(InputState* state)
+struct KeyboardState
 {
-	bool32 result = (state->stateChange && !state->clicked);
-	return result;
-}
+	bool32 keys[Key_Count];
+};
+
+struct MouseState
+{
+	z::vec2 cursor;
+	bool32  buttons[MouseButton_Count];
+};
+
+struct GamepadState
+{
+	z::vec2 leftThumbStick;
+	z::vec2 rightThumbStick;
+	real32  leftTrigger;
+	real32  rightTrigger;
+	bool32  buttons[GamepadButton_Count];
+};
+
+static const int MAX_GAMEPADS = 4;
+
+struct InputState
+{
+	KeyboardState keyboard;
+	MouseState    mouse;
+	GamepadState  gamepads[MAX_GAMEPADS];
+};
+
+struct GameState;
+bool32 IsKeyPressed(GameState* state, int32 key);
+bool32 IsKeyRisingEdge(GameState* state, int32 key);
+bool32 IsKeyFallingEdge(GameState* state, int32 key);
+bool32 IsMouseButtonPressed(GameState* state, int32 button);
+bool32 IsMouseButtonRisingEdge(GameState* state, int32 button);
+bool32 IsMouseButtonFallingEdge(GameState* state, int32 button);
+bool32 IsGamepadButtonPressed(GameState* state, int32 pad, int32 button);
+bool32 IsGamepadButtonRisingEdge(GameState* state, int32 pad, int32 button);
+bool32 IsGamepadButtonFallingEdge(GameState* state, int32 pad, int32 button);
+
+z::vec2 GetCursorPosition(GameState* state);
+z::vec2 GetCursorWorldPosition(GameState* state);
 
 #endif // RELWARB_INPUT_H
