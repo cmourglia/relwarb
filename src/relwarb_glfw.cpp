@@ -228,11 +228,18 @@ int main()
 
 	glfwSwapInterval(0);
 
+	static const float MAX_FRAME_TIME = 2.0f / 60.0f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		t1        = Clock::now();
 		real32 dt = std::chrono::duration<float, Seconds>(t1 - t0).count();
 		t0        = t1;
+
+		if (dt > MAX_FRAME_TIME)
+		{
+			continue;
+		}
 
 		glfwPollEvents();
 
