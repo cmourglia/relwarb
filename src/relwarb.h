@@ -6,6 +6,7 @@
 #include "relwarb_renderer.h"
 #include "relwarb_input.h"
 #include "relwarb_controller.h"
+#include "relwarb_particles.h"
 
 #define WORLD_SIZE 1024
 
