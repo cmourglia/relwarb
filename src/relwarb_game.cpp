@@ -66,7 +66,7 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 			skill->isActive     = true;
 			skill->dash.elapsed = 0.f;
 			// z::vec2 initPos =
-			skill->dash.initialPos = entity->p + entity->shape->size * z::vec2{0.0, 1.0};
+			skill->dash.initialPos = entity->p + entity->shape->size * z::Vec2(0.0, 1.0);
 
 			if (IsActionPressed(gameState, entity->controllerId, Action_Left))
 			{
@@ -135,18 +135,18 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 
 		real32 ratio = dt / skill->dash.duration;
 		executive->p.x += skill->dash.direction * ratio * skill->dash.horizDistance;
-		executive->dp = z::vec2{0.0, 0.0};
+		executive->dp = z::Vec2(0.0, 0.0);
 
 		// Post effects
-		real32    interpolate = skill->dash.elapsed * 5.0;
-		z::vec4   currentColor{1.f - interpolate, interpolate, 0.f, 1.f};
-		Transform transform   = {};
-		transform.origin      = z::vec2{0.5, 0.0};
-		auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) *
+		real32    interpolate  = skill->dash.elapsed * 5.0;
+		z::vec4   currentColor = z::Vec4(1.f - interpolate, interpolate, 0.f, 1.f);
+		Transform transform    = {};
+		transform.origin       = z::Vec2(0.5, 0.0);
+		auto worldToNormalize  = GetProjectionMatrix(RenderMode_World, gameState) *
 		                        GetTransformMatrix(RenderMode_World, &transform);
 		auto normalizePos = worldToNormalize * skill->dash.initialPos;
 		RenderText("Dash !",
-		           normalizePos * z::vec2{0.5, 0.5} + z::vec2{0.5, 0.5},
+		           normalizePos * z::Vec2(0.5, 0.5) + z::Vec2(0.5, 0.5),
 		           currentColor,
 		           gameState,
 		           ObjectType::ObjectType_UI);
@@ -187,19 +187,20 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 		}
 
 		// Post effects
-		z::vec4   indigo{0.3f, 0.0f, 0.51f, 1.0f};
-		z::vec4   turquoise{0.0f, 0.8f, 0.81f, 1.0f};
-		real32    elapsed2     = skill->mana.elapsed * 2.f;
-		real32    interpolate  = (elapsed2 < 1.f) ? (elapsed2) : (2.f - elapsed2);
-		z::vec4   currentColor = indigo * interpolate + turquoise * (1.f - interpolate);
-		Transform transform    = {};
-		transform.origin       = z::vec2{0.5, 0.0};
-		auto worldToNormalize  = GetProjectionMatrix(RenderMode_World, gameState) *
+		z::vec4 indigo       = z::Vec4(0.3f, 0.0f, 0.51f, 1.0f);
+		z::vec4 turquoise    = z::Vec4(0.0f, 0.8f, 0.81f, 1.0f);
+		real32  elapsed2     = skill->mana.elapsed * 2.f;
+		real32  interpolate  = (elapsed2 < 1.f) ? (elapsed2) : (2.f - elapsed2);
+		z::vec4 currentColor = z::Lerp(indigo, turquoise, interpolate);
+
+		Transform transform   = {};
+		transform.origin      = z::Vec2(0.5, 0.0);
+		auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) *
 		                        GetTransformMatrix(RenderMode_World, &transform);
 		auto normalizePos = worldToNormalize *
-		                    (executive->p + executive->shape->size * z::vec2{0.0, 1.0});
+		                    (executive->p + executive->shape->size * z::Vec2(0.0, 1.0));
 		RenderText("Mana !",
-		           normalizePos * z::vec2{0.5, 0.5} + z::vec2{0.5, 0.5},
+		           normalizePos * z::Vec2(0.5, 0.5) + z::Vec2(0.5, 0.5),
 		           currentColor,
 		           gameState,
 		           ObjectType::ObjectType_UI);
