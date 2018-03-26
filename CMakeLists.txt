@@ -49,6 +49,7 @@ set(sources
     src/relwarb_opengl.cpp
     src/relwarb_utils.cpp
     src/relwarb_world_sim.cpp
+    src/relwarb_particles.cpp
     src/relwarb_renderer.cpp
     src/relwarb_debug.cpp
     src/relwarb_entity.cpp
@@ -67,6 +68,7 @@ set(headers
     src/relwarb_renderer.h
     src/relwarb_debug.h
     src/relwarb_world_sim.h
+    src/relwarb_particles.h
     src/relwarb_entity.h
     src/relwarb_controller.h
     src/relwarb_input.h
