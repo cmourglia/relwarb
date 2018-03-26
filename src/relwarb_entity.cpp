@@ -18,7 +18,6 @@ Entity* CreatePlayerEntity(GameState*        state,
 
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
-	SetEntityComponent(result, ComponentFlag_Movable);
 	SetEntityComponent(result, ComponentFlag_Orientable);
 
 	// FIXME(Charly): Load this from files
@@ -79,7 +78,20 @@ Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern,
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
 
-	result->updateFunc = &UpdateEntityNoop;
+	return result;
+}
+
+Entity* CreateBoxEntity(GameState*        state,
+                        z::vec2           p,
+                        RenderingPattern* pattern,
+                        Shape*            shape,
+                        RigidBody*        body)
+{
+	Entity* result = CreateEntity(state, EntityType_Enemy, p);
+
+	AddRenderingPatternToEntity(result, pattern);
+	AddShapeToEntity(result, shape);
+	AddRigidBodyToEntity(result, body);
 
 	return result;
 }
@@ -173,19 +185,18 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 	//          - Change the gravity momentarily and track time
 	real32 oldX = entity->p.x;
 
-	z::vec2 acc    = z::Vec2(0, entity->gravity);
-	z::vec2 motion = entity->dp;
+	z::vec2 motion = z::Vec2(0, entity->dp.y - 10);
 
 	if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
 	{
 		if (IsActionPressed(state, controllerId, Action_Left))
 		{
-			motion.x += -10.0;
+			motion.x -= 15.0;
 		}
 
 		if (IsActionPressed(state, controllerId, Action_Right))
 		{
-			motion.x += 10.0;
+			motion.x += 15.0;
 		}
 
 		if (IsActionPressed(state, controllerId, Action_Jump))
@@ -194,7 +205,7 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 			    (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
 			{
 				// Start jumping
-				motion.y               = entity->initialJumpVelocity;
+				motion.y               = 200;
 				entity->alreadyJumping = true;
 				entity->newJump        = false;
 				++entity->nbJumps;
@@ -220,14 +231,24 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 				if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
 				{
 					entity->quickFallTime += dt;
-					acc.y *= 5;
+					motion.y -= 50;
 				}
 			}
 		}
 	}
 
-	motion += dt * acc;
-	entity->dp = MoveEntity(state, entity, motion);
+	motion *= dt;
+
+	CollisionResult collision;
+	entity->dp = MoveEntity(state, entity, motion, &collision);
+
+	if (collision.collided)
+	{
+		if (collision.normal == z::Vec2(0, 1))
+		{
+			Landed(entity);
+		}
+	}
 
 	if (z::OppositeSign(entity->p.x - oldX, entity->orientation))
 	{
