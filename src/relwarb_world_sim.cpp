@@ -8,50 +8,43 @@
 #include "relwarb_utils.h"
 #include "relwarb_entity.h"
 #include "relwarb_debug.h"
+#include "relwarb_particles.h"
 #include "relwarb.h"
 
-void UpdateWorld(GameState* gameState, real32 dt)
-{
-	// Update particle systems
-	for (uint32 systemIdx = 0; systemIdx < MAX_PARTICLE_SYSTEMS; ++systemIdx)
-	{
-		ParticleSystem* system = gameState->particleSystems + systemIdx;
+global_variable real32 rigidBodySpawnTimer = 0.f;
 
-		if (system->alive)
-		{
-			// Spawn new particles for the current system
-			int newParticlesCount = system->particlesPerSecond * dt;
-			// Log(Log_Debug, "system %i should spawn %i particles", systemIdx, newParticlesCount);
-			for (int particleIdx = 0; particleIdx < newParticlesCount; ++particleIdx)
-			{
-				real angle = z::GenerateRandBetween(system->minAngle, system->maxAngle);
-				real vel   = z::GenerateRandBetween(system->minVelocity, system->maxVelocity);
-
-				Particle particle;
-				particle.p         = system->pos;
-				particle.dp        = z::Vec2(vel * z::Cos(angle), vel * z::Sin(angle));
-				particle.color     = system->startColor;
-				particle.life      = z::GenerateRandNormal(system->particleLife,
-                                                      system->particleLifeDelta);
-				particle.totalLife = particle.life;
-
-				system->particles.push_back(particle);
-			}
-			// Update system lifetime
-			system->systemLife -= dt;
-			if (system->systemLife <= 0.f)
-			{
-				system->alive = false;
-			}
-		}
+inline std::vector<Entity*> GetColliders(GameState* state, int32 entityFilter = -1);
+inline CollisionResult      TestCollision(Entity* e1, Entity* e2);
 
 void UpdateWorld(GameState* gameState, real32 dt)
 {
 	UpdateParticleSystems(gameState, dt);
 
+	if (rigidBodySpawnTimer <= 0)
+	{
+		z::vec2 p      = z::Vec2(z::GenerateRandBetween(-15, 15), 10);
+		Bitmap* bitmap = CreateBitmap(gameState);
+		LoadBitmapData("assets/sprites/crate.png", bitmap);
 
+		Sprite*           crateSprite = CreateStillSprite(gameState, bitmap);
+		RenderingPattern* pattern     = CreateUniqueRenderingPattern(gameState, crateSprite);
+		Shape*            shape       = CreateShape(gameState, z::Vec2(1, 1), z::Vec2(0, 0));
+		RigidBody*        body        = CreateRigidBody(gameState, 1.0f);
 
+		CreateBoxEntity(gameState, p, pattern, shape, body);
+		rigidBodySpawnTimer = 2.0;
+	}
+	rigidBodySpawnTimer -= dt;
 
+	// 1. Physics update
+	for (uint32 id = 0; id < gameState->nbEntities; ++id)
+	{
+		Entity* entity = gameState->entities + id;
+		if (EntityHasComponent(entity, ComponentFlag_Movable))
+		{
+			const z::vec2 gravity = z::Vec2(0, -50);
+			entity->dp += gravity * dt;
+			entity->p += entity->dp * dt;
 		}
 	}
 
@@ -62,25 +55,23 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	// Then, for each potentially colliding pair of entities, perform the test
 	// (Depending on the shapes, GJK might be the best tool)
 
-	// TODO(Thomas): Do something smart.
-	std::vector<std::pair<Entity*, Entity*>> collisions;
+	std::vector<CollisionResult> collisions;
 
-	for (uint32 firstIdx = 0; firstIdx < (gameState->nbEntities - 1); ++firstIdx)
+	std::vector<Entity*> colliders = GetColliders(gameState);
+
+	const uint32 nbColliders = (uint32)colliders.size();
+
+	for (uint32 firstIdx = 0; firstIdx < (nbColliders - 1); ++firstIdx)
 	{
-		Entity* firstEntity = &gameState->entities[firstIdx];
-		if (EntityHasComponent(firstEntity, ComponentFlag_Collidable))
+		Entity* firstEntity = colliders[firstIdx];
+
+		for (uint32 secondIdx = firstIdx + 1; secondIdx < nbColliders; ++secondIdx)
 		{
-			for (uint32 secondIdx = firstIdx + 1; secondIdx < gameState->nbEntities; ++secondIdx)
+			Entity*         secondEntity = colliders[secondIdx];
+			CollisionResult collision    = TestCollision(firstEntity, secondEntity);
+			if (collision.collided)
 			{
-				Entity* secondEntity = &gameState->entities[secondIdx];
-				if (EntityHasComponent(secondEntity, ComponentFlag_Collidable))
-				{
-					if (Intersect(firstEntity, secondEntity))
-					{
-						collisions.push_back(
-						    std::pair<Entity*, Entity*>(firstEntity, secondEntity));
-					}
-				}
+				collisions.push_back(collision);
 			}
 		}
 	}
@@ -114,42 +105,35 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	//          have an infinite mass / null inverse mass)
 	//      }
 
-	for (auto it : collisions)
+	for (auto collision : collisions)
 	{
-		z::vec2 overlap = Overlap(it.first, it.second);
-		if (CollisionCallback(it.first, it.second, &overlap))
-		{
-			Assert(EntityHasComponent(it.first, ComponentFlag_Movable) ||
-			       EntityHasComponent(it.second, ComponentFlag_Movable));
+		Entity*      e1          = collision.entity1;
+		Entity*      e2          = collision.entity2;
+		const bool32 e1IsMovable = EntityHasComponent(e1, ComponentFlag_Movable);
+		const bool32 e2IsMovable = EntityHasComponent(e2, ComponentFlag_Movable);
 
-			if (EntityHasComponent(it.first, ComponentFlag_Movable) &&
-			    EntityHasComponent(it.second, ComponentFlag_Movable))
+		if (!e1IsMovable && !e2IsMovable)
+		{
+			// Kinematic vs static
+			return;
+		}
+		if (e1IsMovable && e2IsMovable)
+		{
+			// TODO(Thomas): Handle collision w.r.t respective weights
+		}
+		else
+		{
+			z::vec2 clampDp = collision.normal.x == 0 ? z::Vec2(1, 0) : z::Vec2(0, 1);
+
+			if (e1IsMovable)
 			{
-				// TODO(Thomas): Handle collision w.r.t respective weights
+				e1->p -= collision.normal * collision.distance * 2;
+				e1->dp = e1->dp * clampDp;
 			}
-			else
+			else // (EntityHasFlag(it.second, ComponentFlag_Movable))
 			{
-				z::vec2 clampDp;
-				if (z::Abs(overlap.x) < z::Abs(overlap.y))
-				{
-					overlap = overlap * z::Vec2(1.f, 0.f);
-					clampDp = z::Vec2(0.f, 1.f);
-				}
-				else
-				{
-					overlap = overlap * z::Vec2(0.f, 1.f);
-					clampDp = z::Vec2(1.f, 0.f);
-				}
-				if (EntityHasComponent(it.first, ComponentFlag_Movable))
-				{
-					it.first->p -= overlap;
-					it.first->dp = it.first->dp * clampDp;
-				}
-				else // (EntityHasFlag(it.second, ComponentFlag_Movable))
-				{
-					it.second->p += overlap;
-					it.second->dp = it.second->dp * clampDp;
-				}
+				e2->p += collision.normal * collision.distance * 2;
+				e2->dp = e2->dp * clampDp;
 			}
 		}
 	}
@@ -214,8 +198,59 @@ void AddShapeToEntity(Entity* entity, Shape* shape)
 	SetEntityComponent(entity, ComponentFlag_Collidable);
 }
 
-z::vec2 MoveEntity(GameState* state, Entity* entity, z::vec2 motion)
+z::vec2 MoveEntity(GameState* state, Entity* entity, z::vec2 motion, CollisionResult* collisionData)
 {
 	entity->p += motion;
 	return motion;
+}
+
+CollisionResult FillCollisionResult(Entity* e1, Entity* e2)
+{
+	CollisionResult result = {};
+
+	z::vec2 overlap = Overlap(e1, e2);
+
+	if (z::Abs(overlap.x) < z::Abs(overlap.y))
+	{
+		result.distance = z::Abs(overlap.x / 2.0);
+		result.normal   = z::Vec2((overlap.x > 0 ? 1 : -1), 0);
+	}
+	else
+	{
+		result.distance = overlap.y / 2.0;
+		result.normal   = z::Vec2(0, (overlap.y > 0 ? 1 : -1));
+	}
+
+	result.entity1  = e1;
+	result.entity2  = e2;
+	result.collided = true;
+
+	return result;
+}
+
+inline std::vector<Entity*> GetColliders(GameState* state, int32 entityFilter)
+{
+	std::vector<Entity*> colliders;
+	colliders.reserve(state->nbEntities);
+	for (uint32 id = 0; id < state->nbEntities; ++id)
+	{
+		Entity* entity = state->entities + id;
+		if (entity->id != entityFilter && EntityHasComponent(entity, ComponentFlag_Collidable))
+		{
+			colliders.push_back(entity);
+		}
+	}
+
+	return colliders;
+}
+
+CollisionResult TestCollision(Entity* e1, Entity* e2)
+{
+	CollisionResult collision = {};
+	if (Intersect(e1, e2))
+	{
+		collision = FillCollisionResult(e1, e2);
+	}
+
+	return collision;
 }

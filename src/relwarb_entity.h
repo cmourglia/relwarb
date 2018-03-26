@@ -178,6 +178,12 @@ Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern,
 
 Entity* GetPlayerEntity(GameState* state, int32 player);
 
+Entity* CreateBoxEntity(GameState*        state,
+                        z::vec2           p,
+                        RenderingPattern* pattern,
+                        Shape*            shape,
+                        RigidBody*        body);
+
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 
 // Returns the overlap w.r.t entity1 so that applying the opposite vector to entity1 would lead to

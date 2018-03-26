@@ -8,12 +8,19 @@ struct GameState;
 struct Entity;
 struct Bitmap;
 
+enum RigidBodyType
+{
+	RigidBodyType_Static,
+	RigidBodyType_Kinematic,
+	RigidBodyType_Dynamic,
+};
+
 struct RigidBody
 {
-	z::vec2 forces;
 	// TODO(Charly): Angular stuff ?
-
-	real32 invMass;
+	RigidBodyType type;
+	z::vec2       forces;
+	real32        invMass;
 };
 
 // TODO(Charly): Generalize shapes
@@ -23,7 +30,7 @@ struct Shape
 	z::vec2 offset;
 };
 
-
+struct CollisionResult
 {
 	Entity* entity1;
 	Entity* entity2;
@@ -31,6 +38,7 @@ struct Shape
 	z::vec2 normal;
 	real32  distance;
 
+	bool32 collided;
 };
 
 // NOTE(Charly): Create a rigid body
@@ -45,12 +53,15 @@ void UpdateWorld(GameState* gameState, real32 dt);
 
 // Move a kinematic body. Collisions are solved for this entity.
 // Returns the remainder of the motion.
-z::vec2 MoveEntity(GameState* gameState, Entity* entity, z::vec2 motion);
+z::vec2 MoveEntity(GameState*       gameState,
+                   Entity*          entity,
+                   z::vec2          motion,
+                   CollisionResult* collisionData);
+
+CollisionResult FillCollisionResult(Entity* e1, Entity* e2);
 
 // TODO(Charly): ApplyForce
 // TODO(Charly): ApplyImpulse
 // TODO(Charly): ApplyImpulseToPoint
-
-bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam);
 
 #endif // RELWARB_WORLD_SIM_H
