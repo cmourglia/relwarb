@@ -570,10 +570,10 @@ namespace z
         return *this;
     }
 
-    inline vec2& vec2::operator*=(real x)
+    inline vec2& vec2::operator*=(real a)
     {
-        x *= x;
-        y *= x;
+        x *= a;
+        y *= a;
         return *this;
     }
 
@@ -584,10 +584,10 @@ namespace z
         return *this;
     }
 
-    inline vec2& vec2::operator/=(real x)
+    inline vec2& vec2::operator/=(real a)
     {
-        x /= x;
-        y /= x;
+        x /= a;
+        y /= a;
         return *this;
     }
 
@@ -696,11 +696,11 @@ namespace z
         return *this;
     }
 
-    inline vec3& vec3::operator*=(real x)
+    inline vec3& vec3::operator*=(real a)
     {
-        x *= x;
-        y *= x;
-        data[2] *= x;
+        x *= a;
+        y *= a;
+        data[2] *= a;
         return *this;
     }
 
@@ -828,12 +828,12 @@ namespace z
         return *this;
     }
 
-    inline vec4& vec4::operator*=(real x)
+    inline vec4& vec4::operator*=(real a)
     {
-        x *= x;
-        y *= x;
-        z *= x;
-        w *= x;
+        x *= a;
+        y *= a;
+        z *= a;
+        w *= a;
         return *this;
     }
 
@@ -847,12 +847,12 @@ namespace z
         return *this;
     }
 
-    inline vec4& vec4::operator/=(real x)
+    inline vec4& vec4::operator/=(real a)
     {
-        x /= x;
-        y /= x;
-        z /= x;
-        y /= x;
+        x /= a;
+        y /= a;
+        z /= a;
+        y /= a;
         return *this;
     }
 
