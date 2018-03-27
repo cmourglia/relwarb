@@ -238,14 +238,23 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 		}
 	}
 
-	entity->p = dt * entity->dp + (0.5 * dt * dt * acc);
+	entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
 	entity->dp += dt * acc;
 
 	std::vector<CollisionResult> collisions = CollideEntity(state, entity);
 
 	for (const auto& collision : collisions)
 	{
-		// Log(Log_Debug, "%.3f %.3f", collision.normal.x, collision.normal.y);
+		if (entity->id == 7)
+		{
+			Log(Log_Debug,
+			    "(%d %d): %.3f %.3f",
+			    entity->id,
+			    collision.entity2->id,
+			    collision.normal.x,
+			    collision.normal.y);
+		}
+
 		if (collision.normal == z::Vec2(0, -1))
 		{
 			Landed(entity);

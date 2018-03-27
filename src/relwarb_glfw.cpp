@@ -226,7 +226,7 @@ int main()
 	TimePoint t0 = Clock::now();
 	TimePoint t1;
 
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	static const float MAX_FRAME_TIME = 2.0f / 60.0f;
 

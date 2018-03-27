@@ -193,27 +193,15 @@ std::vector<CollisionResult> CollideEntity(GameState* state, Entity* entity)
 		Entity* other = collision.entity2;
 		Assert(other);
 
-		if (EntityHasComponent(other, ComponentFlag_Movable))
+		if (collision.normal.x == 0)
 		{
+			entity->dp = entity->dp * z::Vec2(1, 0);
+			entity->p += collision.normal * collision.distance * 2;
 		}
 		else
 		{
-			Log(Log_Debug,
-			    "n = (%.3f %.3f), d = %.3f",
-			    collision.normal.x,
-			    collision.normal.y,
-			    collision.distance);
-
-			if (collision.normal.x == 0)
-			{
-				entity->dp = entity->dp * z::Vec2(1, 0);
-				entity->p += collision.normal * collision.distance * 2;
-			}
-			else
-			{
-				entity->dp = entity->dp * z::Vec2(0, 1);
-				entity->p -= collision.normal * collision.distance * 2;
-			}
+			entity->dp = entity->dp * z::Vec2(0, 1);
+			entity->p -= collision.normal * collision.distance * 2;
 		}
 	}
 
