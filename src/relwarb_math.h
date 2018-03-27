@@ -15,6 +15,10 @@ typedef double real;
 typedef float real;
 #endif
 
+#ifdef _WIN32
+#pragma warning(disable: 4201) // unnamed struct
+#endif
+
 #define DEFAULT_CTORS(realype)                              \
     inline realype(const realype&) = default;               \
     inline realype(realype&&) = default;                    \
