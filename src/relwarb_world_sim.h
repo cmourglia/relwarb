@@ -10,6 +10,9 @@ struct GameState;
 struct Entity;
 struct Bitmap;
 
+class b2Body;
+class b2Shape;
+
 enum RigidBodyType
 {
 	RigidBodyType_Static,
@@ -17,50 +20,23 @@ enum RigidBodyType
 	RigidBodyType_Dynamic,
 };
 
-struct RigidBody
+struct PhysicsEntityData
 {
-	// TODO(Charly): Angular stuff ?
-	RigidBodyType type;
-	z::vec2       forces;
-	real32        invMass;
+	real32        mass     = 0.0f;
+	z::vec2       extents  = z::Vec2(1, 1);
+	z::vec2       position = z::Vec2(0, 0);
+	RigidBodyType type     = RigidBodyType_Static;
 };
 
-// TODO(Charly): Generalize shapes
 struct Shape
 {
 	z::vec2 size;
 	z::vec2 offset;
 };
 
-struct CollisionResult
-{
-	Entity* entity1;
-	Entity* entity2;
+Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset);
 
-	z::vec2 normal;
-	real32  distance;
-
-	bool32 collided;
-};
-
-// NOTE(Charly): Create a rigid body
-//               A null mass will lead to a static object
-RigidBody* CreateRigidBody(GameState* gameState, real32 mass = 0.f);
-Shape*     CreateShape(GameState* gameState, z::vec2 size, z::vec2 offset = z::Vec2(0));
-
-void AddRigidBodyToEntity(Entity* entity, RigidBody* body);
-void AddShapeToEntity(Entity* entity, Shape* shape);
-
+void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data);
 void UpdateWorld(GameState* gameState, real32 dt);
-
-// Move a kinematic body. Collisions are solved for this entity.
-// Returns the remainder of the motion.
-std::vector<CollisionResult> CollideEntity(GameState* gameState, Entity* entity);
-
-CollisionResult FillCollisionResult(Entity* e1, Entity* e2);
-
-// TODO(Charly): ApplyForce
-// TODO(Charly): ApplyImpulse
-// TODO(Charly): ApplyImpulseToPoint
 
 #endif // RELWARB_WORLD_SIM_H

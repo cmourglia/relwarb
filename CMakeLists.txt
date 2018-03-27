@@ -76,10 +76,15 @@ set(headers
     src/relwarb_parser.h
     src/relwarb_game.h)
 
-
 add_executable(relwarb ${platform_flag} ${sources} ${headers})
 target_link_libraries(relwarb ${libs} glfw)
 target_include_directories(relwarb PRIVATE 3rd/glfw/include)
+
+set(BOX2D_DIR "${CMAKE_SOURCE_DIR}/3rd/Box2D/Box2D")
+set(BOX2D_BUILD_DIR "${BOX2D_DIR}/Build/gmake/bin")
+target_include_directories(relwarb PRIVATE ${BOX2D_DIR})
+target_link_libraries(relwarb debug -L${BOX2D_BUILD_DIR}/Debug Box2D)
+target_link_libraries(relwarb optimized -L${BOX2D_BUILD_DIR}/Release Box2D)
 
 set_property(TARGET relwarb PROPERTY CXX_STANDARD 14)
 set_property(TARGET relwarb PROPERTY CXX_STANDARD_REQUIRED True)

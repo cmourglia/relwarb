@@ -8,6 +8,8 @@
 #include "relwarb_controller.h"
 #include "relwarb_particles.h"
 
+#include <Box2D/Box2D.h>
+
 #define WORLD_SIZE 1024
 
 // NOTE(Charly): This is garbage code
@@ -54,12 +56,6 @@ struct GameState
 	Entity entities[WORLD_SIZE];
 	uint32 nbEntities = 0;
 
-	RigidBody rigidBodies[WORLD_SIZE];
-	uint32    nbRigidBodies = 0;
-
-	Shape  shapes[WORLD_SIZE];
-	uint32 nbShapes = 0;
-
 	// TODO(Thomas): Use different size for following, as number of Bitmap/Sprite/Pattern are
 	// different from number of entities
 	Bitmap bitmaps[WORLD_SIZE];
@@ -87,6 +83,8 @@ struct GameState
 	// NOTE(Charly): Windows coordinates
 	InputState inputState;
 	InputState lastInputState;
+
+	b2World world;
 };
 
 // NOTE(Charly): Initialize all the game logic related stuff here

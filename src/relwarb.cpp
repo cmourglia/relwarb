@@ -42,7 +42,7 @@ void InitGame(GameState* gameState)
 	worldMat[1][1]         = (gameState->viewportSize.y / 2.f) / (gameState->worldSize.y / 2.f);
 	gameState->worldMatrix = worldMat;
 
-	gameState->gravity = z::Vec2(0.f, -1.f);
+	gameState->world = b2World(b2Vec2(0, -10.0f));
 
 	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
 	LoadMapFile(gameState, "config/base_map.ini");

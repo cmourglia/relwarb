@@ -16,6 +16,9 @@ struct Controller;
 struct Bitmap;
 struct Skill;
 
+class b2Body;
+class b2Shape;
+
 enum ComponentFlag
 {
 	// TODO(charly): Maybe find a better name for this one
@@ -62,7 +65,7 @@ struct Entity
 	uint32 max_mana;
 	uint32 status;
 
-	RigidBody*        body;
+	b2Body*           body;
 	Shape*            shape;
 	RenderingPattern* pattern;
 
