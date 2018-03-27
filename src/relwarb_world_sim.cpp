@@ -13,8 +13,9 @@
 
 global_variable real32 rigidBodySpawnTimer = 0.f;
 
-inline std::vector<Entity*> GetColliders(GameState* state, int32 entityFilter = -1);
-inline CollisionResult      TestCollision(Entity* e1, Entity* e2);
+inline std::vector<CollisionResult> GetCollisions(GameState* state, Entity* e);
+inline std::vector<Entity*>         GetColliders(GameState* state, int32 entityFilter = -1);
+inline CollisionResult              TestCollision(Entity* e1, Entity* e2);
 
 void UpdateWorld(GameState* gameState, real32 dt)
 {
@@ -22,7 +23,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 	if (rigidBodySpawnTimer <= 0)
 	{
-		z::vec2 p      = z::Vec2(z::GenerateRandBetween(-15, 15), 10);
+		z::vec2 p      = z::Vec2(z::GenerateRandBetween(-5, 5), 10);
 		Bitmap* bitmap = CreateBitmap(gameState);
 		LoadBitmapData("assets/sprites/crate.png", bitmap);
 
@@ -32,7 +33,7 @@ void UpdateWorld(GameState* gameState, real32 dt)
 		RigidBody*        body        = CreateRigidBody(gameState, 1.0f);
 
 		CreateBoxEntity(gameState, p, pattern, shape, body);
-		rigidBodySpawnTimer = 2.0;
+		rigidBodySpawnTimer = 3.0;
 	}
 	rigidBodySpawnTimer -= dt;
 
@@ -55,112 +56,97 @@ void UpdateWorld(GameState* gameState, real32 dt)
 	// Then, for each potentially colliding pair of entities, perform the test
 	// (Depending on the shapes, GJK might be the best tool)
 
-	std::vector<CollisionResult> collisions;
-
-	std::vector<Entity*> colliders = GetColliders(gameState);
-
-	const uint32 nbColliders = (uint32)colliders.size();
-
-	for (uint32 firstIdx = 0; firstIdx < (nbColliders - 1); ++firstIdx)
+	for (uint32 loop = 0; loop < 5; ++loop)
 	{
-		Entity* firstEntity = colliders[firstIdx];
+		std::vector<CollisionResult> collisions;
 
-		for (uint32 secondIdx = firstIdx + 1; secondIdx < nbColliders; ++secondIdx)
+		std::vector<Entity*> colliders = GetColliders(gameState);
+
+		const uint32 nbColliders = (uint32)colliders.size();
+
+		for (uint32 firstIdx = 0; firstIdx < (nbColliders - 1); ++firstIdx)
 		{
-			Entity*         secondEntity = colliders[secondIdx];
-			CollisionResult collision    = TestCollision(firstEntity, secondEntity);
-			if (collision.collided)
+			Entity* firstEntity = colliders[firstIdx];
+
+			for (uint32 secondIdx = firstIdx + 1; secondIdx < nbColliders; ++secondIdx)
 			{
-				collisions.push_back(collision);
+				Entity*         secondEntity = colliders[secondIdx];
+				CollisionResult collision    = TestCollision(firstEntity, secondEntity);
+				if (collision.collided)
+				{
+					collisions.push_back(collision);
+				}
 			}
 		}
-	}
 
-	//
-	// 3. Collision solving
-	// for each collision
-	//      - Call a callback function which goal is to enable gameplay programming.
-	//        This could look something like
-	//        bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
-	//        The idea is that, depending on the objects colliding, you might want to
-	//        be able to do some particular work. For example, if a character is
-	//        colliding against a wall where there are many spikes, you want him to
-	//        loose HP. You might want some destruction, or particles to spawn
-	//        (you hit a fire hydrant), or you might want to trigger some event on
-	//        some not visible colliding objects (you ran through a checkpoint,
-	//        or on an invisible trap).
-	//        Depending on the case, you might not want to enable the collision solving
-	//        (an AABB used for a checkpoint), this is the whole point of returning
-	//        a boolean as a result of that function. You want, or not, the collision
-	//        to be solved.
-	//
-	//      - if (CollisionCallback(e1, e2)) {
-	//          Now you want to solve the collision.
-	//          The easiest way to do it, is by directly modifying the position of
-	//          the objects overlapping.
-	//          Objects move along the normal of the contact, and their position is
-	//          modified so that they just do not overlap anymore.
-	//          The mass of each object can be used to weight the amount of correction
-	//          for each object (The heavier, the harder to move. Immovable objects
-	//          have an infinite mass / null inverse mass)
-	//      }
+		//
+		// 3. Collision solving
+		// for each collision
+		//      - Call a callback function which goal is to enable gameplay programming.
+		//        This could look something like
+		//        bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
+		//        The idea is that, depending on the objects colliding, you might want to
+		//        be able to do some particular work. For example, if a character is
+		//        colliding against a wall where there are many spikes, you want him to
+		//        loose HP. You might want some destruction, or particles to spawn
+		//        (you hit a fire hydrant), or you might want to trigger some event on
+		//        some not visible colliding objects (you ran through a checkpoint,
+		//        or on an invisible trap).
+		//        Depending on the case, you might not want to enable the collision solving
+		//        (an AABB used for a checkpoint), this is the whole point of returning
+		//        a boolean as a result of that function. You want, or not, the collision
+		//        to be solved.
+		//
+		//      - if (CollisionCallback(e1, e2)) {
+		//          Now you want to solve the collision.
+		//          The easiest way to do it, is by directly modifying the position of
+		//          the objects overlapping.
+		//          Objects move along the normal of the contact, and their position is
+		//          modified so that they just do not overlap anymore.
+		//          The mass of each object can be used to weight the amount of correction
+		//          for each object (The heavier, the harder to move. Immovable objects
+		//          have an infinite mass / null inverse mass)
+		//      }
 
-	for (auto collision : collisions)
-	{
-		Entity*      e1          = collision.entity1;
-		Entity*      e2          = collision.entity2;
-		const bool32 e1IsMovable = EntityHasComponent(e1, ComponentFlag_Movable);
-		const bool32 e2IsMovable = EntityHasComponent(e2, ComponentFlag_Movable);
-
-		if (!e1IsMovable && !e2IsMovable)
+		for (auto collision : collisions)
 		{
-			// Kinematic vs static
-			return;
-		}
-		if (e1IsMovable && e2IsMovable)
-		{
-			// TODO(Thomas): Handle collision w.r.t respective weights
-		}
-		else
-		{
-			z::vec2 clampDp = collision.normal.x == 0 ? z::Vec2(1, 0) : z::Vec2(0, 1);
+			Entity*      e1          = collision.entity1;
+			Entity*      e2          = collision.entity2;
+			const bool32 e1IsMovable = EntityHasComponent(e1, ComponentFlag_Movable);
+			const bool32 e2IsMovable = EntityHasComponent(e2, ComponentFlag_Movable);
 
-			if (e1IsMovable)
+			if (!e1IsMovable && !e2IsMovable)
 			{
-				e1->p -= collision.normal * collision.distance * 2;
+				// Kinematic vs static
+				return;
+			}
+			if (e1IsMovable && e2IsMovable)
+			{
+				z::vec2 clampDp = collision.normal.x == 0 ? z::Vec2(1, 0) : z::Vec2(0, 1);
+
+				e1->p -= collision.normal * collision.distance;
 				e1->dp = e1->dp * clampDp;
-			}
-			else // (EntityHasFlag(it.second, ComponentFlag_Movable))
-			{
-				e2->p += collision.normal * collision.distance * 2;
+
+				e2->p += collision.normal * collision.distance;
 				e2->dp = e2->dp * clampDp;
 			}
-		}
-	}
-}
+			else
+			{
+				z::vec2 clampDp = collision.normal.x == 0 ? z::Vec2(1, 0) : z::Vec2(0, 1);
 
-bool32 CollisionCallback(Entity* e1, Entity* e2, void* userParam)
-{
-	// NOTE(Thomas): Only if Player against Wall or something, or always ?
-	// NOTE(Thomas): else if or just if ?
-	if (e1->entityType == EntityType_Player && e2->entityType == EntityType_Wall)
-	{
-		z::vec2* overlap = static_cast<z::vec2*>(userParam);
-		if (z::Abs(overlap->y) < z::Abs(overlap->x) && overlap->y > 0)
-		{
-			Landed(e1);
+				if (e1IsMovable)
+				{
+					e1->p -= collision.normal * collision.distance * 2;
+					e1->dp = e1->dp * clampDp;
+				}
+				else // (EntityHasFlag(it.second, ComponentFlag_Movable))
+				{
+					e2->p += collision.normal * collision.distance * 2;
+					e2->dp = e2->dp * clampDp;
+				}
+			}
 		}
 	}
-	else if (e2->entityType == EntityType_Player && e1->entityType == EntityType_Wall)
-	{
-		z::vec2* overlap = static_cast<z::vec2*>(userParam);
-		if (z::Abs(overlap->y) < z::Abs(overlap->x) && overlap->y > 0)
-		{
-			Landed(e2);
-		}
-	}
-
-	return true;
 }
 
 RigidBody* CreateRigidBody(GameState* gameState, real32 mass)
@@ -198,10 +184,40 @@ void AddShapeToEntity(Entity* entity, Shape* shape)
 	SetEntityComponent(entity, ComponentFlag_Collidable);
 }
 
-z::vec2 MoveEntity(GameState* state, Entity* entity, z::vec2 motion, CollisionResult* collisionData)
+std::vector<CollisionResult> CollideEntity(GameState* state, Entity* entity)
 {
-	entity->p += motion;
-	return motion;
+	std::vector<CollisionResult> collisions = GetCollisions(state, entity);
+
+	for (const auto& collision : collisions)
+	{
+		Entity* other = collision.entity2;
+		Assert(other);
+
+		if (EntityHasComponent(other, ComponentFlag_Movable))
+		{
+		}
+		else
+		{
+			Log(Log_Debug,
+			    "n = (%.3f %.3f), d = %.3f",
+			    collision.normal.x,
+			    collision.normal.y,
+			    collision.distance);
+
+			if (collision.normal.x == 0)
+			{
+				entity->dp = entity->dp * z::Vec2(1, 0);
+				entity->p += collision.normal * collision.distance * 2;
+			}
+			else
+			{
+				entity->dp = entity->dp * z::Vec2(0, 1);
+				entity->p -= collision.normal * collision.distance * 2;
+			}
+		}
+	}
+
+	return collisions;
 }
 
 CollisionResult FillCollisionResult(Entity* e1, Entity* e2)
@@ -257,4 +273,25 @@ CollisionResult TestCollision(Entity* e1, Entity* e2)
 	}
 
 	return collision;
+}
+
+inline std::vector<CollisionResult> GetCollisions(GameState* state, Entity* e)
+{
+	std::vector<Entity*> colliders   = GetColliders(state, e->id);
+	const uint32         nbColliders = (uint32)colliders.size();
+
+	std::vector<CollisionResult> collisions;
+	collisions.reserve(nbColliders);
+
+	for (uint32 id = 0; id < nbColliders; ++id)
+	{
+		Entity*         other     = colliders[id];
+		CollisionResult collision = TestCollision(e, other);
+		if (collision.collided)
+		{
+			collisions.push_back(collision);
+		}
+	}
+
+	return collisions;
 }

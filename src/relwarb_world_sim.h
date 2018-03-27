@@ -4,6 +4,8 @@
 #include "relwarb_math.h"
 #include "relwarb_defines.h"
 
+#include <vector>
+
 struct GameState;
 struct Entity;
 struct Bitmap;
@@ -53,10 +55,7 @@ void UpdateWorld(GameState* gameState, real32 dt);
 
 // Move a kinematic body. Collisions are solved for this entity.
 // Returns the remainder of the motion.
-z::vec2 MoveEntity(GameState*       gameState,
-                   Entity*          entity,
-                   z::vec2          motion,
-                   CollisionResult* collisionData);
+std::vector<CollisionResult> CollideEntity(GameState* gameState, Entity* entity);
 
 CollisionResult FillCollisionResult(Entity* e1, Entity* e2);
 

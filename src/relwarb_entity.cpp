@@ -185,18 +185,19 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 	//          - Change the gravity momentarily and track time
 	real32 oldX = entity->p.x;
 
-	z::vec2 motion = z::Vec2(0, entity->dp.y - 10);
+	z::vec2 acc  = z::Vec2(0, entity->gravity);
+	entity->dp.x = 0;
 
 	if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
 	{
 		if (IsActionPressed(state, controllerId, Action_Left))
 		{
-			motion.x -= 15.0;
+			entity->dp.x -= 15.0;
 		}
 
 		if (IsActionPressed(state, controllerId, Action_Right))
 		{
-			motion.x += 15.0;
+			entity->dp.x += 15.0;
 		}
 
 		if (IsActionPressed(state, controllerId, Action_Jump))
@@ -205,7 +206,7 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 			    (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
 			{
 				// Start jumping
-				motion.y               = 200;
+				entity->dp.y           = entity->initialJumpVelocity;
 				entity->alreadyJumping = true;
 				entity->newJump        = false;
 				++entity->nbJumps;
@@ -231,20 +232,21 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 				if (entity->quickFall && entity->quickFallTime < MAX_STOP_TIME)
 				{
 					entity->quickFallTime += dt;
-					motion.y -= 50;
+					acc.y *= 5;
 				}
 			}
 		}
 	}
 
-	motion *= dt;
+	entity->p = dt * entity->dp + (0.5 * dt * dt * acc);
+	entity->dp += dt * acc;
 
-	CollisionResult collision;
-	entity->dp = MoveEntity(state, entity, motion, &collision);
+	std::vector<CollisionResult> collisions = CollideEntity(state, entity);
 
-	if (collision.collided)
+	for (const auto& collision : collisions)
 	{
-		if (collision.normal == z::Vec2(0, 1))
+		// Log(Log_Debug, "%.3f %.3f", collision.normal.x, collision.normal.y);
+		if (collision.normal == z::Vec2(0, -1))
 		{
 			Landed(entity);
 		}

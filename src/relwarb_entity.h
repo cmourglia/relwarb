@@ -165,6 +165,7 @@ inline void Landed(Entity* entity)
 	UnsetEntityStatus(entity, EntityStatus_Airbone);
 	SetEntityStatus(entity, EntityStatus_Landed);
 	ResetJump(entity);
+	entity->dp.y = 0.f;
 }
 
 // TODO(Charly): Add CreateXEntityFromData stuff
