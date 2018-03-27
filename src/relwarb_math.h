@@ -16,7 +16,7 @@ typedef float real;
 #endif
 
 #ifdef _WIN32
-#pragma warning(disable: 4201) // unnamed struct
+#	pragma warning(disable : 4201) // unnamed struct
 #endif
 
 #define DEFAULT_CTORS(realype)                                                                     \
