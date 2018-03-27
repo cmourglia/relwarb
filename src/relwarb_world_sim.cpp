@@ -235,7 +235,11 @@ inline std::vector<Entity*> GetColliders(GameState* state, int32 entityFilter)
 	for (uint32 id = 0; id < state->nbEntities; ++id)
 	{
 		Entity* entity = state->entities + id;
-		if (entity->id != entityFilter && EntityHasComponent(entity, ComponentFlag_Collidable))
+
+		const int32  eid        = (int32)entity->id;
+		const bool32 collidable = EntityHasComponent(entity, ComponentFlag_Collidable);
+
+		if (eid != entityFilter && collidable)
 		{
 			colliders.push_back(entity);
 		}
