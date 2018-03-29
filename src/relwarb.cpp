@@ -375,6 +375,7 @@ internal void ConfigureControllers(GameState* state)
 	MapActionToInput(state, 1, Action_Up, GamepadButton_PadUp);
 	MapActionToInput(state, 1, Action_Down, GamepadButton_PadDown);
 	MapActionToInput(state, 1, Action_Jump, GamepadButton_A);
-	MapActionToInput(state, 1, Action_Skill1, GamepadButton_X);
+	MapActionToInput(state, 1, Action_Skill1, GamepadButton_B);
 	MapActionToInput(state, 1, Action_Skill2, GamepadButton_Y);
+	MapActionToInput(state, 1, Action_Skill3, GamepadButton_X);
 }

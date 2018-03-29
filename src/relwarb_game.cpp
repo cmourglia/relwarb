@@ -54,6 +54,24 @@ bool CreatePassiveRegeneration(Skill* skill, Entity* executive)
 	return true;
 }
 
+bool CreateSliceAndDice(Skill* skill, Entity* executive)
+{
+	skill->isActive = false;
+	skill->triggerHandle = &SliceAndDiceTrigger;
+	skill->applyHandle = &SliceAndDiceApply;
+	skill->collideHandle = nullptr;
+
+	skill->slice.cooldownDuration = 1.f;
+	skill->slice.sliceDuration = 0.2;
+	skill->slice.hitLowerBound = 0.05;
+	skill->slice.hitHigherBound = 0.15;
+	skill->slice.manaCost = 2;
+	skill->slice.maxCharges = 3;
+	skill->slice.remainingCooldown = 0.f;
+
+	return true;
+}
+
 bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 {
 	if (skill->dash.remainingCooldown <= 0.f && !skill->isActive &&
@@ -63,9 +81,8 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 		    IsActionPressed(gameState, entity->controllerId, Action_Right))
 		{
 			entity->mana -= skill->dash.manaCost;
-			skill->isActive     = true;
+			skill->isActive = true;
 			skill->dash.elapsed = 0.f;
-			// z::vec2 initPos =
 			skill->dash.initialPos = entity->p + entity->shape->size * z::vec2{0.0, 1.0};
 
 			if (IsActionPressed(gameState, entity->controllerId, Action_Left))
@@ -111,6 +128,31 @@ bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* enti
 	{
 		return false;
 	}
+}
+
+bool SliceAndDiceTrigger(GameState* gameState, Skill* skill, Entity* entity)
+{
+	if (skill->slice.remainingCooldown <= 0.f && !skill->isActive && entity->mana >= skill->slice.manaCost)
+	{
+		entity->mana -= skill->slice.manaCost;
+		skill->isActive = true;
+		skill->slice.elapsed = skill->slice.sliceDuration;
+		skill->slice.remainingCharges = skill->slice.maxCharges;
+	}
+
+	if (skill->isActive)
+	{
+		if (skill->slice.elapsed > skill->slice.sliceDuration)
+		{
+			skill->slice.remainingCharges -= 1;
+			skill->slice.elapsed = 0.f;
+			skill->slice.direction = entity->orientation;
+			for (uint32 i = 0; i < 4; ++i)
+				skill->slice.alreadyHit[i] = nullptr;
+		}
+		return true;
+	}
+	return false;
 }
 
 bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
@@ -236,6 +278,47 @@ bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* execut
 			skill->regen.manaStepElasped -= skill->regen.manaStepDuration;
 		}
 		return true;
+	}
+	return false;
+}
+
+bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
+{
+	skill->slice.remainingCooldown -= dt;
+	if (skill->slice.remainingCooldown <= 0.f)
+	{
+		skill->slice.remainingCooldown = 0.f;
+	}
+
+	if (skill->isActive)
+	{
+		skill->slice.elapsed += dt;
+		if (skill->slice.elapsed <= skill->slice.sliceDuration)
+		{
+			// Detect colisions with other players
+			if (skill->slice.elapsed >= skill->slice.hitLowerBound && skill->slice.elapsed <= skill->slice.hitHigherBound)
+			{
+
+			}
+
+			// Post effects
+			real32    interpolate = skill->slice.elapsed * 5.0;
+			z::vec4   currentColor{ 1.f - interpolate, 0.f, 0.f, 1.f };
+			Transform transform = {};
+			transform.origin = z::vec2{ 0.5, 0.0 };
+			auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) *
+				GetTransformMatrix(RenderMode_World, &transform);
+			auto normalizePos = worldToNormalize * (executive->p + executive->shape->size * z::vec2{ 0.0, 1.0 });
+			char slice[16];
+			snprintf(slice, 16, "Slice %d !", skill->slice.maxCharges - skill->slice.remainingCharges);
+			RenderText("Slice !",
+				normalizePos * z::vec2{ 0.5, 0.5 } +z::vec2{ 0.5, 0.5 },
+				currentColor,
+				gameState,
+				ObjectType::ObjectType_UI);
+
+			return true;
+		}
 	}
 	return false;
 }
