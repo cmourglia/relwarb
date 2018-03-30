@@ -142,7 +142,7 @@ bool SliceAndDiceTrigger(GameState* gameState, Skill* skill, Entity* entity)
 
 	if (skill->isActive)
 	{
-		if (skill->slice.elapsed > skill->slice.sliceDuration)
+		if (skill->slice.elapsed > skill->slice.sliceDuration && skill->slice.remainingCharges > 0)
 		{
 			skill->slice.remainingCharges -= 1;
 			skill->slice.elapsed = 0.f;
@@ -319,6 +319,13 @@ bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, re
 
 			return true;
 		}
+		else
+		{
+			if (skill->slice.remainingCharges == 0)
+			{
+				skill->isActive = false;
+			}
+		}
 	}
 	return false;
 }
@@ -344,7 +351,12 @@ void UpdateGameLogic(GameState* gameState, real32 dt)
 				player->skills[1].triggerHandle(gameState, &player->skills[1], player);
 			}
 
-			player->skills[2].triggerHandle(gameState, &player->skills[2], player);
+			if (IsActionRisingEdge(gameState, playerIdx, Action_Skill3))
+			{
+				player->skills[2].triggerHandle(gameState, &player->skills[2], player);
+			}
+
+			player->skills[3].triggerHandle(gameState, &player->skills[3], player);
 		}
 
 		// Resolve skills
