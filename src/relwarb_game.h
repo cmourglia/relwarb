@@ -4,6 +4,7 @@
 #include "relwarb_math.h"
 #include "relwarb_defines.h"
 
+struct Bitmap;
 struct Entity;
 struct GameState;
 
@@ -71,6 +72,7 @@ struct Skill
 			real32	hitHigherBound;
 			uint32  manaCost;
 			uint32	maxCharges;
+			Bitmap* sprite;
 
 			// Activation data
 			real32	elapsed;

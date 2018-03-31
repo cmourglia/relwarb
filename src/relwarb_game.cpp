@@ -68,6 +68,8 @@ bool CreateSliceAndDice(Skill* skill, Entity* executive)
 	skill->slice.manaCost = 2;
 	skill->slice.maxCharges = 3;
 	skill->slice.remainingCooldown = 0.f;
+	skill->slice.sprite = new Bitmap();
+	LoadBitmapData("assets/sprites/sword_p2.png", skill->slice.sprite);
 
 	return true;
 }
@@ -301,10 +303,21 @@ bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, re
 
 			}
 
+			// Display the sprite
+			real32 interpolate = skill->slice.elapsed * 5.0;
+
+			real32 ratio(skill->slice.sprite->height / skill->slice.sprite->width);
+			Transform transform = GetWorldTransform(executive->p + z::vec2{ -0.5f, 0.f });
+			transform.size = z::vec2{ 0.75f, 0.75f * ratio };
+			transform.origin = z::vec2{ 0.5f, 1.f } + executive->shape->offset;
+			transform.orientation = skill->slice.direction < 0.f ? -1 : 1;
+			transform.rotation = interpolate * z::Pi;
+
+			RenderBitmap(skill->slice.sprite, RenderMode_World, &transform);
+
 			// Post effects
-			real32    interpolate = skill->slice.elapsed * 5.0;
-			z::vec4   currentColor{ 1.f - interpolate, 0.f, 0.f, 1.f };
-			Transform transform = {};
+			z::vec4 currentColor{ 1.f - interpolate, 0.f, 0.f, 1.f };
+			transform = {};
 			transform.origin = z::vec2{ 0.5, 0.0 };
 			auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) *
 				GetTransformMatrix(RenderMode_World, &transform);
@@ -312,7 +325,7 @@ bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, re
 			char slice[16];
 			snprintf(slice, 16, "Slice %d !", skill->slice.maxCharges - skill->slice.remainingCharges);
 			RenderText("Slice !",
-				normalizePos * z::vec2{ 0.5, 0.5 } +z::vec2{ 0.5, 0.5 },
+				normalizePos * z::vec2{ 0.5, 0.5 } + z::vec2{ 0.5, 0.5 },
 				currentColor,
 				gameState,
 				ObjectType::ObjectType_UI);
