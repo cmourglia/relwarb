@@ -97,7 +97,7 @@ struct Entity
 
 	int32 controllerId;
 
-#define NB_SKILLS 3
+#define NB_SKILLS 4
 	Skill skills[NB_SKILLS];
 
 	// HUD data
