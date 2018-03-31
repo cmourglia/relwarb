@@ -136,7 +136,7 @@ bool SliceAndDiceTrigger(GameState* gameState, Skill* skill, Entity* entity)
 	{
 		entity->mana -= skill->slice.manaCost;
 		skill->isActive = true;
-		skill->slice.elapsed = skill->slice.sliceDuration;
+		skill->slice.elapsed = skill->slice.sliceDuration + 1;
 		skill->slice.remainingCharges = skill->slice.maxCharges;
 	}
 
