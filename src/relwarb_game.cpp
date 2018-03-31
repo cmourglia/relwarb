@@ -62,7 +62,7 @@ bool CreateSliceAndDice(Skill* skill, Entity* executive)
 	skill->collideHandle = nullptr;
 
 	skill->slice.cooldownDuration = 1.f;
-	skill->slice.sliceDuration = 0.2;
+	skill->slice.sliceDuration = 0.25;
 	skill->slice.hitLowerBound = 0.05;
 	skill->slice.hitHigherBound = 0.15;
 	skill->slice.manaCost = 2;
@@ -337,6 +337,7 @@ bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, re
 			if (skill->slice.remainingCharges == 0)
 			{
 				skill->isActive = false;
+				skill->slice.remainingCooldown = skill->slice.cooldownDuration;
 			}
 		}
 	}
