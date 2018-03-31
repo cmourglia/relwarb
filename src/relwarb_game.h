@@ -23,14 +23,15 @@ struct Skill
         // Dash Data
         struct
         {
-			real32	elapsed;
+			// Generic data
             real32	cooldownDuration;
-            real32	remainingCooldown;
+			real32  duration;
+			uint32  manaCost;
+			real32  horizDistance;
 
-            real32  duration;
-            uint32  manaCost;
-            real32  horizDistance;
-
+			// Activation data
+			real32	elapsed;
+			real32	remainingCooldown;
             z::vec2 initialPos;
             real32  direction; // Toward left (-1) or toward right (+1)
         } dash;
@@ -38,14 +39,15 @@ struct Skill
         // ManaRecharge Data
         struct
         {
+			// Generic data
+			real32	cooldownDuration;
+			uint32  nbSteps;
+			uint32  manaRefundPerStep;
+			real32  stepDuration;
+
+			// Activation data
 			real32	elapsed;
-            real32	cooldownDuration;
             real32	remainingCooldown;
-
-            uint32  nbSteps;
-            uint32  manaRefundPerStep;
-            real32  stepDuration;
-
             uint32  remainingSteps;
         } mana;
         // Passive regeneration
@@ -60,7 +62,25 @@ struct Skill
             real32  healthStepElasped;
 			real32  manaStepElasped;
         } regen;
-        // ...
+        
+		struct {
+			// Generic data
+			real32	cooldownDuration;
+			real32  sliceDuration;
+			real32	hitLowerBound;
+			real32	hitHigherBound;
+			uint32  manaCost;
+			uint32	maxCharges;
+
+			// Activation data
+			real32	elapsed;
+			real32	remainingCooldown;
+			uint32	remainingCharges;
+			real32  direction; // Toward left (-1) or toward right (+1)
+			// TODO(Thomas): Handle hit targets in a more generic way to have more than 4 targets without exploding union size
+			void*	alreadyHit[4];
+		} slice;
+		// ...
     };
 };
 
@@ -76,6 +96,10 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 bool CreatePassiveRegeneration(Skill* skill, Entity* executive);
 bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* entity);
 bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
+
+bool CreateSliceAndDice(Skill* skill, Entity* executive);
+bool SliceAndDiceTrigger(GameState* gameState, Skill* skill, Entity* entity);
+bool SliceAndDiceApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt);
 
 void UpdateGameLogic(GameState* gameState, real32 dt);
 

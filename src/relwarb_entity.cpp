@@ -56,7 +56,8 @@ Entity* CreatePlayerEntity(GameState*        state,
 
     CreateDashSkill(&result->skills[0], result);
     CreateManaRecharge(&result->skills[1], result);
-    CreatePassiveRegeneration(&result->skills[2], result);
+	CreateSliceAndDice(&result->skills[2], result);
+    CreatePassiveRegeneration(&result->skills[3], result);
 
 	result->controllerId = controllerId;
 
