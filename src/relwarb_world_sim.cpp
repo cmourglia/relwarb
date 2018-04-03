@@ -19,25 +19,25 @@ void UpdateWorld(GameState* gameState, real32 dt)
 {
 	UpdateParticleSystems(gameState, dt);
 
-	if (rigidBodySpawnTimer <= 0)
-	{
-		z::vec2 p      = z::Vec2(z::GenerateRandBetween(-5, 5), 10);
-		Bitmap* bitmap = CreateBitmap(gameState);
-		LoadBitmapData("assets/sprites/crate.png", bitmap);
+	// if (rigidBodySpawnTimer <= 0)
+	// {
+	// 	z::vec2 p      = z::Vec2(z::GenerateRandBetween(-5, 5), 10);
+	// 	Bitmap* bitmap = CreateBitmap(gameState);
+	// 	LoadBitmapData("assets/sprites/crate.png", bitmap);
 
-		Sprite*           crateSprite = CreateStillSprite(gameState, bitmap);
-		RenderingPattern* pattern     = CreateUniqueRenderingPattern(gameState, crateSprite);
-		Shape*            shape       = CreateShape(gameState, z::Vec2(1, 1), z::Vec2(0, 0));
-		RigidBody*        body        = CreateRigidBody(gameState, 1.0f);
+	// 	Sprite*           crateSprite = CreateStillSprite(gameState, bitmap);
+	// 	RenderingPattern* pattern     = CreateUniqueRenderingPattern(gameState, crateSprite);
+	// 	Shape*            shape       = CreateShape(gameState, z::Vec2(1, 1), z::Vec2(0, 0));
+	// 	RigidBody*        body        = CreateRigidBody(gameState, 1.0f);
 
-		CreateBoxEntity(gameState, p, pattern, shape, body);
-		rigidBodySpawnTimer = 3.0;
-	}
+	// 	CreateBoxEntity(gameState, p, pattern, shape, body);
+	// 	rigidBodySpawnTimer = 3.0;
+	// }
 	rigidBodySpawnTimer -= dt;
 
 	const int32 velocityIterations = 6;
 	const int32 positionIterations = 2;
-	gameState->world.Step(dt, 6, 2);
+	gameState->world->Step(dt, 6, 2);
 }
 
 void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data)
@@ -58,10 +58,28 @@ void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data
 			break;
 	}
 
-	entity->body = state->world.CreateBody(&def);
+	entity->body = state->world->CreateBody(&def);
 
 	b2PolygonShape shape;
 	shape.SetAsBox(data.extents.x, data.extents.y);
 
 	entity->body->CreateFixture(&shape, data.mass);
+}
+
+Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset)
+{
+	ComponentID id = state->nbShapes++;
+	Assert(id < WORLD_SIZE);
+	Shape* result = &state->shapes[id];
+
+	result->size   = size;
+	result->offset = offset;
+
+	return result;
+}
+
+void AddShapeToEntity(Entity* entity, Shape* shape)
+{
+	entity->shape = shape;
+	SetEntityComponent(entity, ComponentFlag_Collidable);
 }

@@ -1,5 +1,6 @@
 [requires]
 glfw/3.2.1@bincrafters/stable
+box2d/2.3.1-374664b@lasote/vcpkg
 
 [generators]
 cmake

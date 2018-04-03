@@ -129,7 +129,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						{
 							ExtractVec2(currentLine, offset);
 						}
-						sizes.push_back(size);
+						CreateShape(gameState, size, offset);
 						break;
 					}
 					case ObjectParsing_RenderingPattern:
@@ -186,10 +186,12 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						ExtractUint8(currentLine, entity);
 						ExtractUint8(currentLine, shape);
 
-						PhysicsEntityData data;
-						data.extents = sizes[shape - 1] / 2;
-						Entity* e    = gameState->entities + (entity + 1);
-						SetupDynamicEntity(gameState, e, data);
+						// PhysicsEntityData data;
+						// data.extents = sizes[shape - 1] / 2;
+						Entity* e = gameState->entities + (entity - 1);
+						Shape*  s = gameState->shapes + (shape - 1);
+						// SetupDynamicEntity(gameState, e, data);
+						AddShapeToEntity(e, s);
 						break;
 					}
 					case ObjectParsing_PatternToEntity:

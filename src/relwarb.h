@@ -56,6 +56,9 @@ struct GameState
 	Entity entities[WORLD_SIZE];
 	uint32 nbEntities = 0;
 
+	Shape  shapes[WORLD_SIZE];
+	uint32 nbShapes = 0;
+
 	// TODO(Thomas): Use different size for following, as number of Bitmap/Sprite/Pattern are
 	// different from number of entities
 	Bitmap bitmaps[WORLD_SIZE];
@@ -84,7 +87,7 @@ struct GameState
 	InputState inputState;
 	InputState lastInputState;
 
-	b2World world;
+	b2World* world;
 };
 
 // NOTE(Charly): Initialize all the game logic related stuff here

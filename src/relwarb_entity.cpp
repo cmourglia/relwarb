@@ -89,9 +89,9 @@ Entity* CreateBoxEntity(GameState*        state,
 {
 	Entity* result = CreateEntity(state, EntityType_Enemy, p);
 
-	AddRenderingPatternToEntity(result, pattern);
-	AddShapeToEntity(result, shape);
-	AddRigidBodyToEntity(result, body);
+	// AddRenderingPatternToEntity(result, pattern);
+	// AddShapeToEntity(result, shape);
+	// AddRigidBodyToEntity(result, body);
 
 	return result;
 }
@@ -241,25 +241,25 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 	entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
 	entity->dp += dt * acc;
 
-	std::vector<CollisionResult> collisions = CollideEntity(state, entity);
+	// std::vector<CollisionResult> collisions = CollideEntity(state, entity);
 
-	for (const auto& collision : collisions)
-	{
-		if (entity->id == 7)
-		{
-			Log(Log_Debug,
-			    "(%d %d): %.3f %.3f",
-			    entity->id,
-			    collision.entity2->id,
-			    collision.normal.x,
-			    collision.normal.y);
-		}
+	// for (const auto& collision : collisions)
+	// {
+	// 	if (entity->id == 7)
+	// 	{
+	// 		Log(Log_Debug,
+	// 		    "(%d %d): %.3f %.3f",
+	// 		    entity->id,
+	// 		    collision.entity2->id,
+	// 		    collision.normal.x,
+	// 		    collision.normal.y);
+	// 	}
 
-		if (collision.normal == z::Vec2(0, -1))
-		{
-			Landed(entity);
-		}
-	}
+	// 	if (collision.normal == z::Vec2(0, -1))
+	// 	{
+	// 		Landed(entity);
+	// 	}
+	// }
 
 	if (z::OppositeSign(entity->p.x - oldX, entity->orientation))
 	{

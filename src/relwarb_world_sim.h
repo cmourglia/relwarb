@@ -34,7 +34,8 @@ struct Shape
 	z::vec2 offset;
 };
 
-Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset);
+Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset = z::Vec2(0));
+void   AddShapeToEntity(Entity* entity, Shape* shape);
 
 void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data);
 void UpdateWorld(GameState* gameState, real32 dt);
