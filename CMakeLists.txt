@@ -6,10 +6,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
     # DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
 # GLFW
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(3rd/glfw)
+# set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# add_subdirectory(3rd/glfw)
+
+include(conanbuildinfo.cmake)
+conan_basic_setup()
 
 if (UNIX)
     set(platform_sources src/relwarb_glfw.cpp)
@@ -77,8 +80,8 @@ set(headers
     src/relwarb_game.h)
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})
-target_link_libraries(relwarb ${libs} glfw)
-target_include_directories(relwarb PRIVATE 3rd/glfw/include)
+target_link_libraries(relwarb ${libs} ${CONAN_LIBS})
+# target_include_directories(relwarb PRIVATE 3rd/glfw/include)
 
 set(BOX2D_DIR "${CMAKE_SOURCE_DIR}/3rd/Box2D/Box2D")
 set(BOX2D_BUILD_DIR "${BOX2D_DIR}/Build/gmake/bin")
