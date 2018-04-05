@@ -13,10 +13,75 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <Box2D/Box2D.h>
 
 GameState* state = nullptr;
 
 internal void ConfigureControllers();
+
+class ContactListener : public b2ContactListener
+{
+	virtual void BeginContact(b2Contact* contact) override
+	{
+		B2_NOT_USED(contact);
+	}
+
+	/// Called when two fixtures cease to touch.
+	virtual void EndContact(b2Contact* contact) override
+	{
+		B2_NOT_USED(contact);
+	}
+};
+
+class DebugDraw : public b2Draw
+{
+public:
+	virtual void DrawPolygon(const b2Vec2*  vertices,
+	                         int32          vertexCount,
+	                         const b2Color& color) override
+	{
+		for (int32 i = 0; i < vertexCount; ++i)
+		{
+			printf("(%.3f %.3f) ", vertices[i].x, vertices[i].y);
+		}
+		printf("\n");
+	}
+
+	virtual void DrawSolidPolygon(const b2Vec2*  vertices,
+	                              int32          vertexCount,
+	                              const b2Color& color) override
+	{
+		for (int32 i = 0; i < vertexCount; ++i)
+		{
+			printf("(%.3f %.3f) ", vertices[i].x, vertices[i].y);
+		}
+		printf("\n");
+	}
+
+	virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) override
+	{
+		(void)center;
+	}
+
+	virtual void DrawSolidCircle(const b2Vec2&  center,
+	                             float32        radius,
+	                             const b2Vec2&  axis,
+	                             const b2Color& color) override
+	{
+		(void)center;
+	}
+
+	virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) override
+	{
+		(void)p1;
+	}
+	virtual void DrawTransform(const b2Transform& xf) override {}
+	virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) override
+	{
+		printf("(%.3f %.3f)\n", p.x, p.y);
+	}
+};
+
 void InitGame()
 {
 	z::SeedRNG((unsigned)time(nullptr));
@@ -45,6 +110,10 @@ void InitGame()
 	state->worldMatrix = worldMat;
 
 	state->world = new b2World(b2Vec2(0, -10.0f));
+	state->world->SetContactListener(new ContactListener);
+	DebugDraw* dbg = new DebugDraw;
+	state->world->SetDebugDraw(dbg);
+	dbg->SetFlags(b2Draw::e_shapeBit | b2Draw::e_centerOfMassBit);
 
 	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
 	LoadMapFile("config/base_map.ini");

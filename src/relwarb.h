@@ -8,8 +8,6 @@
 #include "relwarb_controller.h"
 #include "relwarb_particles.h"
 
-#include <Box2D/Box2D.h>
-
 #define WORLD_SIZE 1024
 
 // NOTE(Charly): This is garbage code
@@ -19,6 +17,8 @@
 #define MAX_PLAYERS 4
 
 #define MAX_PARTICLE_SYSTEMS 1024
+
+struct b2World;
 
 // TODO(Charly): This should go somewhere else
 struct Bitmap
@@ -56,6 +56,9 @@ struct GameState
 	Entity entities[WORLD_SIZE];
 	uint32 nbEntities = 0;
 
+	RigidBody bodies[WORLD_SIZE];
+	uint32    nbRigidBodies = 0;
+
 	Shape  shapes[WORLD_SIZE];
 	uint32 nbShapes = 0;
 
@@ -91,6 +94,7 @@ struct GameState
 };
 
 extern GameState* state;
+
 // NOTE(Charly): Initialize all the game logic related stuff here
 // TODO(Charly): This should probably be exposed to the scripting
 void InitGame();

@@ -15,34 +15,82 @@
 
 global_variable real32 rigidBodySpawnTimer = 0.f;
 
+internal void CopyPositionsToPhysics();
+internal void CopyPositionsFromPhysics();
 
 void UpdateWorld(real32 dt)
 {
 	UpdateParticleSystems(dt);
 
-	// if (rigidBodySpawnTimer <= 0)
-	// {
-	// 	z::vec2 p      = z::Vec2(z::GenerateRandBetween(-5, 5), 10);
-	// 	Bitmap* bitmap = CreateBitmap(gameState);
-	// 	LoadBitmapData("assets/sprites/crate.png", bitmap);
+	if (rigidBodySpawnTimer <= 0)
+	{
+		z::vec2                  p           = z::Vec2(z::GenerateRandBetween(-10, 10), 10);
+		static bool              firstTime   = true;
+		static Bitmap*           bitmap      = CreateBitmap();
+		static ComponentID       crateSprite = -1;
+		static ComponentID       pattern     = -1;
+		static ComponentID       shape       = -1;
+		static PhysicsEntityData data        = {};
 
-	// 	Sprite*           crateSprite = CreateStillSprite(gameState, bitmap);
-	// 	RenderingPattern* pattern     = CreateUniqueRenderingPattern(gameState, crateSprite);
-	// 	Shape*            shape       = CreateShape(gameState, z::Vec2(1, 1), z::Vec2(0, 0));
-	// 	RigidBody*        body        = CreateRigidBody(gameState, 1.0f);
+		if (firstTime)
+		{
+			LoadBitmapData("assets/sprites/crate.png", bitmap);
+			crateSprite = CreateStillSprite(bitmap);
+			pattern     = CreateUniqueRenderingPattern(crateSprite);
+			shape       = CreateShape(z::Vec2(1, 1), z::Vec2(0, 0));
 
-	// 	CreateBoxEntity(gameState, p, pattern, shape, body);
-	// 	rigidBodySpawnTimer = 3.0;
-	// }
+			data.type     = RigidBodyType_Dynamic;
+			data.extents  = z::Vec2(0.5);
+			data.mass     = 1;
+			data.position = p;
+		}
+
+		Entity* e = CreateBoxEntity(p, pattern, shape);
+		SetupDynamicEntity(e, data);
+
+		rigidBodySpawnTimer = 0.25;
+	}
 	rigidBodySpawnTimer -= dt;
+
+	CopyPositionsToPhysics();
 
 	const int32 velocityIterations = 6;
 	const int32 positionIterations = 2;
 	state->world->Step(dt, 6, 2);
 
+	CopyPositionsFromPhysics();
 }
 
+void CopyPositionsToPhysics()
 {
+	for (uint32 i = 0; i < state->nbEntities; ++i)
+	{
+		Entity*    entity = state->entities + i;
+		RigidBody* body   = GetRigidBody(entity);
+
+		if (body && body->type == RigidBodyType_Kinematic)
+		{
+			body->body->SetTransform(b2Vec2(entity->p.x, entity->p.y), 0);
+		}
+	}
+}
+
+void CopyPositionsFromPhysics()
+{
+	for (uint32 i = 0; i < state->nbEntities; ++i)
+	{
+		Entity*    entity = state->entities + i;
+		RigidBody* body   = GetRigidBody(entity);
+
+		if (body && body->type == RigidBodyType_Dynamic)
+		{
+			auto p              = body->body->GetPosition();
+			auto a              = body->body->GetAngle();
+			entity->p           = z::Vec2(p.x, p.y);
+			entity->orientation = a;
+		}
+	}
+}
 
 void SetupDynamicEntity(Entity* entity, PhysicsEntityData data)
 {

@@ -22,18 +22,12 @@ enum ObjectParsing
 
 int SwitchParseObject(const std::string& header)
 {
-	if (header == "Bitmap")
-		return ObjectParsing_Bitmap;
-	if (header == "Shape")
-		return ObjectParsing_Shape;
-	if (header == "Pattern")
-		return ObjectParsing_RenderingPattern;
-	if (header == "Entity")
-		return ObjectParsing_Entity;
-	if (header == "Sh2En")
-		return ObjectParsing_ShapeToEntity;
-	if (header == "Pa2En")
-		return ObjectParsing_PatternToEntity;
+	if (header == "Bitmap") return ObjectParsing_Bitmap;
+	if (header == "Shape") return ObjectParsing_Shape;
+	if (header == "Pattern") return ObjectParsing_RenderingPattern;
+	if (header == "Entity") return ObjectParsing_Entity;
+	if (header == "Sh2En") return ObjectParsing_ShapeToEntity;
+	if (header == "Pa2En") return ObjectParsing_PatternToEntity;
 
 	Log(Log_Error, "Wrong header '%s'", header.c_str());
 	return ObjectParsing_Unknown;
