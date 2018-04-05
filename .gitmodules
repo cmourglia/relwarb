@@ -1,0 +1,6 @@
+[submodule "glfw"]
+	path = 3rd/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "box2d"]
+	path = 3rd/box2d
+	url = https://github.com/zouch/box2d.git

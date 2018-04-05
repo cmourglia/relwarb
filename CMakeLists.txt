@@ -5,14 +5,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 # file(COPY ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
     # DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json)
 
-# GLFW
-# set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-# set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-# set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-# add_subdirectory(3rd/glfw)
+set(EXT ${CMAKE_SOURCE_DIR}/3rd)
+set(GLFW_ROOT ${EXT}/glfw)
+set(GLFW_INC ${GLFW_ROOT}/include)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
-conan_basic_setup()
+set(BOX2D_ROOT ${EXT}/box2d)
+set(BOX2D_INC ${BOX2D_ROOT}/Box2D)
+
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(${EXT}/glfw)
+
+# Box2d
+add_subdirectory(${EXT}/box2d)
 
 if (UNIX)
     set(platform_sources src/relwarb_glfw.cpp)
@@ -81,21 +88,8 @@ set(headers
 
 add_executable(relwarb ${platform_flag} ${sources} ${headers})
 
-target_link_libraries(relwarb ${libs})
-foreach(_LIB ${CONAN_LIBS_RELEASE})
-	target_link_libraries(relwarb optimized ${_LIB})
-endforeach()
-
-foreach(_LIB ${CONAN_LIBS_DEBUG})
-	target_link_libraries(relwarb debug ${_LIB})
-endforeach()
-# target_include_directories(relwarb PRIVATE 3rd/glfw/include)
-
-# set(BOX2D_DIR "${CMAKE_SOURCE_DIR}/3rd/Box2D/Box2D")
-# set(BOX2D_BUILD_DIR "${BOX2D_DIR}/Build/gmake/bin")
-# target_include_directories(relwarb PRIVATE ${BOX2D_DIR})
-# target_link_libraries(relwarb debug -L${BOX2D_BUILD_DIR}/Debug Box2D)
-# target_link_libraries(relwarb optimized -L${BOX2D_BUILD_DIR}/Release Box2D)
+target_link_libraries(relwarb ${libs} glfw box2d)
+target_include_directories(relwarb PRIVATE ${GLFW_INC} ${BOX2D_INC})
 
 set_property(TARGET relwarb PROPERTY CXX_STANDARD 14)
 set_property(TARGET relwarb PROPERTY CXX_STANDARD_REQUIRED True)
