@@ -47,7 +47,7 @@ struct ParticleSystem
 	std::vector<Particle> particles;
 };
 
-ParticleSystem* SpawnParticleSystem(GameState* gameState, z::vec2 pos);
-void            UpdateParticleSystems(GameState* gameState, real32 dt);
+ParticleSystem* SpawnParticleSystem(z::vec2 pos);
+void            UpdateParticleSystems(real32 dt);
 
 #endif // RELWARB_PARTICLES_H

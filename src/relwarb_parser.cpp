@@ -83,7 +83,7 @@ void ExtractUint8(std::string& line, uint8& extract)
 		line = "";
 }
 
-bool LoadMapFile(GameState* gameState, const char* mapfile)
+bool LoadMapFile(const char* mapfile)
 {
 	std::ifstream ini;
 	ini.open(mapfile);
@@ -116,7 +116,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 					{
 						std::string filePath;
 						ExtractString(currentLine, filePath);
-						Bitmap* bitmap = CreateBitmap(gameState);
+						Bitmap* bitmap = CreateBitmap();
 						LoadBitmapData(filePath.c_str(), bitmap);
 						break;
 					}
@@ -129,7 +129,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						{
 							ExtractVec2(currentLine, offset);
 						}
-						CreateShape(gameState, size, offset);
+						CreateShape(size, offset);
 						break;
 					}
 					case ObjectParsing_RenderingPattern:
@@ -148,7 +148,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						{
 							uint8 bitmapIdx;
 							ExtractUint8(currentLine, bitmapIdx);
-							bitmaps[idx] = &(gameState->bitmaps[bitmapIdx - 1]);
+							bitmaps[idx] = &(state->bitmaps[bitmapIdx - 1]);
 						}
 						uint8 type = RenderingPattern_Unique;
 						if (!currentLine.empty())
@@ -157,7 +157,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						}
 						// TODO(Thomas): Handle non fill pattern loading
 						//               Pass the type of the pattern first
-						CreateFillRenderingPattern(gameState, size, pattern, nbBitmaps, bitmaps);
+						CreateFillRenderingPattern(size, pattern, nbBitmaps, bitmaps);
 
 						delete[] pattern;
 						delete[] bitmaps;
@@ -177,7 +177,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						{
 							ExtractVec2(currentLine, ddp);
 						}
-						CreateEntity(gameState, EntityType(type), p, dp, ddp);
+						CreateEntity(EntityType(type), p, dp, ddp);
 						break;
 					}
 					case ObjectParsing_ShapeToEntity:
@@ -186,12 +186,14 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						ExtractUint8(currentLine, entity);
 						ExtractUint8(currentLine, shape);
 
-						// PhysicsEntityData data;
-						// data.extents = sizes[shape - 1] / 2;
-						Entity* e = gameState->entities + (entity - 1);
-						Shape*  s = gameState->shapes + (shape - 1);
-						// SetupDynamicEntity(gameState, e, data);
-						AddShapeToEntity(e, s);
+						Entity* e = state->entities + (entity - 1);
+						Shape*  s = state->shapes + (shape - 1);
+						AddShapeToEntity(e, shape - 1);
+
+						PhysicsEntityData data;
+						data.extents = s->size / 2;
+						SetupDynamicEntity(e, data);
+
 						break;
 					}
 					case ObjectParsing_PatternToEntity:
@@ -199,8 +201,7 @@ bool LoadMapFile(GameState* gameState, const char* mapfile)
 						uint8 entity, pattern;
 						ExtractUint8(currentLine, entity);
 						ExtractUint8(currentLine, pattern);
-						AddRenderingPatternToEntity(&(gameState->entities[entity - 1]),
-						                            &(gameState->patterns[pattern - 1]));
+						AddRenderingPatternToEntity(state->entities + (entity - 1), pattern - 1);
 						break;
 					}
 					default:

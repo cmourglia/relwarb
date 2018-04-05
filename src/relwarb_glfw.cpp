@@ -214,10 +214,10 @@ int main()
 	glfwMakeContextCurrent(window);
 	gl3wInit();
 
-	GameState gameState    = {};
-	gameState.viewportSize = z::Vec2(worldWindowWidth, worldWindowHeight);
+	state               = new GameState;
+	state->viewportSize = z::Vec2(worldWindowWidth, worldWindowHeight);
 
-	InitGame(&gameState);
+	InitGame();
 
 	using Clock     = std::chrono::high_resolution_clock;
 	using TimePoint = std::chrono::time_point<Clock>;
@@ -243,11 +243,11 @@ int main()
 
 		glfwPollEvents();
 
-		gameState.lastInputState = gameState.inputState;
-		ProcessInputState(window, &gameState.inputState);
+		state->lastInputState = state->inputState;
+		ProcessInputState(window, &state->inputState);
 
-		UpdateGame(&gameState, dt);
-		RenderGame(&gameState, dt);
+		UpdateGame(dt);
+		RenderGame(dt);
 
 		glfwSwapBuffers(window);
 	}

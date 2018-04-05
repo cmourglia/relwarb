@@ -6,18 +6,12 @@
 
 #include "relwarb_debug.h"
 
-typedef uint32 EntityID;
-typedef uint32 ComponentID;
-
 struct RigidBody;
 struct Shape;
 struct RenderingPattern;
 struct Controller;
 struct Bitmap;
 struct Skill;
-
-class b2Body;
-class b2Shape;
 
 enum ComponentFlag
 {
@@ -65,14 +59,14 @@ struct Entity
 	uint32 max_mana;
 	uint32 status;
 
-	b2Body*           body;
-	Shape*            shape;
-	RenderingPattern* pattern;
+	ComponentID body    = -1;
+	ComponentID shape   = -1;
+	ComponentID pattern = -1;
 
 	// TODO(Thomas): Handle flags a nicer way. That way :
 	//                  1) we have to do a constructor for each combination
 	//                  2) flags are statically defined
-	//               Use something like 'void addComponent(GameState gameState, ComponentType type,
+	//               Use something like 'void addComponent(ComponentType type,
 	//               void * data, ComponentFlag flag)' ?
 
 	// NOTE(Charly): There are two different things that needs to be done here,
@@ -106,7 +100,7 @@ struct Entity
 	// HUD data
 	Bitmap* avatar;
 
-	void (*updateFunc)(GameState*, Entity*, real32);
+	void (*updateFunc)(Entity*, real32);
 };
 
 // NOTE(Charly): Helps compressing a bit of code
@@ -172,21 +166,13 @@ inline void Landed(Entity* entity)
 }
 
 // TODO(Charly): Add CreateXEntityFromData stuff
-Entity* CreatePlayerEntity(GameState*        state,
-                           z::vec2           p,
-                           RenderingPattern* pattern,
-                           Shape*            shape,
-                           int32             controllerId);
+Entity* CreatePlayerEntity(z::vec2 p, ComponentID pattern, ComponentID shape, int32 controllerId);
 
-Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern, Shape* shape);
+Entity* CreateWallEntity(z::vec2 p, ComponentID pattern, ComponentID shape);
 
-Entity* GetPlayerEntity(GameState* state, int32 player);
+Entity* GetPlayerEntity(int32 player);
 
-Entity* CreateBoxEntity(GameState*        state,
-                        z::vec2           p,
-                        RenderingPattern* pattern,
-                        Shape*            shape,
-                        RigidBody*        body);
+Entity* CreateBoxEntity(z::vec2 p, ComponentID pattern, ComponentID shape);
 
 bool32 Intersect(const Entity* entity1, const Entity* entity2);
 
@@ -194,7 +180,7 @@ bool32 Intersect(const Entity* entity1, const Entity* entity2);
 // shapes being just in contact.
 z::vec2 Overlap(const Entity* entity1, const Entity* entity2);
 
-void UpdateEntityNoop(GameState* state, Entity* entity, real32 dt);
-void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt);
+void UpdateEntityNoop(Entity* entity, real32 dt);
+void UpdateEntityPlayer(Entity* entity, real32 dt);
 
 #endif // RELWARB_ENTITY_H

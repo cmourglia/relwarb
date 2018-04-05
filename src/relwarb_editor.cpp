@@ -36,7 +36,7 @@ internal int GetTileValue(z::vec2 worldPos)
 	return result;
 }
 
-internal void AddBitmap(GameState* state, z::vec2 worldPos)
+internal void AddBitmap(z::vec2 worldPos)
 {
 	int* tile = tiles + GetTileIndex(worldPos);
 	Log(Log_Debug, "%d", *tile);
@@ -46,7 +46,7 @@ internal void AddBitmap(GameState* state, z::vec2 worldPos)
 	}
 }
 
-internal void RemoveBitmap(GameState* state, z::vec2 worldPos)
+internal void RemoveBitmap(z::vec2 worldPos)
 {
 	int* tile = tiles + GetTileIndex(worldPos);
 	if (*tile != -1)
@@ -55,7 +55,7 @@ internal void RemoveBitmap(GameState* state, z::vec2 worldPos)
 	}
 }
 
-void UpdateEditor(GameState* state)
+void UpdateEditor()
 {
 	if (tiles == nullptr)
 	{
@@ -70,30 +70,30 @@ void UpdateEditor(GameState* state)
 		}
 	}
 
-	if (IsKeyRisingEdge(state, Key_C))
+	if (IsKeyRisingEdge(Key_C))
 	{
 		snapMode = (SnapMode)((snapMode + 1) % SnapMode_Count);
 	}
 
-	if (IsKeyRisingEdge(state, Key_Tab))
+	if (IsKeyRisingEdge(Key_Tab))
 	{
 		selectedBitmap = (selectedBitmap + 1) % state->nbBitmaps;
 	}
 
-	if (IsMouseButtonPressed(state, MouseButton_Left))
+	if (IsMouseButtonPressed(MouseButton_Left))
 	{
-		AddBitmap(state, GetCursorWorldPosition(state));
+		AddBitmap(GetCursorWorldPosition());
 	}
 
-	if (IsMouseButtonPressed(state, MouseButton_Right))
+	if (IsMouseButtonPressed(MouseButton_Right))
 	{
-		RemoveBitmap(state, GetCursorWorldPosition(state));
+		RemoveBitmap(GetCursorWorldPosition());
 	}
 }
 
-void RenderEditor(GameState* gameState)
+void RenderEditor()
 {
-	glViewport(0, 0, gameState->viewportSize.x, gameState->viewportSize.y);
+	glViewport(0, 0, state->viewportSize.x, state->viewportSize.y);
 
 	glClearColor(0.3f, 0.8f, 0.7f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -109,7 +109,7 @@ void RenderEditor(GameState* gameState)
 			if (tile != -1)
 			{
 				t.position = z::Vec2((i - width / 2) + 0.5, (j - height / 2) + 0.5);
-				RenderBitmap(&gameState->bitmaps[tile], RenderMode_World, &t);
+				RenderBitmap(&state->bitmaps[tile], RenderMode_World, &t);
 			}
 			++tile;
 		}
@@ -117,14 +117,14 @@ void RenderEditor(GameState* gameState)
 
 	// NOTE(Charly): Render attached bitmap
 	{
-		z::vec2 cursor = GetCursorWorldPosition(gameState);
+		z::vec2 cursor = GetCursorWorldPosition();
 		t.position     = z::Vec2(z::Floor(cursor.x) + 0.5, z::Floor(cursor.y) + 0.5);
-		RenderBitmap(&gameState->bitmaps[selectedBitmap], RenderMode_World, &t);
+		RenderBitmap(&state->bitmaps[selectedBitmap], RenderMode_World, &t);
 	}
 	/*
 	    {
-	        z::vec2 cursor = ViewportToWorld(gameState, gameState->cursor);
+	        z::vec2 cursor = ViewportToWorld(state->cursor);
 	        t.position = z::vec2(cursor.x, cursor.y);
-	        RenderBitmap(&gameState->bitmaps[selectedBitmap], &t);
+	        RenderBitmap(&state->bitmaps[selectedBitmap], &t);
 	    }*/
 }

@@ -131,17 +131,17 @@ struct InputState
 };
 
 struct GameState;
-bool32 IsKeyPressed(GameState* state, int32 key);
-bool32 IsKeyRisingEdge(GameState* state, int32 key);
-bool32 IsKeyFallingEdge(GameState* state, int32 key);
-bool32 IsMouseButtonPressed(GameState* state, int32 button);
-bool32 IsMouseButtonRisingEdge(GameState* state, int32 button);
-bool32 IsMouseButtonFallingEdge(GameState* state, int32 button);
-bool32 IsGamepadButtonPressed(GameState* state, int32 pad, int32 button);
-bool32 IsGamepadButtonRisingEdge(GameState* state, int32 pad, int32 button);
-bool32 IsGamepadButtonFallingEdge(GameState* state, int32 pad, int32 button);
+bool32 IsKeyPressed(int32 key);
+bool32 IsKeyRisingEdge(int32 key);
+bool32 IsKeyFallingEdge(int32 key);
+bool32 IsMouseButtonPressed(int32 button);
+bool32 IsMouseButtonRisingEdge(int32 button);
+bool32 IsMouseButtonFallingEdge(int32 button);
+bool32 IsGamepadButtonPressed(int32 pad, int32 button);
+bool32 IsGamepadButtonRisingEdge(int32 pad, int32 button);
+bool32 IsGamepadButtonFallingEdge(int32 pad, int32 button);
 
-z::vec2 GetCursorPosition(GameState* state);
-z::vec2 GetCursorWorldPosition(GameState* state);
+z::vec2 GetCursorPosition();
+z::vec2 GetCursorWorldPosition();
 
 #endif // RELWARB_INPUT_H

@@ -6,20 +6,20 @@
 #include <assert.h>
 #include <string.h>
 
-void SetControllerType(GameState* state, int32 id, ControllerType type)
+void SetControllerType(int32 id, ControllerType type)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	state->controllers[id].controllerType = type;
 }
 
-ControllerType GetControllerType(GameState* state, int32 id)
+ControllerType GetControllerType(int32 id)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	ControllerType result = state->controllers[id].controllerType;
 	return result;
 }
 
-void SetControllerGamepadId(GameState* state, int32 id, int32 gid)
+void SetControllerGamepadId(int32 id, int32 gid)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	assert(gid >= 0 && gid < MAX_GAMEPADS);
@@ -27,18 +27,18 @@ void SetControllerGamepadId(GameState* state, int32 id, int32 gid)
 	state->controllers[id].gamepadId = gid;
 }
 
-void ConfigureController(GameState* state, int32 id, ControllerType type, int32 gid)
+void ConfigureController(int32 id, ControllerType type, int32 gid)
 {
-	SetControllerType(state, id, type);
+	SetControllerType(id, type);
 	if (type == ControllerType_Gamepad)
 	{
-		SetControllerGamepadId(state, id, gid);
+		SetControllerGamepadId(id, gid);
 	}
 
 	memset(state->controllers[id].actionToInput, -1, Action_Count * sizeof(int32));
 }
 
-void MapActionToInput(GameState* state, int32 id, int32 action, int32 input)
+void MapActionToInput(int32 id, int32 action, int32 input)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	assert(action >= 0 && action < Action_Count);
@@ -47,7 +47,7 @@ void MapActionToInput(GameState* state, int32 id, int32 action, int32 input)
 	controller->actionToInput[action] = input;
 }
 
-bool32 IsActionPressed(GameState* state, int32 id, int32 action)
+bool32 IsActionPressed(int32 id, int32 action)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	assert(action >= 0 && action < Action_Count);
@@ -61,14 +61,14 @@ bool32 IsActionPressed(GameState* state, int32 id, int32 action)
 	{
 		case ControllerType_Keyboard:
 		{
-			result = IsKeyPressed(state, input);
+			result = IsKeyPressed(input);
 		}
 		break;
 
 		case ControllerType_Gamepad:
 		{
 			int32 gid = controller->gamepadId;
-			result    = IsGamepadButtonPressed(state, gid, input);
+			result    = IsGamepadButtonPressed(gid, input);
 		}
 		break;
 
@@ -79,7 +79,7 @@ bool32 IsActionPressed(GameState* state, int32 id, int32 action)
 	return result;
 }
 
-bool32 IsActionRisingEdge(GameState* state, int32 id, int32 action)
+bool32 IsActionRisingEdge(int32 id, int32 action)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	assert(action >= 0 && action < Action_Count);
@@ -93,14 +93,14 @@ bool32 IsActionRisingEdge(GameState* state, int32 id, int32 action)
 	{
 		case ControllerType_Keyboard:
 		{
-			result = IsKeyRisingEdge(state, input);
+			result = IsKeyRisingEdge(input);
 		}
 		break;
 
 		case ControllerType_Gamepad:
 		{
 			int32 gid = controller->gamepadId;
-			result    = IsGamepadButtonRisingEdge(state, gid, input);
+			result    = IsGamepadButtonRisingEdge(gid, input);
 		}
 		break;
 
@@ -111,7 +111,7 @@ bool32 IsActionRisingEdge(GameState* state, int32 id, int32 action)
 	return result;
 }
 
-bool32 IsActionFallingEdge(GameState* state, int32 id, int32 action)
+bool32 IsActionFallingEdge(int32 id, int32 action)
 {
 	assert(id >= 0 && id < MAX_CONTROLLERS);
 	assert(action >= 0 && action < Action_Count);
@@ -125,14 +125,14 @@ bool32 IsActionFallingEdge(GameState* state, int32 id, int32 action)
 	{
 		case ControllerType_Keyboard:
 		{
-			result = IsKeyFallingEdge(state, input);
+			result = IsKeyFallingEdge(input);
 		}
 		break;
 
 		case ControllerType_Gamepad:
 		{
 			int32 gid = controller->gamepadId;
-			result    = IsGamepadButtonFallingEdge(state, gid, input);
+			result    = IsGamepadButtonFallingEdge(gid, input);
 		}
 		break;
 

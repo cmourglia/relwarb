@@ -11,7 +11,6 @@ struct Entity;
 struct Bitmap;
 
 class b2Body;
-class b2Shape;
 
 enum RigidBodyType
 {
@@ -28,16 +27,25 @@ struct PhysicsEntityData
 	RigidBodyType type     = RigidBodyType_Static;
 };
 
+struct RigidBody
+{
+	RigidBodyType type;
+	b2Body*       body;
+};
+
 struct Shape
 {
 	z::vec2 size;
 	z::vec2 offset;
 };
 
-Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset = z::Vec2(0));
-void   AddShapeToEntity(Entity* entity, Shape* shape);
+ComponentID CreateShape(z::vec2 size, z::vec2 offset = z::Vec2(0));
+Shape*      GetShape(Entity* entity);
+void        AddShapeToEntity(Entity* entity, ComponentID shape);
 
-void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data);
-void UpdateWorld(GameState* gameState, real32 dt);
+RigidBody* GetRigidBody(Entity* entity);
+
+void SetupDynamicEntity(Entity* entity, PhysicsEntityData data);
+void UpdateWorld(real32 dt);
 
 #endif // RELWARB_WORLD_SIM_H

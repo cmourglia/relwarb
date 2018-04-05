@@ -36,15 +36,15 @@ struct GameState;
 
 // TODO(Charly): Save and load user defined mappings (https://github.com/Zouch/relwarb/issues/26)
 // TODO(Charly): Secondary
-void           SetControllerType(GameState* state, int32 id, ControllerType type);
-ControllerType GetControllerType(GameState* state, int32 id);
-void           SetControllerGamepadId(GameState* state, int32 id, int32 gid);
-void           ConfigureController(GameState* state, int32 id, ControllerType type, int32 gid = -1);
+void           SetControllerType(int32 id, ControllerType type);
+ControllerType GetControllerType(int32 id);
+void           SetControllerGamepadId(int32 id, int32 gid);
+void           ConfigureController(int32 id, ControllerType type, int32 gid = -1);
 
-void MapActionToInput(GameState* state, int32 id, int32 action, int32 input);
+void MapActionToInput(int32 id, int32 action, int32 input);
 
-bool32 IsActionPressed(GameState* state, int32 id, int32 action);
-bool32 IsActionRisingEdge(GameState* state, int32 id, int32 action);
-bool32 IsActionFallingEdge(GameState* state, int32 id, int32 action);
+bool32 IsActionPressed(int32 id, int32 action);
+bool32 IsActionRisingEdge(int32 id, int32 action);
+bool32 IsActionFallingEdge(int32 id, int32 action);
 
 #endif // RELWARB_CONTROLLER_H

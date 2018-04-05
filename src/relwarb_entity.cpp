@@ -7,21 +7,22 @@
 
 #include <assert.h>
 
-Entity* CreatePlayerEntity(GameState*        state,
-                           z::vec2           p,
-                           RenderingPattern* pattern,
-                           Shape*            shape,
-                           int32             controllerId)
+Entity* CreatePlayerEntity(z::vec2 p, ComponentID pattern, ComponentID shape, int32 controllerId)
 {
-	Entity* result                     = CreateEntity(state, EntityType_Player, p);
+	Entity* result                     = CreateEntity(EntityType_Player, p);
 	state->players[state->nbPlayers++] = result->id;
 
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
 	SetEntityComponent(result, ComponentFlag_Orientable);
 
+	PhysicsEntityData data = {};
+	data.type              = RigidBodyType_Kinematic;
+	data.extents           = state->shapes[shape].size / 2;
+	SetupDynamicEntity(result, data);
+
 	// FIXME(Charly): Load this from files
-	result->avatar = CreateBitmap(state);
+	result->avatar = CreateBitmap();
 	switch (state->nbPlayers)
 	{
 		case 1:
@@ -71,9 +72,9 @@ Entity* CreatePlayerEntity(GameState*        state,
 	return result;
 }
 
-Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern, Shape* shape)
+Entity* CreateWallEntity(z::vec2 p, ComponentID pattern, ComponentID shape)
 {
-	Entity* result = CreateEntity(state, EntityType_Wall, p);
+	Entity* result = CreateEntity(EntityType_Wall, p);
 
 	AddRenderingPatternToEntity(result, pattern);
 	AddShapeToEntity(result, shape);
@@ -81,21 +82,17 @@ Entity* CreateWallEntity(GameState* state, z::vec2 p, RenderingPattern* pattern,
 	return result;
 }
 
-Entity* CreateBoxEntity(GameState*        state,
-                        z::vec2           p,
-                        RenderingPattern* pattern,
-                        Shape*            shape,
-                        RigidBody*        body)
+Entity* CreateBoxEntity(z::vec2 p, ComponentID pattern, ComponentID shape)
 {
-	Entity* result = CreateEntity(state, EntityType_Enemy, p);
+	Entity* result = CreateEntity(EntityType_Enemy, p);
 
-	// AddRenderingPatternToEntity(result, pattern);
-	// AddShapeToEntity(result, shape);
-	// AddRigidBodyToEntity(result, body);
+	AddRenderingPatternToEntity(result, pattern);
+	AddShapeToEntity(result, shape);
 
 	return result;
 }
 
+#if 0
 // cf. http://www.gamasutra.com/view/feature/131790/simple_intersection_tests_for_games.php?page=3
 bool32 Intersect(const Entity* entity1, const Entity* entity2)
 {
@@ -129,8 +126,9 @@ z::vec2 Overlap(const Entity* entity1, const Entity* entity2)
 	z::vec2 sign = z::Vec2(signX, signY);
 	return over - 0.5f * sign * size;
 }
+#endif
 
-Entity* GetPlayerEntity(GameState* state, int32 player)
+Entity* GetPlayerEntity(int32 player)
 {
 	assert(player >= 0 && player < MAX_PLAYERS);
 	int32 entityId = state->players[player];
@@ -140,32 +138,32 @@ Entity* GetPlayerEntity(GameState* state, int32 player)
 	return result;
 }
 
-void UpdateEntityNoop(GameState* state, Entity* entity, real32 dt)
+void UpdateEntityNoop(Entity* entity, real32 dt)
 {
 	(void)state;
 	(void)entity;
 	(void)dt;
 }
 
-void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
+void UpdateEntityPlayer(Entity* entity, real32 dt)
 {
 	const int32 controllerId = entity->controllerId;
 
 	if (!(entity->status & EntityStatus_Muted) && !(entity->status & EntityStatus_Stunned))
 	{
 		// Check for triggers
-		if (IsActionRisingEdge(state, controllerId, Action_Skill1))
+		if (IsActionRisingEdge(controllerId, Action_Skill1))
 		{
-			entity->skills[0].triggerHandle(state, &entity->skills[0], entity);
+			entity->skills[0].triggerHandle(&entity->skills[0], entity);
 		}
 
 		// TODO(Charly): Allow entity to stop charging on demand
-		if (IsActionRisingEdge(state, controllerId, Action_Skill2))
+		if (IsActionRisingEdge(controllerId, Action_Skill2))
 		{
-			entity->skills[1].triggerHandle(state, &entity->skills[1], entity);
+			entity->skills[1].triggerHandle(&entity->skills[1], entity);
 		}
 
-		entity->skills[2].triggerHandle(state, &entity->skills[2], entity);
+		entity->skills[2].triggerHandle(&entity->skills[2], entity);
 	}
 
 #define MAX_JUMP_TIME 0.25f
@@ -190,19 +188,19 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 
 	if (!(entity->status & (EntityStatus_Rooted | EntityStatus_Stunned)))
 	{
-		if (IsActionPressed(state, controllerId, Action_Left))
+		if (IsActionPressed(controllerId, Action_Left))
 		{
 			entity->dp.x -= 15.0;
 		}
 
-		if (IsActionPressed(state, controllerId, Action_Right))
+		if (IsActionPressed(controllerId, Action_Right))
 		{
 			entity->dp.x += 15.0;
 		}
 
-		if (IsActionPressed(state, controllerId, Action_Jump))
+		if (IsActionPressed(controllerId, Action_Jump))
 		{
-			if (IsActionRisingEdge(state, controllerId, Action_Jump) &&
+			if (IsActionRisingEdge(controllerId, Action_Jump) &&
 			    (!entity->alreadyJumping || (entity->newJump && entity->nbJumps < MAX_NB_JUMPS)))
 			{
 				// Start jumping
@@ -241,7 +239,7 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 	entity->p += dt * entity->dp + (0.5 * dt * dt * acc);
 	entity->dp += dt * acc;
 
-	// std::vector<CollisionResult> collisions = CollideEntity(state, entity);
+	// std::vector<CollisionResult> collisions = CollideEntity(entity);
 
 	// for (const auto& collision : collisions)
 	// {
@@ -271,7 +269,7 @@ void UpdateEntityPlayer(GameState* state, Entity* entity, real32 dt)
 	{
 		if (entity->skills[i].applyHandle != nullptr)
 		{
-			entity->skills[i].applyHandle(state, &entity->skills[i], entity, dt);
+			entity->skills[i].applyHandle(&entity->skills[i], entity, dt);
 		}
 	}
 }

@@ -90,37 +90,34 @@ struct GameState
 	b2World* world;
 };
 
+extern GameState* state;
 // NOTE(Charly): Initialize all the game logic related stuff here
 // TODO(Charly): This should probably be exposed to the scripting
-void InitGame(GameState* gameState);
+void InitGame();
 
 // NOTE(Charly): Do all game logic and computations here
 // TODO(Charly): This should probably be exposed to the scripting
-void UpdateGame(GameState* gameState, real32 dt);
+void UpdateGame(real32 dt);
 
 // NOTE(Charly): Render the current state of the game
 // TODO(Charly): Maybe we need to pass the delta time for some
 //               time dependent effects ?
-void RenderGame(GameState* gameState, real32 dt);
+void RenderGame(real32 dt);
 
 // NOTE(Thomas): Render HUD (atm only in GameMode_Game)
-void RenderHUD(GameState* gameState);
+void RenderHUD();
 
 // TODO(Charly): This should go somewhere else
 // NOTE(Charly): bitmap must not be null, otherwise UB
 void LoadBitmapData(const char* filename, Bitmap* bitmap);
 void ReleaseBitmapData(Bitmap* bitmap);
 
-Entity* CreateEntity(GameState* gameState,
-                     EntityType type,
-                     z::vec2    p,
-                     z::vec2    dp  = z::Vec2(0),
-                     z::vec2    ddp = z::Vec2(0));
+Entity* CreateEntity(EntityType type, z::vec2 p, z::vec2 dp = z::Vec2(0), z::vec2 ddp = z::Vec2(0));
 
-Bitmap* CreateBitmap(GameState* gameState);
-// XXXComponent* CreateXXXComponent(GameState* gameState);
+Bitmap* CreateBitmap();
+// XXXComponent* CreateXXXComponent();
 
-z::vec2 ViewportToWorld(GameState* state, z::vec2 in);
+z::vec2 ViewportToWorld(z::vec2 in);
 
 // NOTE(Charly): Initialize a transform with origin at (0.5, 0.5) instead of (0, 0)
 Transform GetWorldTransform(z::vec2 position);

@@ -66,4 +66,6 @@ constexpr real32 Epsilon32 = std::numeric_limits<real32>::epsilon();
 
 #define STRINGIFY(x) #x
 
+using ComponentID = int32;
+using EntityID    = uint32;
 #endif // RELWARB_DEFINES_H

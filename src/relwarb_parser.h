@@ -3,8 +3,6 @@
 
 #include "relwarb.h"
 
-bool LoadMapFile(GameState * gameState, const char* mapfile);
-
-
+bool LoadMapFile(const char* mapfile);
 
 #endif // RELWARB_PARSER_H

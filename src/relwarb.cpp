@@ -13,113 +13,114 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-internal void ConfigureControllers(GameState* state);
 
-void InitGame(GameState* gameState)
+GameState* state = nullptr;
+
+internal void ConfigureControllers();
+void InitGame()
 {
 	z::SeedRNG((unsigned)time(nullptr));
-	LoadBitmapData("assets/sprites/health_full.png", &gameState->hudHealth[0]);
-	LoadBitmapData("assets/sprites/health_mid.png", &gameState->hudHealth[1]);
-	LoadBitmapData("assets/sprites/health_none.png", &gameState->hudHealth[2]);
-	LoadBitmapData("assets/sprites/mana_full.png", &gameState->hudMana[0]);
-	LoadBitmapData("assets/sprites/mana_none.png", &gameState->hudMana[1]);
-	// LoadBitmapData("assets/sprites/smiley.png", &gameState->particleBitmap);
-	LoadBitmapData("assets/sprites/particle.png", &gameState->particleBitmap);
+	LoadBitmapData("assets/sprites/health_full.png", &state->hudHealth[0]);
+	LoadBitmapData("assets/sprites/health_mid.png", &state->hudHealth[1]);
+	LoadBitmapData("assets/sprites/health_none.png", &state->hudHealth[2]);
+	LoadBitmapData("assets/sprites/mana_full.png", &state->hudMana[0]);
+	LoadBitmapData("assets/sprites/mana_none.png", &state->hudMana[1]);
+	// LoadBitmapData("assets/sprites/smiley.png", &state->particleBitmap);
+	LoadBitmapData("assets/sprites/particle.png", &state->particleBitmap);
 
-	InitializeRenderer(gameState);
-	gameState->projMatrix = z::Ortho(-gameState->viewportSize.x / 2,
-	                                 gameState->viewportSize.x / 2,
-	                                 -gameState->viewportSize.y / 2,
-	                                 gameState->viewportSize.y / 2);
-	real32 ratio          = gameState->viewportSize.x / gameState->viewportSize.y;
+	InitializeRenderer();
+	state->projMatrix = z::Ortho(-state->viewportSize.x / 2,
+	                             state->viewportSize.x / 2,
+	                             -state->viewportSize.y / 2,
+	                             state->viewportSize.y / 2);
+	real32 ratio      = state->viewportSize.x / state->viewportSize.y;
 
 	// NOTE(Thomas): Seems like worldSize should be the one we define, and windows size/viewport
 	// size are computed accordingly.
-	gameState->worldSize = z::Vec2(48, 24);
+	state->worldSize = z::Vec2(48, 24);
 
 	z::mat4 worldMat(1);
-	worldMat[0][0]         = (gameState->viewportSize.x / 2.f) / (gameState->worldSize.x / 2.f);
-	worldMat[1][1]         = (gameState->viewportSize.y / 2.f) / (gameState->worldSize.y / 2.f);
-	gameState->worldMatrix = worldMat;
+	worldMat[0][0]     = (state->viewportSize.x / 2.f) / (state->worldSize.x / 2.f);
+	worldMat[1][1]     = (state->viewportSize.y / 2.f) / (state->worldSize.y / 2.f);
+	state->worldMatrix = worldMat;
 
-	gameState->world = new b2World(b2Vec2(0, -10.0f));
+	state->world = new b2World(b2Vec2(0, -10.0f));
 
 	// NOTE(Thomas): Must be before any other data is created, as indices are hardcoded in the file
-	LoadMapFile(gameState, "config/base_map.ini");
+	LoadMapFile("config/base_map.ini");
 
 	Bitmap* bitmap_p1[2];
-	bitmap_p1[0] = CreateBitmap(gameState);
+	bitmap_p1[0] = CreateBitmap();
 	LoadBitmapData("assets/sprites/p1_stand.png", bitmap_p1[0]);
-	bitmap_p1[1] = CreateBitmap(gameState);
+	bitmap_p1[1] = CreateBitmap();
 	LoadBitmapData("assets/sprites/p1_stand2.png", bitmap_p1[1]);
 
-	Sprite* sprite_p1 = CreateTimeSprite(gameState, 2, bitmap_p1, 0.5f);
+	ComponentID sprite_p1 = CreateTimeSprite(2, bitmap_p1, 0.5f);
 
 	Bitmap* bitmap_p2[2];
-	bitmap_p2[0] = CreateBitmap(gameState);
+	bitmap_p2[0] = CreateBitmap();
 	LoadBitmapData("assets/sprites/p2_stand.png", bitmap_p2[0]);
-	bitmap_p2[1] = CreateBitmap(gameState);
+	bitmap_p2[1] = CreateBitmap();
 	LoadBitmapData("assets/sprites/p2_stand2.png", bitmap_p2[1]);
 
-	Sprite* sprite_p2 = CreateTimeSprite(gameState, 2, bitmap_p2, 0.5f);
+	ComponentID sprite_p2 = CreateTimeSprite(2, bitmap_p2, 0.5f);
 
 	uint8 tiles_indices[] = {1};
 
-	Shape* heroShape = CreateShape(gameState, z::Vec2(1.f, 1.5f));
+	auto heroShape = CreateShape(z::Vec2(1.f, 1.5f));
 
-	RenderingPattern* heroPattern1 = CreateUniqueRenderingPattern(gameState, sprite_p1);
-	CreatePlayerEntity(gameState, z::Vec2(-2, -2), heroPattern1, heroShape, 0);
+	auto heroPattern1 = CreateUniqueRenderingPattern(sprite_p1);
+	CreatePlayerEntity(z::Vec2(-2, -2), heroPattern1, heroShape, 0);
 
-	RenderingPattern* heroPattern2 = CreateUniqueRenderingPattern(gameState, sprite_p2);
-	CreatePlayerEntity(gameState, z::Vec2(2, -2), heroPattern2, heroShape, 1);
+	auto heroPattern2 = CreateUniqueRenderingPattern(sprite_p2);
+	CreatePlayerEntity(z::Vec2(2, -2), heroPattern2, heroShape, 1);
 
-	ConfigureControllers(gameState);
+	ConfigureControllers();
 
-	LoadBitmapData("assets/sprites/corner_topleft.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/corner_topright.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/vertical_left.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/vertical_right.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/corner_bottomleft.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/horizontal_down.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/corner_bottomright.png", CreateBitmap(gameState));
-	LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap(gameState));
+	LoadBitmapData("assets/sprites/corner_topleft.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/corner_topright.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/vertical_left.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/vertical_right.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/corner_bottomleft.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/horizontal_down.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/corner_bottomright.png", CreateBitmap());
+	LoadBitmapData("assets/sprites/horizontal_up.png", CreateBitmap());
 }
 
-void UpdateGame(GameState* gameState, real32 dt)
+void UpdateGame(real32 dt)
 {
 	// NOTE(Charly): Toggle game mode on presses
-	if (IsKeyRisingEdge(gameState, Key_F1))
+	if (IsKeyRisingEdge(Key_F1))
 	{
-		gameState->mode = gameState->mode == GameMode_Game ? GameMode_Editor : GameMode_Game;
+		state->mode = state->mode == GameMode_Game ? GameMode_Editor : GameMode_Game;
 	}
 
 	local_persist bool32 slowDownTime = false;
-	if (IsKeyRisingEdge(gameState, Key_T))
+	if (IsKeyRisingEdge(Key_T))
 	{
 		slowDownTime ^= true;
 	}
 
-	if (slowDownTime)
-		dt *= 0.1f;
+	if (slowDownTime) dt *= 0.1f;
 
-	switch (gameState->mode)
+	switch (state->mode)
 	{
 		case GameMode_Game:
 		{
-			if (IsMouseButtonRisingEdge(gameState, MouseButton_Left))
+			if (IsMouseButtonRisingEdge(MouseButton_Left))
 			{
-				SpawnParticleSystem(gameState, GetCursorWorldPosition(gameState));
+				SpawnParticleSystem(GetCursorWorldPosition());
 			}
 
-			UpdateGameLogic(gameState, dt);
-			UpdateWorld(gameState, dt);
+			UpdateGameLogic(dt);
+			UpdateWorld(dt);
 		}
 		break;
 
 		case GameMode_Editor:
 		{
-			UpdateEditor(gameState);
+			UpdateEditor();
 		}
 		break;
 
@@ -131,27 +132,24 @@ void UpdateGame(GameState* gameState, real32 dt)
 }
 
 // TODO(Charly): Move this in renderer ?
-void RenderGame(GameState* gameState, real32 dt)
+void RenderGame(real32 dt)
 {
-	switch (gameState->mode)
+	switch (state->mode)
 	{
 		case GameMode_Game:
 		{
-			for (uint32 elementIdx = 0; elementIdx < gameState->nbEntities; ++elementIdx)
+			for (uint32 elementIdx = 0; elementIdx < state->nbEntities; ++elementIdx)
 			{
-				Entity* entity = &gameState->entities[elementIdx];
+				Entity* entity = &state->entities[elementIdx];
 				if (EntityHasComponent(entity, ComponentFlag_Renderable))
 				{
-					RenderingPattern* pattern = entity->pattern;
-					z::vec2           pos(entity->p);
-
 					Transform transform = GetWorldTransform(entity->p);
 
 					// TODO(Thomas): Handle drawing size with a drawing size
 					if (EntityHasComponent(entity, ComponentFlag_Collidable))
 					{
-						transform.size = entity->shape->size;
-						transform.origin += entity->shape->offset;
+						transform.size = GetShape(entity)->size;
+						transform.origin += GetShape(entity)->offset;
 					}
 
 					if (entity->entityType == EntityType_Player)
@@ -159,38 +157,34 @@ void RenderGame(GameState* gameState, real32 dt)
 						transform.orientation = entity->orientation < 0.f ? -1 : 1;
 					}
 
-					RenderPattern(pattern, &transform, entity->shape->size);
+					RenderPattern(entity->pattern, &transform, GetShape(entity)->size);
 				}
 			}
 
-			RenderHUD(gameState);
-			RenderText("Hello, World",
-			           z::Vec2(0.0, 0.0),
-			           z::Vec4(1, 0, 0, 1),
-			           gameState,
-			           ObjectType_Debug);
+			RenderHUD();
+			RenderText("Hello, World", z::Vec2(0.0, 0.0), z::Vec4(1, 0, 0, 1), ObjectType_Debug);
 			RenderText("I am another test text !",
 			           z::Vec2(0.0, 0.1),
 			           z::Vec4(0, 1, 0, 1),
-			           gameState,
 			           ObjectType_Debug);
 			RenderText("abcdefghijklmnopqrstuvwxyz 0123456789",
 			           z::Vec2(0.0, 0.2),
 			           z::Vec4(0, 0, 1, 1),
-			           gameState,
 			           ObjectType_Debug);
 
 			char fps[128];
 			snprintf(fps, 128, "dt: %.3f, fps: %.3f", dt, 1 / dt);
-			RenderText(fps, z::Vec2(0.8, 0), z::Vec4(0, 0, 0, 1), gameState, ObjectType_Debug);
+			RenderText(fps, z::Vec2(0.8, 0), z::Vec4(0, 0, 0, 1), ObjectType_Debug);
 
-			FlushRenderQueue(gameState);
+			state->world->DrawDebugData();
+
+			FlushRenderQueue();
 		}
 		break;
 
 		case GameMode_Editor:
 		{
-			RenderEditor(gameState);
+			RenderEditor();
 		}
 		break;
 
@@ -201,16 +195,16 @@ void RenderGame(GameState* gameState, real32 dt)
 	}
 }
 
-void RenderHUD(GameState* gameState)
+void RenderHUD()
 {
-	real32 ratio = gameState->viewportSize.x / gameState->viewportSize.y;
+	real32 ratio = state->viewportSize.x / state->viewportSize.y;
 
 	Transform transform;
 
 	z::vec2 onScreenPos = z::Vec2(0.04, 0.04);
-	for (uint32 i = 0; i < gameState->nbPlayers; ++i)
+	for (uint32 i = 0; i < state->nbPlayers; ++i)
 	{
-		Entity* player = GetPlayerEntity(gameState, i);
+		Entity* player = GetPlayerEntity(i);
 
 		transform.size = z::Vec2(0.0625, 0.0625 * ratio);
 
@@ -228,16 +222,16 @@ void RenderHUD(GameState* gameState)
 			{
 				if (hp + 1 < player->health)
 				{
-					RenderBitmap(&gameState->hudHealth[0], RenderMode_ScreenRelative, &transform);
+					RenderBitmap(&state->hudHealth[0], RenderMode_ScreenRelative, &transform);
 				}
 				else
 				{
-					RenderBitmap(&gameState->hudHealth[1], RenderMode_ScreenRelative, &transform);
+					RenderBitmap(&state->hudHealth[1], RenderMode_ScreenRelative, &transform);
 				}
 			}
 			else
 			{
-				RenderBitmap(&gameState->hudHealth[2], RenderMode_ScreenRelative, &transform);
+				RenderBitmap(&state->hudHealth[2], RenderMode_ScreenRelative, &transform);
 			}
 
 			healthPos.x += 0.0255f;
@@ -250,11 +244,11 @@ void RenderHUD(GameState* gameState)
 			transform.position = manaPos;
 			if (mp < player->mana)
 			{
-				RenderBitmap(&gameState->hudMana[0], RenderMode_ScreenRelative, &transform);
+				RenderBitmap(&state->hudMana[0], RenderMode_ScreenRelative, &transform);
 			}
 			else
 			{
-				RenderBitmap(&gameState->hudMana[1], RenderMode_ScreenRelative, &transform);
+				RenderBitmap(&state->hudMana[1], RenderMode_ScreenRelative, &transform);
 			}
 			manaPos.x += 0.0255f;
 		}
@@ -280,13 +274,13 @@ void ReleaseBitmapData(Bitmap* bitmap)
 	stbi_image_free(bitmap->data);
 }
 
-Entity* CreateEntity(GameState* gameState, EntityType type, z::vec2 p, z::vec2 dp, z::vec2 ddp)
+Entity* CreateEntity(EntityType type, z::vec2 p, z::vec2 dp, z::vec2 ddp)
 {
-	EntityID id = gameState->nbEntities++;
+	EntityID id = state->nbEntities++;
 	Assert(id < WORLD_SIZE);
 
 	static Entity empty  = {};
-	Entity*       result = &gameState->entities[id];
+	Entity*       result = &state->entities[id];
 	*result              = empty;
 
 	result->id = id;
@@ -300,16 +294,16 @@ Entity* CreateEntity(GameState* gameState, EntityType type, z::vec2 p, z::vec2 d
 	return result;
 }
 
-Bitmap* CreateBitmap(GameState* gameState)
+Bitmap* CreateBitmap()
 {
-	ComponentID id = gameState->nbBitmaps++;
+	ComponentID id = state->nbBitmaps++;
 	Assert(id < WORLD_SIZE);
-	Bitmap* result = &gameState->bitmaps[id];
+	Bitmap* result = &state->bitmaps[id];
 
 	return result;
 }
 
-z::vec2 ViewportToWorld(GameState* state, z::vec2 in)
+z::vec2 ViewportToWorld(z::vec2 in)
 {
 	// [0, viewport] -> [0, 1], origin top left
 	z::vec2 result = in / state->viewportSize;
@@ -332,23 +326,23 @@ Transform GetWorldTransform(z::vec2 pos)
 	return result;
 }
 
-internal void ConfigureControllers(GameState* state)
+internal void ConfigureControllers()
 {
-	ConfigureController(state, 0, ControllerType_Keyboard);
-	MapActionToInput(state, 0, Action_Left, Key_Left);
-	MapActionToInput(state, 0, Action_Right, Key_Right);
-	MapActionToInput(state, 0, Action_Up, Key_Up);
-	MapActionToInput(state, 0, Action_Down, Key_Down);
-	MapActionToInput(state, 0, Action_Jump, Key_Up);
-	MapActionToInput(state, 0, Action_Skill1, Key_Space);
-	MapActionToInput(state, 0, Action_Skill2, Key_LShift);
+	ConfigureController(0, ControllerType_Keyboard);
+	MapActionToInput(0, Action_Left, Key_Left);
+	MapActionToInput(0, Action_Right, Key_Right);
+	MapActionToInput(0, Action_Up, Key_Up);
+	MapActionToInput(0, Action_Down, Key_Down);
+	MapActionToInput(0, Action_Jump, Key_Up);
+	MapActionToInput(0, Action_Skill1, Key_Space);
+	MapActionToInput(0, Action_Skill2, Key_LShift);
 
-	ConfigureController(state, 1, ControllerType_Gamepad, 0);
-	MapActionToInput(state, 1, Action_Left, GamepadButton_PadLeft);
-	MapActionToInput(state, 1, Action_Right, GamepadButton_PadRight);
-	MapActionToInput(state, 1, Action_Up, GamepadButton_PadUp);
-	MapActionToInput(state, 1, Action_Down, GamepadButton_PadDown);
-	MapActionToInput(state, 1, Action_Jump, GamepadButton_A);
-	MapActionToInput(state, 1, Action_Skill1, GamepadButton_X);
-	MapActionToInput(state, 1, Action_Skill2, GamepadButton_Y);
+	ConfigureController(1, ControllerType_Gamepad, 0);
+	MapActionToInput(1, Action_Left, GamepadButton_PadLeft);
+	MapActionToInput(1, Action_Right, GamepadButton_PadRight);
+	MapActionToInput(1, Action_Up, GamepadButton_PadUp);
+	MapActionToInput(1, Action_Down, GamepadButton_PadDown);
+	MapActionToInput(1, Action_Jump, GamepadButton_A);
+	MapActionToInput(1, Action_Skill1, GamepadButton_X);
+	MapActionToInput(1, Action_Skill2, GamepadButton_Y);
 }

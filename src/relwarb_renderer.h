@@ -14,152 +14,161 @@ struct Entity;
 
 enum SpriteType
 {
-    SpriteType_Still = 0,
-    SpriteType_Timed,
+	SpriteType_Still = 0,
+	SpriteType_Timed,
 };
 
 struct Sprite
 {
-    SpriteType spriteType;
-    union {
-        Bitmap* stillSprite;
+	SpriteType spriteType;
+	union {
+		Bitmap* stillSprite;
 
-        // Time based sprite
-        struct {
-            uint32 nbSteps;
-            Bitmap** steps;
-            uint32 currentStep;
-            real32 stepTime;
+		// Time based sprite
+		struct
+		{
+			uint32   nbSteps;
+			Bitmap** steps;
+			uint32   currentStep;
+			real32   stepTime;
 
-            bool32 active;
-            real32 elapsed;
-        };
-    };
+			bool32 active;
+			real32 elapsed;
+		};
+	};
 };
 
 enum RenderingPatternType
 {
-    RenderingPattern_Unique = 0,
-    RenderingPattern_Multi,
-    RenderingPattern_Fill,
+	RenderingPattern_Unique = 0,
+	RenderingPattern_Multi,
+	RenderingPattern_Fill,
 };
 
 struct RenderingPattern
 {
-    RenderingPatternType patternType;
+	RenderingPatternType patternType;
 
-    union {
-        // Unique pattern
-        struct {
-            Sprite* unique;
-        };
+	union {
+		// Unique pattern
+		struct
+		{
+			Sprite* unique;
+		};
 
-        // Multiple state pattern
-        struct {
-            uint32 current;
-            Sprite** bitmaps;
-        };
+		// Multiple state pattern
+		struct
+		{
+			uint32   current;
+			Sprite** bitmaps;
+		};
 
-        // Fill pattern
-        // TODO(Thomas): Handle fill pattern evolving through time or something
-        struct {
-            z::vec2 size;
-            uint8* pattern;
-            Bitmap** tiles;
-        };
-    };
+		// Fill pattern
+		// TODO(Thomas): Handle fill pattern evolving through time or something
+		struct
+		{
+			z::vec2  size;
+			uint8*   pattern;
+			Bitmap** tiles;
+		};
+	};
 
-    RenderingPattern() {}
+	RenderingPattern() {}
 };
 
 struct Transform
 {
-    z::vec2 position;
-    z::vec2 size = z::Vec2(1);
-    z::vec2 origin = z::Vec2(0);
+	z::vec2 position;
+	z::vec2 size   = z::Vec2(1);
+	z::vec2 origin = z::Vec2(0);
 
-    real32 rotation = 0;
-    int orientation = 1;    // NOTE(Charly): Negative value if looking left,
-                            //               Positive value otherwise.
+	real32 rotation    = 0;
+	int    orientation = 1; // NOTE(Charly): Negative value if looking left,
+	                        //               Positive value otherwise.
 };
 
 // FIXME(Charly): Not sure about the name ...
 enum RenderMode
 {
-    RenderMode_World,
-    RenderMode_ScreenAbsolute,
-    RenderMode_ScreenRelative,
+	RenderMode_World,
+	RenderMode_ScreenAbsolute,
+	RenderMode_ScreenRelative,
 };
 
 // FIXME(Charly): Not sure about the name ...
 enum ObjectType
 {
-    ObjectType_Default,
-    ObjectType_Debug,
-    ObjectType_UI,
+	ObjectType_Default,
+	ObjectType_Debug,
+	ObjectType_UI,
 };
 
 struct Vertex
 {
-    z::vec2 position;
-    z::vec2 texcoord;
+	z::vec2 position;
+	z::vec2 texcoord;
 };
 
 struct Mesh
 {
-    RenderMode renderMode;
-    GLuint program;
-    GLuint texture;
+	RenderMode renderMode;
+	GLuint     program;
+	GLuint     texture;
 
-    std::vector<Vertex> vertices;
-    std::vector<GLuint> indices;
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
 
-    z::mat3 worldTransform;
-    z::vec4 color;
+	z::mat3 worldTransform;
+	z::vec4 color;
 };
 
-void InitializeRenderer(GameState* gameState);
-void ResizeRenderer(GameState* gameState);
-void FlushRenderQueue(GameState* gameState);
+void InitializeRenderer();
+void ResizeRenderer();
+void FlushRenderQueue();
 
-Sprite* CreateStillSprite(GameState* gameState, Bitmap* bitmap);
+ComponentID CreateStillSprite(Bitmap* bitmap);
 
-Sprite* CreateTimeSprite(GameState* gameState, uint32 nbBitmaps, Bitmap** bitmaps, real32 stepTime, bool32 active = true);
+ComponentID CreateTimeSprite(uint32   nbBitmaps,
+                             Bitmap** bitmaps,
+                             real32   stepTime,
+                             bool32   active = true);
 
 Bitmap* GetSpriteBitmap(const Sprite* sprite);
 
 // NOTE(Thomas): Maybe just merge into render function or something ?
 void UpdateSpriteTime(Sprite* sprite, real32 dt);
 
-RenderingPattern* CreateUniqueRenderingPattern( GameState* gameState,
-                                                Sprite* sprite);
+ComponentID CreateUniqueRenderingPattern(ComponentID sprite);
 
-RenderingPattern* CreateHeroRenderingPattern(   GameState* gameState,
-                                                Sprite** sprites);
+ComponentID CreateHeroRenderingPattern(Sprite** sprites);
 
-RenderingPattern* CreateFillRenderingPattern(   GameState* gameState,
-                                                z::vec2 size,
-                                                uint8* pattern,
-                                                uint8 nbBitmaps,
-                                                Bitmap** bitmaps);
+ComponentID CreateFillRenderingPattern(z::vec2  size,
+                                       uint8*   pattern,
+                                       uint8    nbBitmaps,
+                                       Bitmap** bitmaps);
 
-void AddRenderingPatternToEntity(Entity* entity, RenderingPattern* pattern);
+RenderingPattern* GetPattern(Entity* entity);
 
-void RenderPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size = z::Vec2(0));
+void AddRenderingPatternToEntity(Entity* entity, ComponentID pattern);
+
+void RenderPattern(ComponentID pattern, Transform* transform, z::vec2 size = z::Vec2(0));
 
 // Render the pattern at the position given in transform, and repeated to fit the given size
-void RenderFillPattern(RenderingPattern* pattern, Transform* transform, z::vec2 size);
+void RenderFillPattern(ComponentID pattern, Transform* transform, z::vec2 size);
 
-void RenderBitmap(Bitmap* bitmap, RenderMode mode, Transform* transform, z::vec4 color = z::Vec4(1));
-void RenderParticles(GameState* gameState);
+void RenderBitmap(Bitmap*    bitmap,
+                  RenderMode mode,
+                  Transform* transform,
+                  z::vec4    color = z::Vec4(1));
+void RenderParticles();
 
 void LoadTexture(Bitmap* bitmap);
 // NOTE(Charly): Cleanup GPU memory
 void ReleaseTexture(Bitmap* bitmap);
 
-void RenderText(const char* text, z::vec2 pos, z::vec4 color, GameState* state, ObjectType type);
+void RenderText(const char* text, z::vec2 pos, z::vec4 color, ObjectType type);
 void RenderMesh(const Mesh* mesh, z::mat3 projectionMatrix);
 
 z::mat3 GetTransformMatrix(RenderMode renderMode, Transform* transform);
-z::mat3 GetProjectionMatrix(RenderMode renderMode, GameState* gameState);
+z::mat3 GetProjectionMatrix(RenderMode renderMode);
 #endif // RELWARB_RENDERER_H

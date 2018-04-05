@@ -15,9 +15,10 @@
 
 global_variable real32 rigidBodySpawnTimer = 0.f;
 
-void UpdateWorld(GameState* gameState, real32 dt)
+
+void UpdateWorld(real32 dt)
 {
-	UpdateParticleSystems(gameState, dt);
+	UpdateParticleSystems(dt);
 
 	// if (rigidBodySpawnTimer <= 0)
 	// {
@@ -37,11 +38,17 @@ void UpdateWorld(GameState* gameState, real32 dt)
 
 	const int32 velocityIterations = 6;
 	const int32 positionIterations = 2;
-	gameState->world->Step(dt, 6, 2);
+	state->world->Step(dt, 6, 2);
+
 }
 
-void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data)
 {
+
+void SetupDynamicEntity(Entity* entity, PhysicsEntityData data)
+{
+	uint32 bodyIndex = state->nbRigidBodies++;
+	entity->body     = bodyIndex;
+
 	b2BodyDef def;
 	def.position.Set(data.position.x, data.position.y);
 
@@ -58,15 +65,19 @@ void SetupDynamicEntity(GameState* state, Entity* entity, PhysicsEntityData data
 			break;
 	}
 
-	entity->body = state->world->CreateBody(&def);
+	b2Body* body = state->world->CreateBody(&def);
 
 	b2PolygonShape shape;
 	shape.SetAsBox(data.extents.x, data.extents.y);
 
-	entity->body->CreateFixture(&shape, data.mass);
+	body->CreateFixture(&shape, data.mass);
+
+	RigidBody* rigidBody = state->bodies + bodyIndex;
+	rigidBody->type      = data.type;
+	rigidBody->body      = body;
 }
 
-Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset)
+ComponentID CreateShape(z::vec2 size, z::vec2 offset)
 {
 	ComponentID id = state->nbShapes++;
 	Assert(id < WORLD_SIZE);
@@ -75,11 +86,27 @@ Shape* CreateShape(GameState* state, z::vec2 size, z::vec2 offset)
 	result->size   = size;
 	result->offset = offset;
 
-	return result;
+	return id;
 }
 
-void AddShapeToEntity(Entity* entity, Shape* shape)
+void AddShapeToEntity(Entity* entity, ComponentID shape)
 {
 	entity->shape = shape;
 	SetEntityComponent(entity, ComponentFlag_Collidable);
+}
+
+Shape* GetShape(Entity* entity)
+{
+	Shape* result = nullptr;
+	if (entity->shape >= 0) result = state->shapes + entity->shape;
+
+	return result;
+}
+
+RigidBody* GetRigidBody(Entity* entity)
+{
+	RigidBody* result = nullptr;
+	if (entity->body >= 0) result = state->bodies + entity->body;
+
+	return result;
 }

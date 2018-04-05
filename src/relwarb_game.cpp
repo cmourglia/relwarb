@@ -16,7 +16,7 @@ bool CreateDashSkill(Skill* skill, Entity* entity)
 	skill->dash.manaCost = 1;
 	// NOTE(Thomas): Magic numbers to tailor
 	skill->dash.duration         = 0.25f;
-	skill->dash.horizDistance    = entity->shape->size.x * 5.f;
+	skill->dash.horizDistance    = GetShape(entity)->size.x * 5.f;
 	skill->dash.cooldownDuration = 0.1f;
 
 	return true;
@@ -54,21 +54,21 @@ bool CreatePassiveRegeneration(Skill* skill, Entity* executive)
 	return true;
 }
 
-bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
+bool DashTrigger(Skill* skill, Entity* entity)
 {
 	if (skill->dash.remainingCooldown <= 0.f && !skill->isActive &&
 	    entity->mana >= skill->dash.manaCost && !(entity->status & EntityStatus_Rooted))
 	{
-		if (IsActionPressed(gameState, entity->controllerId, Action_Left) ||
-		    IsActionPressed(gameState, entity->controllerId, Action_Right))
+		if (IsActionPressed(entity->controllerId, Action_Left) ||
+		    IsActionPressed(entity->controllerId, Action_Right))
 		{
 			entity->mana -= skill->dash.manaCost;
 			skill->isActive     = true;
 			skill->dash.elapsed = 0.f;
 			// z::vec2 initPos =
-			skill->dash.initialPos = entity->p + entity->shape->size * z::Vec2(0.0, 1.0);
+			skill->dash.initialPos = entity->p + GetShape(entity)->size * z::Vec2(0.0, 1.0);
 
-			if (IsActionPressed(gameState, entity->controllerId, Action_Left))
+			if (IsActionPressed(entity->controllerId, Action_Left))
 			{
 				skill->dash.direction = -1.f;
 			}
@@ -83,7 +83,7 @@ bool DashTrigger(GameState* gameState, Skill* skill, Entity* entity)
 	return false;
 }
 
-bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity)
+bool ManaTrigger(Skill* skill, Entity* entity)
 {
 	if (skill->mana.remainingCooldown <= 0.f && !skill->isActive &&
 	    (entity->status & EntityStatus_Landed))
@@ -97,7 +97,7 @@ bool ManaTrigger(GameState* gameState, Skill* skill, Entity* entity)
 	return false;
 }
 
-bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* entity)
+bool PassiveRegenerationTrigger(Skill* skill, Entity* entity)
 {
 	if (!skill->isActive)
 	{
@@ -113,7 +113,7 @@ bool PassiveRegenerationTrigger(GameState* gameState, Skill* skill, Entity* enti
 	}
 }
 
-bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
+bool DashApply(Skill* skill, Entity* executive, real32 dt)
 {
 	skill->dash.remainingCooldown -= dt;
 	if (skill->dash.remainingCooldown <= 0.f)
@@ -142,13 +142,12 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 		z::vec4   currentColor = z::Vec4(1.f - interpolate, interpolate, 0.f, 1.f);
 		Transform transform    = {};
 		transform.origin       = z::Vec2(0.5, 0.0);
-		auto worldToNormalize  = GetProjectionMatrix(RenderMode_World, gameState) *
+		auto worldToNormalize  = GetProjectionMatrix(RenderMode_World) *
 		                        GetTransformMatrix(RenderMode_World, &transform);
 		auto normalizePos = worldToNormalize * skill->dash.initialPos;
 		RenderText("Dash !",
 		           normalizePos * z::Vec2(0.5, 0.5) + z::Vec2(0.5, 0.5),
 		           currentColor,
-		           gameState,
 		           ObjectType::ObjectType_UI);
 
 		return true;
@@ -156,7 +155,7 @@ bool DashApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 	return false;
 }
 
-bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
+bool ManaApply(Skill* skill, Entity* executive, real32 dt)
 {
 	skill->mana.remainingCooldown -= dt;
 	if (skill->mana.remainingCooldown <= 0.f)
@@ -195,14 +194,13 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 
 		Transform transform   = {};
 		transform.origin      = z::Vec2(0.5, 0.0);
-		auto worldToNormalize = GetProjectionMatrix(RenderMode_World, gameState) *
+		auto worldToNormalize = GetProjectionMatrix(RenderMode_World) *
 		                        GetTransformMatrix(RenderMode_World, &transform);
 		auto normalizePos = worldToNormalize *
-		                    (executive->p + executive->shape->size * z::Vec2(0.0, 1.0));
+		                    (executive->p + GetShape(executive)->size * z::Vec2(0.0, 1.0));
 		RenderText("Mana !",
 		           normalizePos * z::Vec2(0.5, 0.5) + z::Vec2(0.5, 0.5),
 		           currentColor,
-		           gameState,
 		           ObjectType::ObjectType_UI);
 
 		return true;
@@ -210,7 +208,7 @@ bool ManaApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
 	return false;
 }
 
-bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* executive, real32 dt)
+bool PassiveRegenerationApply(Skill* skill, Entity* executive, real32 dt)
 {
 	// Skill is always active
 	if (!(executive->status & EntityStatus::EntityStatus_Stunned))
@@ -241,19 +239,19 @@ bool PassiveRegenerationApply(GameState* gameState, Skill* skill, Entity* execut
 	return false;
 }
 
-void UpdateGameLogic(GameState* gameState, real32 dt)
+void UpdateGameLogic(real32 dt)
 {
-	for (uint32 entityId = 0; entityId < gameState->nbEntities; ++entityId)
+	for (uint32 entityId = 0; entityId < state->nbEntities; ++entityId)
 	{
-		Entity* entity = gameState->entities + entityId;
+		Entity* entity = state->entities + entityId;
 		if (entity->updateFunc)
 		{
-			entity->updateFunc(gameState, entity, dt);
+			entity->updateFunc(entity, dt);
 		}
 	}
 
-	for (uint32 spriteIdx = 0; spriteIdx < gameState->nbSprites; ++spriteIdx)
+	for (uint32 spriteIdx = 0; spriteIdx < state->nbSprites; ++spriteIdx)
 	{
-		UpdateSpriteTime(&gameState->sprites[spriteIdx], dt);
+		UpdateSpriteTime(&state->sprites[spriteIdx], dt);
 	}
 }
